@@ -26,7 +26,7 @@ $EDITOR evaluation/ocr/corpus/SOURCES.md
 python tools/generate_expected.py --fixture evaluation/ocr/corpus/images/<name>.<ext>
 
 # 4. classify it: which band fit may learn from it, and whether the site shows it
-$EDITOR evaluation/ocr/corpus/splits.toml         # [excluded] until a split is designed; [published] is opt-in
+$EDITOR evaluation/ocr/corpus/splits.toml         # [excluded] until a split is designed
 
 # 5. the Tesseract gate: does CI hold it to the thresholds?
 $EDITOR tests/ocr/test_thresholds.py              # KNOWN_TESSERACT_LIMITATIONS unless it clears both
@@ -50,13 +50,22 @@ and the regenerated benchmark together.
 **`splits.toml` (4) fails loudly**, on purpose: `tests/ocr/test_calibration.py`
 asserts that every split accounts for every fixture, so an unclassified scan
 fails CI. Put a new one in `[excluded]`; folding it into a split's fit or
-held-out set is a decision about the band fit, not housekeeping. `[published]`
-is opt-in, so a new scan is calibration-only until it is named there.
+held-out set is a decision about the band fit, not housekeeping.
+
+`[published]` in the same file records which scans the site is *meant* to
+show, but nothing reads it except a check that its names exist: the harness
+scores every fixture with ground truth, and the benchmark table renders every
+row, so a new scan appears in the results as soon as step 8 runs. What you do
+control is the corpus page card (7).
 
 **The threshold test (5) fails loudly too.** A fixture *absent* from
 `KNOWN_TESSERACT_LIMITATIONS` is one CI holds to both thresholds, and the band
 fitter treats that as a hard constraint. List it on arrival, as the file's own
 comment explains, and take it off once the measurement says it clears both.
+The fitter keeps its own copy of the gated set, `CI_GATED` in
+`evaluation/ocr/calibration/fit.py`, and `test_calibration` fails until the two
+agree, so change both together. Changing which fixtures are gated changes the
+fit's constraints: re-fit afterwards (below).
 
 **Thumbnails (6) and the corpus card (7).** The renditions are committed
 rather than built, so a new item is simply *missing* from the corpus page
@@ -75,10 +84,18 @@ this corpus**: the split named in `FIT_PROVENANCE` in that module, defined in
 `splits.toml`.
 
 If the corpus changes materially, re-fit them with the calibration toolkit
-under `evaluation/ocr/calibration/` (`sweep`, then `fit --write`) rather than
-editing the numbers by hand; CI's `fit --check` fails if they disagree. A
-corrected transcript invalidates that fixture's sweep rows:
-`sweep --fixture <stem> --save` re-measures just that one.
+rather than editing the numbers by hand. All three steps write committed
+files, and each needs its flag or it only prints:
+
+```bash
+python -m evaluation.ocr.calibration.features --write   # pixel statistics; a new raster needs this first
+python -m evaluation.ocr.calibration.sweep --save       # re-measure every configuration
+python -m evaluation.ocr.calibration.fit --write        # regenerate the bands in tuning.py
+```
+
+Skip `--save` and `fit --write` re-fits the old measurements, and CI's
+`fit --check` still passes. A corrected transcript invalidates only that
+fixture's sweep rows: `sweep --fixture <stem> --save`, then `fit --write`.
 Left un-refitted, `tesseract-auto` quietly becomes miscalibrated: it keeps
 working, and merely gets worse.
 
