@@ -28,8 +28,10 @@ management (briefs, decisions, research) lives in the private
 | The evaluations | `evaluation/<pipeline>/` | One subpackage per pipeline: its corpus, its harness, its results. `evaluation/ocr/` is the only one so far |
 | The tests | `tests/<pipeline>/` | Likewise. `conftest.py` stays at `tests/` — it is shared fixture setup |
 | The site | `site/` | The Hugo documentation site — its own npm project, with `content/`, `layouts/` and `assets/` inside it |
-| Deployments | `deploy/` | Compose stacks for things to develop against. `deploy/omeka/` is an Omeka S proof of concept |
 | The Pages Functions | `functions/` | Cloudflare Pages Functions proxying Plausible. At the repository root, not in `site/`, because Cloudflare resolves them against the Pages root directory |
+
+The Omeka S demo, with its pinned local stack, lives in its own repository,
+`tetrak-omeka`, which uses Tetrak as an installed package.
 
 The distribution is named `tetrak`, not `tetrak-ocr` — it carries all three
 packages. The console script stays `tetrak-ocr`; `[project.scripts]` is

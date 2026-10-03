@@ -83,10 +83,6 @@ tools/.image-cache/
 /docs/_build/
 /docs/generated/
 
-# Local Omeka credentials, copied from deploy/omeka/.env.example. Not secret
-# -- the service binds to localhost -- but machine-local all the same.
-deploy/omeka/.env
-
 # Cached OCR spans for the layout experiments -- regenerable by
 # tools/dump_layout_spans.py, and specific to the weights that produced them.
 evaluation/layout/spans/
