@@ -25,27 +25,54 @@ $EDITOR evaluation/ocr/corpus/SOURCES.md
 # 3. ground truth
 python tools/generate_expected.py --fixture evaluation/ocr/corpus/images/<name>.<ext>
 
-# 4. site renditions  (committed, not built — see below)
+# 4. classify it: which band fit may learn from it, and whether the site shows it
+$EDITOR evaluation/ocr/corpus/splits.toml         # [excluded] until a split is designed
+
+# 5. the Tesseract gate: does CI hold it to the thresholds?
+$EDITOR tests/ocr/test_thresholds.py              # KNOWN_TESSERACT_LIMITATIONS unless it clears both
+
+# 6. site renditions  (committed, not built — see below)
 python tools/generate_corpus_thumbnails.py
 
-# 5. a card on the corpus page
+# 7. a card on the corpus page, if it is in [published]
 $EDITOR site/content/reference/corpus.md          # add a {{< lightbox >}} entry
 
-# 6. re-measure
+# 8. re-measure
 tetrak-ocr evaluate --all --save
 ```
 
 Commit the image, its `expected/` transcript, the SOURCES.md entry, the
-renditions, the corpus page card, and the regenerated benchmark together.
+`splits.toml` and threshold-test entries, the renditions, the corpus page card,
+and the regenerated benchmark together.
 
-## The two steps that fail silently
+## The steps that fail silently, and the ones that fail loudly
 
-**Thumbnails (4) and the corpus card (5).** The renditions are committed
+**`splits.toml` (4) fails loudly**, on purpose: `tests/ocr/test_calibration.py`
+asserts that every split accounts for every fixture, so an unclassified scan
+fails CI. Put a new one in `[excluded]`; folding it into a split's fit or
+held-out set is a decision about the band fit, not housekeeping.
+
+`[published]` in the same file records which scans the site is *meant* to
+show, but nothing reads it except a check that its names exist: the harness
+scores every fixture with ground truth, and the benchmark table renders every
+row, so a new scan appears in the results as soon as step 8 runs. What you do
+control is the corpus page card (7).
+
+**The threshold test (5) fails loudly too.** A fixture *absent* from
+`KNOWN_TESSERACT_LIMITATIONS` is one CI holds to both thresholds, and the band
+fitter treats that as a hard constraint. List it on arrival, as the file's own
+comment explains, and take it off once the measurement says it clears both.
+The fitter keeps its own copy of the gated set, `CI_GATED` in
+`evaluation/ocr/calibration/fit.py`, and `test_calibration` fails until the two
+agree, so change both together. Changing which fixtures are gated changes the
+fit's constraints: re-fit afterwards (below).
+
+**Thumbnails (6) and the corpus card (7).** The renditions are committed
 rather than built, so a new item is simply *missing* from the corpus page
 until both are done. Nothing errors; the grid is one entry short and looks
 entirely normal.
 
-**SOURCES.md (2).** Nothing enforces it, and an image whose rights are not
+**SOURCES.md (2) fails silently.** Nothing enforces it, and an image whose rights are not
 recorded cannot be published — which is discovered much later, by someone who
 has to work out where it came from.
 
@@ -53,17 +80,28 @@ has to work out where it came from.
 
 `analyse_image()` picks contrast and PSM from pixel statistics, and its
 thresholds in `src/tetrak_ocr/backends/tuning.py` were **fitted to part of
-this corpus** — `FIT_PROVENANCE` in that module records exactly which images,
-and which were not.
+this corpus**: the split named in `FIT_PROVENANCE` in that module, defined in
+`splits.toml`.
 
 If the corpus changes materially, re-fit them with the calibration toolkit
-under `evaluation/ocr/calibration/` rather than editing the numbers by hand.
+rather than editing the numbers by hand. All three steps write committed
+files, and each needs its flag or it only prints:
+
+```bash
+python -m evaluation.ocr.calibration.features --write   # pixel statistics; a new raster needs this first
+python -m evaluation.ocr.calibration.sweep --save       # re-measure every configuration
+python -m evaluation.ocr.calibration.fit --write        # regenerate the bands in tuning.py
+```
+
+Skip `--save` and `fit --write` re-fits the old measurements, and CI's
+`fit --check` still passes. A corrected transcript invalidates only that
+fixture's sweep rows: `sweep --fixture <stem> --save`, then `fit --write`.
 Left un-refitted, `tesseract-auto` quietly becomes miscalibrated: it keeps
 working, and merely gets worse.
 
-**Do not fold held-out fixtures into a re-fit without saying so.** The images
-added after the original fit are held-out data for `tesseract-auto` and
-nothing special for any other backend. A band set scored only on the images it
+**Do not fold held-out fixtures into a re-fit without saying so.** A split's
+held-out fixtures are held-out data for `tesseract-auto` and nothing special
+for any other backend. A band set scored only on the images it
 was fitted to tells you nothing about whether it generalises — that property
 is worth more than the accuracy it costs.
 

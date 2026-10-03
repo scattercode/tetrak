@@ -12,10 +12,13 @@ places will drift.
 
 ## What this repository is
 
-Separable things that share a repo, deliberately. One repository keeps the
-coordination cost down for a two-person project, and the coupling is real:
-the site reads `evaluation/ocr/benchmark.csv` at build time through a module
-mount, and a publisher serves both pipelines rather than either.
+The public half of the project: the pipelines, what measures them, and the
+site that publishes the results. Separable things that share a repo
+deliberately, because the coupling is real: the site reads
+`evaluation/ocr/benchmark.csv` and `registers.csv` at build time through module
+mounts, and a publisher serves both pipelines rather than either. Product
+management (briefs, decisions, research) lives in the private
+`tetrak-product` repository; see "Briefs, decisions and research" below.
 
 | Part | Path | What it is |
 |---|---|---|
@@ -52,7 +55,7 @@ never type a number into either renderer.
 ```bash
 brew install tesseract poppler          # macOS system dependencies
 python3 -m venv .venv && source .venv/bin/activate
-pip install -e '.[dev]'                 # add ,claude / ,easyocr / ,paddle / ,marker as needed
+pip install -e '.[dev]'                 # add extras as needed: [dev,all,armenian] is everything
 ```
 
 The Claude backend needs `ANTHROPIC_API_KEY` in `.env` at the repo root.
@@ -94,13 +97,11 @@ framework via `ocrmac`, declared with a `sys_platform` marker so `[all]` still
 installs on Linux. `registry.py` is the single source of truth for that
 list — add a backend there and the CLI, the harness and the docs all pick it up.
 
-`auto-local-fast` was removed after `evaluate --all` measured it: in every
-installed configuration it was at best equal to naming a cheap backend
-directly. The one capability it uniquely had — a single engine plus the
-triage quality gate — is now `batch --quality-gate`, which applies the
-threshold to whichever backend you name. The gate judges a transcript, not an
-engine. It is opt-in because it changes which files reach `workspace/processed/`, and
-needs the `qa` extra (checked up front, not on the first file).
+`batch --quality-gate` sends a poor transcript from any backend to
+`workspace/triage/`. It judges a transcript, not an engine, so it is a flag
+rather than a backend (an `auto-local-fast` backend was tried and withdrawn).
+It is opt-in because it changes which files reach `workspace/processed/`, and
+needs the `qa` extra, checked up front rather than on the first file.
 
 ## Conventions that matter
 
@@ -301,20 +302,23 @@ actually assembled (neither segment comes from where you would think), the
 `authors.toml` key, the standfirst's three jobs, relref linking, and the rule
 that benchmark numbers are cited and never transcribed.
 
-
 ## Briefs, decisions and research
 
-Product management (briefs, architecture decisions, design research, user
-research, the roadmap) is not part of the public project. It is moving to a
-private repository, `tetrak-product`; until that split lands it sits in
-`product/`, with its own `product/CLAUDE.md`.
+Product management (briefs, architecture decisions, design and user research,
+the roadmap, article drafts) lives in the private `tetrak-product` repository,
+not here. This repository's history starts at the split on 3 October 2026;
+`tetrak-product`'s history holds everything before it, including the record of
+this code.
 
 From the code and the site, **cite it by number, never by path or link**:
-"brief 008 (searchable PDF)", "ADR 001". A path couples public code to a
-private layout and breaks when a file moves. `site/tests/site.spec.ts` fails
-the build if site content links into `product/`. When the reasoning behind a
+"brief 008 (searchable PDF)", "ADR 001". A reader of the public repository
+cannot follow a link into the private one. `site/tests/site.spec.ts` fails the
+build if site content links into `product/`. When the reasoning behind a
 decision matters to users, put a paragraph of it on the site's research pages
 instead.
+
+A feature that came from a brief usually lands as two pull requests: the code
+here, and the brief's status in `tetrak-product`.
 
 ## CI
 
@@ -329,6 +333,8 @@ instead.
   deploys.
 - `sphinx-docs.yml` — builds the `docs/` Sphinx site on every push and PR as a
   check; deploys to GitHub Pages only on push to `main`. See Deployment below.
+- `pr-title.yml` — the pull request title must be a Conventional Commit, since
+  squash-merging makes it the commit on `main` that the release reads.
 - `release.yml` — see below.
 
 The site and Sphinx checks skip paths they cannot be affected by (`docs/**`
@@ -340,16 +346,15 @@ superseded in-flight runs.
 
 The documentation site is deployed to **Cloudflare Pages** at
 [tetrak.dev](https://tetrak.dev/), which builds and deploys automatically on
-every push to `main`. No manual step is required. The old
-`scattercode.github.io/ocr-pipeline/` GitHub Pages site, from the pre-Hugo
-mkdocs era, is gone.
+every push to `main`. No manual step is required.
 
-GitHub Pages itself is back in use, though, for a narrower purpose: the
-Sphinx CLI/API reference in `docs/` (see below) is unrelated to that old
-site and publishes to `https://scattercode.github.io/tetrak/` via
-`.github/workflows/sphinx-docs.yml`, deployed on every push to `main`. It is
-scoped strictly to CLI + Python API reference — narrative content stays on
-the Hugo site.
+The Sphinx CLI/API reference in `docs/` publishes separately, to GitHub Pages
+at `https://scattercode.github.io/tetrak/`, via
+`.github/workflows/sphinx-docs.yml` on every push to `main`. It is scoped
+strictly to the CLI and Python API reference; narrative content stays on the
+Hugo site.
+
+The Cloudflare Pages project:
 
 | Setting | Value |
 |---|---|
@@ -405,10 +410,11 @@ their own lint script: ESLint will not read files above its config, so
 
 ## Git hooks
 
-Managed by [Lefthook](https://lefthook.dev) (`lefthook.yml`); install once with
-`lefthook install`.
+Managed by [Lefthook](https://lefthook.dev) (`lefthook.yml`), installed by
+`npm ci` in `site/` or by `lefthook install`.
 
-- **pre-commit** — `ruff check` and `ruff format --check` on staged Python.
+- **pre-commit** — `ruff check` and `ruff format --check` on staged Python, and
+  the site's linters when site files are staged.
 - **commit-msg** — [Conventional Commits](https://www.conventionalcommits.org/)
   via the shared `.githooks/commit-msg`.
 
@@ -437,24 +443,18 @@ Releases are automated — do not perform them by hand.
   commit and tag. Its credentials are the org secrets `RELEASE_CLIENT_ID`
   and `RELEASE_APP_PRIVATE_KEY`.
 
-  This replaced a changelog pull request with auto-merge, which could never
-  land: a pull request opened with `GITHUB_TOKEN` does not trigger workflows,
-  so the required checks never started. GitHub Actions itself cannot be given
-  the bypass -- it is not an installable app, so a ruleset has no identity to
-  name -- which is why this needs an App at all. A ruleset
-  requires a pull request, and there is no way to exempt the bot: a bypass must
-  name an actor, and GitHub Actions is not an installable app, so only
-  repository admins, organisation admins and deploy keys can be named. Issuing
-  CI an admin token was the alternative and was declined. Tags are unaffected —
-  a tag is not a branch, so protection does not apply to it.
+  Why an App: a ruleset bypass must name an actor, and GitHub Actions is not
+  an installable app, so it cannot be named; a changelog pull request opened
+  with `GITHUB_TOKEN` never triggers the required checks, so it could never
+  merge either. Issuing CI an admin token was the alternative and was
+  declined. Tags are unaffected: a tag is not a branch.
 - Never edit `CHANGELOG.md` by hand — change the commit messages or the
   `commit_parsers` in `cliff.toml` instead.
 - Never create tags or Releases manually.
 - **The package version comes from the git tag**, via `hatch-vcs`. Do not add a
   `version = "..."` literal back to `pyproject.toml`: nothing updates it, so it
-  silently goes stale. It previously read 0.2.2 across the 1.0.0–1.0.3
-  releases. `src/tetrak_ocr/_version.py` is generated at build time and
-  gitignored.
+  silently goes stale. `src/tetrak_ocr/_version.py` is generated at build time
+  and gitignored.
 - `fix` → patch, `feat` → minor, `!` → major. Choose types accordingly.
 - Tooling commits use `chore(release):` or `chore(changelog):` so the parser
   skips them.
