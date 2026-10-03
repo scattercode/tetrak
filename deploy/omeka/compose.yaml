@@ -1,0 +1,61 @@
+# Omeka S, as a local proof of concept for publishing transcripts.
+#
+# This is somewhere to try the idea, not a deployment. It binds to localhost,
+# the credentials are in .env and are not secrets, and the volumes are named so
+# `docker compose down -v` genuinely resets it.
+#
+# Versions are pinned rather than :latest, so a proof of concept somebody returns
+# to in three months still comes up. Omeka S has no official image, so it is
+# built from the release zip by the Dockerfile alongside. It needs a
+# MySQL-compatible database; MariaDB is what its own documentation assumes.
+#
+# Usage:
+#   cp .env.example .env
+#   docker compose up -d --build
+#   open http://localhost:8080     # installer runs on first visit
+#   docker compose down            # keeps data
+#   docker compose down -v         # discards it
+
+services:
+  db:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${OMEKA_DB_NAME}
+      MARIADB_USER: ${OMEKA_DB_USER}
+      MARIADB_PASSWORD: ${OMEKA_DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${OMEKA_DB_ROOT_PASSWORD}
+    volumes:
+      - db-data:/var/lib/mysql
+    # Omeka's installer fails confusingly against a database that is still
+    # starting, so the app waits for a real health check rather than for the
+    # container merely existing.
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  omeka:
+    build: .
+    image: tetrak/omeka-s:4.1.1
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      OMEKA_DB_HOST: db
+      OMEKA_DB_NAME: ${OMEKA_DB_NAME}
+      OMEKA_DB_USER: ${OMEKA_DB_USER}
+      OMEKA_DB_PASSWORD: ${OMEKA_DB_PASSWORD}
+    # Bound to localhost rather than published on every interface: this has a
+    # first-run installer that sets the admin password, and it should not be
+    # reachable from the network before somebody has been through it.
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - omeka-files:/var/www/html/files
+
+volumes:
+  db-data:
+  omeka-files:

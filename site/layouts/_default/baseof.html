@@ -1,0 +1,108 @@
+{{- /*
+  The page shell. Every page renders through this.
+
+  Assets go through Hugo pipes and are fingerprinted, matching both other
+  sites: the browser can cache them forever and a change busts the URL.
+*/ -}}
+<!DOCTYPE html>
+<html lang="{{ .Site.Language.Locale | default "en-gb" }}" data-search-index="{{ "index.json" | relURL }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  {{- /* A block, so a layout with something better to say in the tab can say it.
+         term.html is the case that forced it: a tag page's .Title is the tag,
+         and a browser tab reading "ocr" says nothing about what is in it. */ -}}
+  <title>{{ block "title" . }}{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} · {{ .Site.Title }}{{ end }}{{ end }}</title>
+  {{- /* The standfirst is the sentence a page already writes to say what it is,
+         so an article with one does not need a second copy in `description`.
+         Falling straight through to the site description put the same
+         paragraph about OCR routing under every result. */ -}}
+  <meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ with .Params.standfirst }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}{{ end }}">
+
+  {{- /* The theme is read and applied before first paint, so a reader who
+         chose dark never sees a flash of the paper ground. Inline and tiny by
+         necessity -- deferring it to the fingerprinted bundle would be too
+         late. */ -}}
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("theme");
+        if (t) document.documentElement.setAttribute("data-theme", t);
+      } catch (e) { /* private mode: fall through to the media query */ }
+    })();
+  </script>
+
+  {{- with resources.Get "scss/main.scss" }}
+    {{- $opts := dict "transpiler" "dartsass" "targetPath" "css/main.css" "outputStyle" (cond hugo.IsProduction "compressed" "expanded") }}
+    {{- $css := . | toCSS $opts | fingerprint }}
+    <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
+  {{- end }}
+
+  {{- /* Fonts are self-hosted rather than fetched from Google, which is what
+         the prototype did. One fewer third party, and it keeps the build-time
+         principle: nothing the page needs is fetched from elsewhere at read
+         time. */ -}}
+  {{- partial "fonts.html" . }}
+
+  <link rel="canonical" href="{{ .Permalink }}">
+
+  {{- /* The articles feed, advertised on every page rather than only on the
+         section index: a reader subscribes from wherever they happen to be, and
+         a feed reader handed any URL on the site looks here for one.
+
+         Resolved through the section page's own output formats, so it cannot
+         name a file the build did not produce -- and if the section is ever
+         renamed the build fails here instead of publishing a dead <link>. */ -}}
+  {{- with site.GetPage "/articles" }}
+    {{- with .OutputFormats.Get "rss" }}
+  <link rel="alternate" type="{{ .MediaType.Type }}" href="{{ .Permalink }}" title="{{ site.Title }} — articles">
+    {{- end }}
+  {{- else }}
+    {{- errorf "baseof: no page at /articles -- the feed link cannot be built" }}
+  {{- end }}
+
+  {{- /* Plausible, matching scattercode.dev and velostevie: no cookies, no
+         consent banner, and both requests same-origin. The src is the
+         first-party path proxied by functions/js/script.js.js at the
+         repository root; init points the beacon at functions/api/event.js.
+         Production only -- hugo server never emits it, so local browsing and
+         the Playwright suite are never counted. */ -}}
+  {{- with .Site.Params.analytics.plausible_src }}{{ if hugo.IsProduction }}
+  <script async src="{{ . }}"></script>
+  <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init({endpoint:"/api/event"})</script>
+  {{- end }}{{- end }}
+</head>
+<body>
+  {{- partial "header.html" . }}
+
+  {{- /* `wide: true` in front matter gives a page the whole column. .page is a
+         two-column grid with a fixed rail track, so a page that renders no
+         rail still reserves 220px plus the gap and sits off-centre. The
+         walkthrough wants the width; the modifier collapses the track. */ -}}
+  <main class="page{{ if .Params.wide }} page--wide{{ end }}">
+    <div class="page__body">
+      {{- block "main" . }}{{ end }}
+    </div>
+
+    {{- /* The "On this page" rail. Suppressed where there is nothing to list,
+           rather than rendering an empty column. */ -}}
+    {{- if and (not .Params.wide) .TableOfContents (gt (len .TableOfContents) 50) }}
+      <aside class="rail">
+        <div class="rail__label">On this page</div>
+        {{ .TableOfContents }}
+        <div class="rail__foot">
+          <a href="{{ .Site.Params.repo }}/edit/main/site/content/{{ .File.Path }}">Edit this page ↗</a>
+        </div>
+      </aside>
+    {{- end }}
+  </main>
+
+  {{- partial "footer.html" . }}
+
+  {{- with resources.Get "js/app.js" }}
+    {{- $js := . | js.Build (dict "minify" hugo.IsProduction) | fingerprint }}
+    <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
+  {{- end }}
+</body>
+</html>

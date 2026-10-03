@@ -1,0 +1,22 @@
+<footer class="footer">
+  <div class="footer__inner">
+    <p class="footer__blurb">
+      Built with Hugo. {{ .Site.Params.description }}
+    </p>
+    <nav class="footer__links" aria-label="Footer">
+      {{- /* Resolved through site.GetPage rather than `"/x" | relURL`, which
+             drops the baseURL's path segment on any leading-slash input and
+             pointed both of these at the domain root. Going through the page
+             also means renaming or removing one fails the build here, instead
+             of publishing a link that 404s. */ -}}
+      {{- range slice "/articles" "/research" "/reference/licensing" }}
+        {{- with site.GetPage . }}
+          <a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
+        {{- else }}
+          {{- errorf "footer: no page at %q" . }}
+        {{- end }}
+      {{- end }}
+      <a href="{{ .Site.Params.repo }}">Repository ↗</a>
+    </nav>
+  </div>
+</footer>

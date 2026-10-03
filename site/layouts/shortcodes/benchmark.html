@@ -1,0 +1,21 @@
+{{- /*
+  The benchmark table, read straight from evaluation/benchmark.csv at build
+  time.
+
+  This is the point of the migration. The mkdocs version was hand-transcribed
+  from the generated table and went stale every time the benchmark was re-run
+  -- three times in one day, each needing all 63 cells re-checked by script to
+  catch what the eye missed. Reading the CSV deletes the failure mode: the page
+  cannot disagree with the data because it holds no copy of it.
+
+  The markup is in partials/benchmark.html, because the walkthrough layout
+  renders the same table and layouts cannot call shortcodes.
+
+  Usage:
+    {{< benchmark >}}                     character similarity / word recall
+    {{< benchmark metric="sec" >}}        seconds instead
+    {{< benchmark bold-best="false" >}}   without the best-local marking
+*/ -}}
+{{- partial "benchmark.html" (dict
+      "metric" (.Get "metric")
+      "boldBest" (ne (.Get "bold-best") "false")) -}}

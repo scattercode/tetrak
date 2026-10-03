@@ -1,0 +1,184 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+# Not "tetrak-ocr": the distribution carries the audio pipeline and the
+# publisher as well, and nobody reading `pip install tetrak-ocr` expects audio
+# transcription inside it. Renamed while nothing is published -- afterwards it
+# would mean a deprecated shim and a migration note. The console script stays
+# `tetrak-ocr`; [project.scripts] is independent of this, and the command is
+# what people actually type.
+name = "tetrak"
+# Derived from the git tag rather than written here. release.yml computes the
+# next version with git-cliff and tags it, so a literal in this file is a second
+# source of truth that nothing updates -- it sat at 0.2.2 while the project
+# released 1.0.0 through 1.0.3, which would have made the first PyPI upload
+# wrong and every later one a rejected duplicate.
+dynamic = ["version"]
+description = "Local-first transcription pipelines for archival material, and the harnesses that measure them"
+readme = "README.md"
+requires-python = ">=3.11"
+# The package is MIT. The documentation, benchmark results and ground-truth
+# transcripts are CC BY 4.0 and shipped alongside it -- see LICENSING.md for
+# which licence covers what, and why the corpus images carry neither.
+license = "MIT"
+license-files = ["LICENSE", "LICENSE-CC-BY-4.0.txt", "LICENSING.md"]
+authors = [{ name = "Stephen Masters" }, { name = "Yvette Mankerian" }]
+keywords = ["ocr", "tesseract", "archives", "digitisation", "benchmark"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+    "Topic :: Text Processing",
+]
+
+# Core stays deliberately light: Tesseract plus image and PDF handling. Every
+# other backend pulls hundreds of megabytes to several gigabytes, and most
+# users want one or two of them — so they are extras, not requirements.
+dependencies = [
+    "Pillow>=10.0",
+    "pytesseract>=0.3",
+    "pdf2image>=1.16",
+    "python-dotenv>=1.0",
+    # Writes the searchable PDF. Core rather than an extra because the roadmap
+    # treats that as the flagship catalogue-ready output, and it should work on
+    # a plain `pip install tetrak-ocr`. BSD-3, pure Python, no system
+    # dependencies -- see the dependency licence audit (product compliance).
+    "reportlab>=4.0",
+]
+
+[project.optional-dependencies]
+claude = ["anthropic>=0.28"]
+easyocr = ["easyocr>=1.7"]
+# The project's own Armenian recogniser, as an EasyOCR custom network. It
+# depends on easyocr itself, so this extra pulls that in too. 0.8 ships the
+# v6 weights and the word list the backend decodes with (brief 013); the
+# backend falls back to greedy decoding on older releases.
+armenian = ["tetrak-easyocr-armenian>=0.8"]
+paddle = ["paddleocr>=3.0", "paddlepaddle>=3.0"]
+# PaddleOCR-VL, the document vision-language model in the same package.
+# The class lives in paddleocr, but the pipeline it builds needs paddlex's
+# own `ocr` extra -- without it PaddleOCRVL() raises a DependencyError at
+# construction, so `paddleocr[doc-parser]` is not the dependency to declare
+# here however much it sounds like it. Floors raised from `paddle`'s >=3.0:
+# PaddleOCRVL does not exist before paddleocr 3.4.
+paddle-vl = ["paddleocr>=3.4", "paddlex[ocr]>=3.4", "paddlepaddle>=3.2"]
+# Capped below 2.0: marker-pdf 2.0 routes through an LLM and requires a
+# llama-server binary installed separately (brew install llama.cpp), which
+# turns a pip-only install into one with a system dependency and changes what
+# the backend measures. The committed benchmark was produced with 1.x.
+marker = ["marker-pdf>=1.0,<2.0"]
+# Apple's Vision framework, via a thin PyObjC wrapper. macOS only, hence the
+# marker: without it `pip install "tetrak-ocr[all]"` would fail on Linux.
+# Vision itself ships with the OS, so this extra downloads a wrapper and
+# nothing else -- no weights, no torch.
+vision = ["ocrmac>=1.0; sys_platform == 'darwin'"]
+# Quality scoring for auto-local's winner selection: a spell checker for
+# dictionary coverage and GPT-2 for perplexity.
+#
+# torch is listed explicitly because transformers does not depend on it, but
+# qa_score's perplexity path imports it directly -- so `[qa]` without torch
+# installed an extra that failed on first use with "No module named 'torch'".
+qa = ["pyspellchecker>=0.8", "transformers>=4.40", "torch>=2.0"]
+# Builds the Sphinx CLI/API reference published to GitHub Pages. Deliberately
+# separate from `docs` below (presentation-generation tooling): this extra
+# installs quickly because every backend module guards its heavy import
+# behind an availability check, so autodoc can import all of tetrak_ocr
+# without torch, paddlepaddle or marker-pdf on the runner.
+apidocs = ["sphinx>=8.0", "sphinx-argparse>=0.6.1", "furo>=2024.8", "myst-parser>=4.0"]
+# The site itself is Hugo and needs no Python -- see package.json. What is left
+# here is the tooling that generates artefacts the site consumes: the benchmark
+# chart, the corpus renditions, the slide deck. Pillow and pdf2image, which the
+# thumbnail generator also needs, are core dependencies already.
+docs = [
+    "python-pptx>=0.6",
+    # Draws the benchmark comparison chart from benchmark.csv.
+    "matplotlib>=3.8",
+]
+dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.5"]
+# Composed from the other extras rather than restating them. The hand-written
+# copy had drifted: it listed pyspellchecker and transformers but not torch, so
+# `pip install "tetrak-ocr[all]"` -- the command the docs lead with -- left
+# auto-local unavailable, which is the one backend the docs recommend.
+# Per-pipeline umbrellas. The individual extras keep their own names --
+# `easyocr` and a future `whisper` do not collide, so namespacing them would
+# churn CI, CLAUDE.md and the devcontainer for nothing.
+ocr = ["tetrak[claude,easyocr,paddle,paddle-vl,marker,vision,qa]"]
+all = ["tetrak[ocr]"]
+
+[project.scripts]
+tetrak-ocr = "tetrak_ocr.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/scattercode/tetrak"
+Documentation = "https://tetrak.dev/"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+# Writes the resolved version into the package at build time, so an installed
+# copy can report it without git present. Generated, therefore gitignored.
+version-file = "src/tetrak_ocr/_version.py"
+
+[tool.hatch.build.targets.wheel]
+# tetrak_audio and tetrak_publish are placeholders and are shipped so the
+# import paths exist and stay reserved. They carry no dependencies of their
+# own yet; each gains an extra when it gains code.
+packages = ["src/tetrak_ocr", "src/tetrak_audio", "src/tetrak_publish"]
+
+[tool.hatch.build.targets.sdist]
+# The sdist carries no .git, so hatch-vcs cannot re-derive the version from it.
+# Including the generated _version.py keeps a build-from-sdist working.
+include = ["src", "README.md", "LICENSE", "LICENSE-CC-BY-4.0.txt", "LICENSING.md"]
+
+[tool.ruff]
+line-length = 100
+
+# The rule set is declared explicitly rather than left to ruff's defaults,
+# because those defaults differ between versions: 0.15 reported 26 problems
+# here and 0.16 reported 36, on identical code. An undeclared rule set means CI
+# and a developer's machine can disagree purely on which ruff they installed.
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # import sorting
+    "UP",  # pyupgrade
+    "B",   # bugbear
+]
+ignore = [
+    # Fires on every module carrying a #!/usr/bin/env python3 line. These began
+    # life as directly-runnable scripts and the shebangs are accurate history;
+    # marking a dozen files executable to satisfy a lint rule is the wrong fix.
+    "EXE001",
+    # Mutable/callable defaults in argparse-style signatures, used deliberately
+    # here and never mutated.
+    "B008",
+    # Line length is enforced by `ruff format`, which is also run in CI. What
+    # is left after formatting is long string literals -- report table format
+    # strings and prose -- which the formatter will not split and which are
+    # more readable whole. Two tools disagreeing about the same line helps
+    # nobody.
+    "E501",
+]
+
+# `tools/` is not a package -- its scripts are run directly, so Python puts the
+# directory on sys.path and `import tetrak_theme` resolves. isort has no way to
+# infer that and files it under third-party, which sorts the shared design
+# tokens in among pptx and matplotlib. Declaring it keeps the import where a
+# reader expects a local one.
+[tool.ruff.lint.isort]
+known-first-party = ["tetrak_ocr", "tetrak_theme"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    # Anything reading the evaluation corpus or invoking a real OCR engine.
+    # `pytest -m "not slow"` is the fast loop CI runs.
+    "slow: needs the evaluation corpus or a real OCR engine",
+]

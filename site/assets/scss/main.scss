@@ -1,0 +1,17 @@
+// Tetrak OCR — stylesheet entry point.
+//
+// Partials are ordered by scope, narrowest last:
+//   _fonts       @font-face for the vendored files in assets/fonts/
+//   _tokens      design tokens only; no selectors that paint anything
+//   _base        bare element defaults
+//   _components  reusable classes — nav, kicker, code block, cards
+//   _app         page-level layout — header, rail, home, benchmark table
+//
+// Put a rule in the narrowest partial that can hold it. The design system
+// lives in .claude/skills/tetrak-ocr-design/.
+
+@use "fonts";
+@use "tokens";
+@use "base";
+@use "components";
+@use "app";

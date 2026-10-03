@@ -1,0 +1,50 @@
+# Top navigation: the product page, the two "using it" pages, the consolidated
+# research section, the reference, and the page saying who is behind the tool.
+# Restructured August 2026 -- the previous eight-entry nav spread the research
+# story across four tabs (Engines, Results, Method, Why) while leaving the
+# corpus, the tool comparison and auto-local routing out of the nav entirely.
+# Those pages now live under /research/, whose landing page is the index the nav
+# used to be. The count is deliberately not written down here: it was, and the
+# first entry added afterwards left the header saying "five".
+
+[[main]]
+  name = "What it is"
+  pageRef = "/"
+  weight = 10
+
+[[main]]
+  name = "Install"
+  pageRef = "/install"
+  weight = 20
+
+[[main]]
+  name = "Tutorial"
+  pageRef = "/tutorial"
+  weight = 30
+
+[[main]]
+  name = "Research"
+  pageRef = "/research"
+  weight = 40
+
+[[main]]
+  name = "Reference"
+  pageRef = "/reference/cli"
+  weight = 50
+
+# Added August 2026. Not a research tab, which is what the restructure above was
+# trimming: it is the one page that says who is behind the tool, and burying
+# that in the footer is how an unfamiliar reader fails to find it.
+[[main]]
+  name = "About"
+  pageRef = "/about"
+  weight = 60
+
+# Added August 2026 with the articles section. It sits next to Research rather
+# than next to Reference because it is the same kind of thing: writing about the
+# problem and about the tool's progress, alongside the fixed evidence. Reference
+# stays where it is, as the last stop for someone already using the tool.
+[[main]]
+  name = "Articles"
+  pageRef = "/articles"
+  weight = 45

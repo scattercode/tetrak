@@ -1,0 +1,8 @@
+{
+  "folders": [
+    { "name": "tetrak", "path": ".." }
+  ],
+  "settings": {
+    "python.defaultInterpreterPath": "${workspaceFolder:tetrak}/.venv/bin/python"
+  }
+}

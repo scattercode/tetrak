@@ -1,0 +1,31 @@
+{{- /*
+  The articles index.
+
+  Opens like every other page on the site -- kicker, h1, standfirst, then the
+  section's own prose from content/articles/_index.md -- and then lists what is
+  in it. The prose is not decoration: an index that is only a list of links
+  tells a first-time reader nothing about what gets written here.
+
+  RegularPagesRecursive rather than RegularPages, because articles are filed in
+  year and month directories under the section. Those directories are not
+  sections, so today both calls return the same pages; the recursive one keeps
+  being right if an article ever lands somewhere deeper.
+*/ -}}
+{{ define "main" }}
+  {{- with .Params.kicker }}<div class="kicker">{{ . }}</div>{{ end }}
+  <h1>{{ .Title }}</h1>
+  {{- with .Params.standfirst }}<p class="standfirst">{{ . }}</p>{{ end }}
+  {{ .Content }}
+
+  {{- partial "article-list.html" .RegularPagesRecursive.ByDate.Reverse }}
+
+  {{- /* The feed is advertised in every page's <head> for the readers that
+         look there, and offered here in the body for the reader who came
+         looking for it. Resolved from the page's own output formats, so it
+         cannot name a file the build did not produce. */ -}}
+  {{- with .OutputFormats.Get "rss" }}
+    <p class="articles__foot">
+      New articles turn up in the <a href="{{ .RelPermalink }}">RSS feed</a>.
+    </p>
+  {{- end }}
+{{ end }}

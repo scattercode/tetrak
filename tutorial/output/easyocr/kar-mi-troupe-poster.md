@@ -1,0 +1,43 @@
+SEE
+KARM
+Saot
+OF
+the
+And
+Act On
+SWORD
+t A
+Anfn
+73 7 -41C" '
+Mnrt
+Agun BARREL THL
+IT IS
+'DOWH HIS
+8
+8
+8
+SCAAAARAI
+THE
+THE LIMIT
+$10.000.%
+0F THE
+NOvELTY ACT:
+AN
+MARVELOUS
+1 8 9 2
+Xda
+4 B P 0 M
+TRoupel
+THE
+IGREAI
+"presenters c
+ORIGINATORS =
+! EARTH s
+HosT _
+SWALLOWING
+MARVELOUS
+'THROAT:
+Shoots[
+'LIgHT 
+SWALLOWS L
+ElectRic

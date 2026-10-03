@@ -1,0 +1,294 @@
+# Automated release.
+#
+# On every push/merge to main, the shared next-version action computes the next
+# semantic version from the Conventional Commit history since the last tag,
+# git-cliff regenerates CHANGELOG.md for that version, the commit is tagged,
+# and a GitHub Release is published whose notes are that changelog section.
+#
+# The release commit is pushed by the `scattercode-release` App, the only
+# actor the main ruleset lets bypass it. That token is a real identity, so
+# unlike GITHUB_TOKEN its pushes *do* trigger workflows — the `chore(release):`
+# guard on the job below is what stops this looping, not the token. If there
+# are no releasable commits since the last tag, the job is a no-op.
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    # Belt and braces: never react to our own release commit.
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
+    runs-on: ubuntu-latest
+    # Published so the SBOM jobs know whether a release happened and which
+    # tag to attach their documents to.
+    outputs:
+      released: ${{ steps.version.outputs.release }}
+      version: ${{ steps.version.outputs.next }}
+    steps:
+      # A token for the `scattercode-release` GitHub App, which is the only
+      # actor allowed to bypass main's ruleset. GITHUB_TOKEN cannot be given
+      # that permission -- GitHub Actions is not an installable app, so it has
+      # no identity a ruleset can name -- which is why the changelog used to
+      # arrive by pull request and then sat there: pull requests opened with
+      # GITHUB_TOKEN do not trigger workflows, so the required checks never
+      # started and the auto-merge never had anything to wait on.
+      #
+      # The App holds Contents: write and nothing else, so the worst it can do
+      # is commit and tag.
+      - name: Mint a release token
+        id: app_token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      # The committer line needs the App's bot *user* id, which is not any of
+      # the ids the token action returns -- `installation-id` is a different
+      # number, and a commit carrying it is attributed to nobody. Looked up
+      # rather than hard-coded so this step is identical in every repository
+      # the App is rolled out to.
+      - name: Identify the App's bot user
+        id: bot
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+          SLUG: ${{ steps.app_token.outputs.app-slug }}
+        run: |
+          set -euo pipefail
+          echo "id=$(gh api "/users/${SLUG}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+
+      - name: Check out full history
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          # Persisted so the pushes below go out as the App rather than as
+          # GITHUB_TOKEN, which the ruleset would refuse.
+          token: ${{ steps.app_token.outputs.token }}
+
+      - name: Install git-cliff
+        uses: taiki-e/install-action@v2
+        with:
+          tool: git-cliff
+
+      # Shared with every other repository whose releases are automated. It
+      # was byte-identical in three of them and nothing detected drift, so it
+      # now lives once in scattercode/release-pipelines, with the tests that
+      # make it trustworthy in thirteen places at once.
+      #
+      # Deliberately not `git cliff --bumped-version`: that buckets the whole
+      # history into releases first, and on 2026-08-22 filed a `feat!` with a
+      # BREAKING CHANGE footer under an older release and reported "nothing to
+      # bump" -- skipping 5.0.0 while the workflow went green. The action reads
+      # one commit range instead, which does not depend on branch topology.
+      #
+      # Pinned to the major tag, never main: an unpinned reference would make
+      # this repository's next release contingent on an unrelated commit there.
+      - name: Compute next version
+        id: version
+        uses: scattercode/release-pipelines/actions/next-version@v1
+
+      - name: Guard against a silently skipped release
+        if: steps.version.outputs.release != 'true'
+        run: |
+          latest="$(git describe --tags --abbrev=0 2>/dev/null || echo '')"
+          echo "No releasable change since ${latest:-repo start}."
+          # A merge to main carrying a feat or fix must produce a release. If
+          # one does not, that is the failure this job exists to catch, and it
+          # is reported rather than passed over in silence.
+          if git log --no-merges --format='%s' "${latest:+$latest..}HEAD" \
+               | grep -qE '^(feat|fix|perf|revert)(\([^)]*\))?!?:'; then
+            echo "::error::Releasable commits are present but no version was computed."
+            exit 1
+          fi
+
+      - name: Update changelog, tag and release
+        if: steps.version.outputs.release == 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.next }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          # --prepend, not --output: regenerating the whole changelog re-runs
+          # git-cliff's release bucketing over the entire history, and that is
+          # what is unreliable here -- `git cliff --tag 5.0.0` emits no 5.0.0
+          # section at all, filing its commits under an older release instead.
+          # Prepending writes only the new section and leaves the sections
+          # already committed alone, which are correct and settled.
+          #
+          # --tag, not --bump: the version is decided by the next-version
+          # action, and letting git-cliff pick its own here would reintroduce
+          # the very disagreement this job was changed to avoid.
+          git cliff --tag "$VERSION" --unreleased --prepend CHANGELOG.md
+          git cliff --tag "$VERSION" --unreleased --strip all --output RELEASE_NOTES.md
+
+          git config user.name  "${{ steps.app_token.outputs.app-slug }}[bot]"
+          git config user.email "${{ steps.bot.outputs.id }}+${{ steps.app_token.outputs.app-slug }}[bot]@users.noreply.github.com"
+
+          # The changelog is committed first and the tag points at *that*
+          # commit, rather than at the merge commit with the changelog
+          # following behind.
+          #
+          # Until 26 September the changelog arrived by pull request with
+          # auto-merge, and never landed: the required checks cannot run on a
+          # GITHUB_TOKEN-authored pull request, so auto-merge waited forever
+          # and one dead PR accumulated per release. Worse, each regenerates
+          # only its own section against main, so merging the newer of two
+          # would have dropped the older release from the file for good.
+          #
+          # Pushing it directly fixes that, but ordering matters. Tag first
+          # and main ends one commit ahead of the tag, which quietly breaks
+          # the docs: sphinx-docs.yml only deploys after a release when
+          # `git describe --exact-match` succeeds, and it no longer would.
+          # Committing first keeps main and the tag on the same commit, and
+          # has the tagged tree contain its own changelog, which is what a
+          # reader of the tag expects anyway.
+          git add CHANGELOG.md
+          git commit -m "chore(release): ${VERSION#v}"
+          git tag -a "$VERSION" -m "$VERSION"
+
+          # One atomic push, so the branch and the tag land together. Two
+          # pushes leave a window where main carries the commit and the tag
+          # does not exist yet, and anything triggered in that window sees an
+          # untagged main and builds a dev version.
+          #
+          # Note this push *does* trigger workflows, unlike the GITHUB_TOKEN
+          # pushes it replaces -- an App token is a real identity. The job's
+          # own `chore(release):` guard is what stops Release re-entering.
+          #
+          # A pull request merged into main while this job is running makes
+          # this push non-fast-forward and the job fails here. That is
+          # accepted rather than retried: because the push is atomic and
+          # nothing after it has run, a lost race leaves no tag, no release
+          # and no changelog commit, so re-running the job is a clean redo.
+          # A retry would have to move an annotated tag, which is a worse
+          # thing to get wrong than a re-run is to perform.
+          git push --atomic origin "HEAD:${{ github.ref_name }}" "$VERSION"
+
+          gh release create "$VERSION" --title "$VERSION" --notes-file RELEASE_NOTES.md
+
+  # Which install targets need an SBOM, read from pyproject.toml rather than
+  # written down here. Adding an extra publishes its SBOM with no workflow
+  # edit, which is the point: a hand-maintained list is one release away from
+  # being wrong, and a missing SBOM fails silently.
+  sbom-targets:
+    name: Enumerate install targets
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.targets.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: targets
+        run: python3 tools/install_targets.py --github
+
+  # One SBOM per install target, generated from an *installed environment*
+  # rather than from the source tree. That distinction is the whole reason
+  # this job exists: syft over the repository finds 21 components and almost
+  # nothing for Python, because pyproject.toml declares ranges. Over an
+  # installed venv it finds every resolved package with a version, a purl and
+  # a licence.
+  #
+  # These are the built targets, not every possible one. Six composable extras
+  # is 64 combinations, each pulling multi-gigabyte wheels. A consumer of two
+  # extras reads both documents -- an approximation, because resolving two
+  # extras together can pick different shared transitive versions than either
+  # alone, so treat the union as indicative rather than exact.
+  sbom:
+    name: SBOM (${{ matrix.target }})
+    needs: [release, sbom-targets]
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.sbom-targets.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+
+      # `.[all]` ran the runner out of disk the first time paddle-vl was in
+      # it: paddlepaddle and paddlex[ocr] landed on top of torch, surya and
+      # easyocr, and the install died with ENOSPC after two and a half
+      # minutes -- failing Release *after* it had already tagged and
+      # published, so the only visible symptom was a missing SBOM artefact
+      # and a skipped docs rebuild.
+      #
+      # The images ship ~25 GB of toolchains this job never touches. Removing
+      # them costs seconds and buys more headroom than the heaviest extra
+      # needs. `|| true` throughout: a path that is absent on some future
+      # image is not a reason to fail a release.
+      - name: Free disk space for the heavy extras
+        run: |
+          echo "before: $(df -h / | awk 'NR==2 {print $4}') free"
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+                      /usr/local/share/boost /usr/local/.ghcup || true
+          echo "after:  $(df -h / | awk 'NR==2 {print $4}') free"
+
+      - name: Install ${{ matrix.spec }}
+        run: |
+          python3 -m venv .sbomvenv
+          ./.sbomvenv/bin/python -m pip install --quiet --upgrade pip
+          # --no-cache-dir: the venv is read once for the SBOM and thrown
+          # away, so a wheel cache of torch-sized downloads is pure disk
+          # cost for a job that has just run out of it.
+          ./.sbomvenv/bin/python -m pip install --quiet --no-cache-dir "${{ matrix.spec }}"
+          echo "resolved $(./.sbomvenv/bin/python -m pip list --format=freeze | wc -l) packages"
+
+      # syft directly rather than anchore/sbom-action, because the action
+      # exposes no input for --source-name/--source-version and every document
+      # otherwise names its subject `.sbomvenv`. All eight then claim to
+      # describe the same nameless thing.
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@v0
+
+      - name: Generate SBOM
+        run: |
+          syft scan dir:.sbomvenv \
+            --source-name "tetrak-ocr${{ matrix.extras }}" \
+            --source-version "${{ needs.release.outputs.version }}" \
+            -o cyclonedx-json="sbom-${{ matrix.target }}.cdx.json"
+
+      # CycloneDX has no field for the platform a BOM was resolved against --
+      # the spec's file-naming guidance covers the extension and
+      # metadata.component names the subject, but neither the overview nor the
+      # property-taxonomy registry models an OS or architecture. Container
+      # SBOMs get one document per image digest and the platform is implicit;
+      # a package with platform-conditional extras does not.
+      #
+      # Without this, `[vision]` resolving on macOS produced 17 packages
+      # against core's 27 on Linux and nothing said why, which reads as the
+      # extra removing ten packages.
+      - name: Record the install target and platform
+        run: |
+          python3 tools/annotate_sbom.py "sbom-${{ matrix.target }}.cdx.json" \
+            --target "tetrak-ocr${{ matrix.extras }}"
+
+      - name: Check the SBOM actually describes something
+        run: |
+          count=$(python3 -c "import json;print(len([c for c in json.load(open('sbom-${{ matrix.target }}.cdx.json')).get('components',[]) if c.get('type')=='library']))")
+          echo "${{ matrix.target }}: $count library components"
+          # An empty or near-empty document would attach to the release and
+          # look authoritative while saying nothing. Core alone resolves well
+          # above this floor.
+          if [ "$count" -lt 5 ]; then
+            echo "::error::SBOM for ${{ matrix.target }} has only $count components"
+            exit 1
+          fi
+
+      - name: Attach to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ needs.release.outputs.version }}" \
+            "sbom-${{ matrix.target }}.cdx.json" --clobber

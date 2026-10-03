@@ -1,0 +1,22 @@
+{{- /*
+  The home page.
+
+  It renders its own <h1> rather than only .Content. Every other page gets one
+  from _default/single.html; this layout overrides the `main` block and used to
+  emit nothing but the markdown, so `/` shipped with no <h1> at all -- the one
+  page most likely to be linked to and indexed. Nothing was hiding it; it was
+  never there.
+
+  The heading is `heading` from front matter rather than `.Title`, because
+  .Title is "Tetrak OCR" and the masthead already says that a few centimetres
+  above. Repeating it at 66px told a reader nothing. The heading says what the
+  thing does, and the masthead keeps saying what it is called.
+
+  Opening order matches single.html -- h1 then standfirst -- so the home page
+  reads like the rest of the site rather than as a special case.
+*/ -}}
+{{ define "main" }}
+  <h1>{{ .Params.heading | default .Title }}</h1>
+  {{- with .Params.standfirst }}<p class="standfirst">{{ . }}</p>{{ end }}
+  {{ .Content }}
+{{ end }}

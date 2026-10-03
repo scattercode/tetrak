@@ -1,0 +1,15 @@
+{{- /*
+  The Tesseract auto-configuration bands, read from the module that uses them.
+
+  The markup is in partials/bands.html, because a layout cannot call a
+  shortcode and this table may yet be wanted in one.
+
+  Usage:
+    {{< bands >}}                      both families
+    {{< bands setting="contrast" >}}   the contrast bands only
+    {{< bands setting="psm" >}}        the page-segmentation bands only
+    {{< bands provenance="true" >}}    with the fit's provenance beneath
+*/ -}}
+{{- partial "bands.html" (dict
+      "setting" (.Get "setting")
+      "provenance" (eq (.Get "provenance") "true")) -}}

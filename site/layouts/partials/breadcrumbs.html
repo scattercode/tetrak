@@ -1,0 +1,26 @@
+{{- /*
+  Breadcrumbs for pages below the top level.
+
+  The site is shallow -- home, four sections, a page inside one of them -- so
+  the trail is at most three deep and its job is orientation rather than
+  navigation: a reader arriving from search, or following one of the aliases
+  from an old URL, otherwise has no indication of where they have landed.
+
+  Suppressed on the home page and on section indexes, where it would say
+  nothing the masthead does not already say.
+*/ -}}
+{{- $ancestors := slice }}
+{{- range .Ancestors }}
+  {{- if not .IsHome }}{{ $ancestors = $ancestors | append . }}{{ end }}
+{{- end }}
+{{- if and (not .IsHome) (ne .Kind "section") }}
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <ol>
+      <li><a href="{{ site.Home.RelPermalink }}">{{ site.Title }}</a></li>
+      {{- range (sort $ancestors "Weight" "asc") }}
+        <li><a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a></li>
+      {{- end }}
+      <li aria-current="page">{{ .LinkTitle }}</li>
+    </ol>
+  </nav>
+{{- end }}

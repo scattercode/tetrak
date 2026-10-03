@@ -1,0 +1,23 @@
+Tetrak
+Copyright 2026 Stephen Masters, Yvette Mankerian
+
+The code is MIT-licensed and the documentation, benchmark results and
+ground-truth transcripts are CC BY 4.0; LICENSING.md has the detail.
+
+This repository includes three webfont families, vendored in
+site/assets/fonts/ under the SIL Open Font License 1.1, whose text and
+copyright lines are in site/assets/fonts/OFL.txt:
+
+  Playfair Display, (c) 2017 The Playfair Display Project Authors
+  Source Serif 4, (c) 2014 The Source Serif 4 Project Authors
+  IBM Plex Mono, (c) 2017 IBM Corp.
+
+The evaluation corpus images in evaluation/ocr/corpus/images/ are in the
+public domain in the United States; evaluation/ocr/corpus/SOURCES.md records
+the source and rights basis of each.
+
+No third-party code is vendored. The OCR backends are optional dependencies
+resolved at install time; one of them, marker-pdf, is GPL-3.0 at the time of
+writing, which matters to anyone redistributing a bundle that includes it.
+The Armenian recogniser is a separate package, tetrak-easyocr-armenian, with
+its own licence and NOTICE.

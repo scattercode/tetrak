@@ -1,0 +1,63 @@
+{{- /*
+  The Tesseract auto-configuration bands, read from site/data/tuning.toml at
+  build time.
+
+  Why this exists: the band edges were written out by hand in five places --
+  two docstrings, CLAUDE.md, and two pages of this site -- with nothing
+  checking any of them. That survived while the numbers were hand-fitted and
+  never moved. They are fitted from a measured sweep now, by
+  evaluation/ocr/calibration/fit.py, and the first re-fit moved every one of
+  them. A transcribed copy would have been wrong the same afternoon.
+
+  tools/generate_tuning_data.py writes the data file from
+  tetrak_ocr.backends.tuning before Hugo runs, so the page and the code cannot
+  disagree. Same rule as the benchmark tables: read the figure, never type it.
+
+  A partial rather than a shortcode so a layout can render it too, matching
+  partials/benchmark.html and partials/registers.html. The {{< bands >}}
+  shortcode is a thin wrapper.
+
+  Context: a dict of
+    setting    - "contrast", "psm", or "" for both families
+    provenance - true to append the fit's provenance below the table
+*/ -}}
+{{- $bands := where hugo.Data.tuning.band "setting" "!=" "" -}}
+{{- with .setting -}}
+  {{- $bands = where $bands "setting" . -}}
+{{- end -}}
+{{- if not $bands -}}
+  {{- errorf "partials/bands.html: no bands in site/data/tuning.toml -- run tools/generate_tuning_data.py (it runs automatically via npm run build)" -}}
+{{- end -}}
+<div class="table-scroll">
+<table class="benchmark">
+  <thead>
+    <tr>
+      <th scope="col">Range</th>
+      <th scope="col">Setting</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{- /*
+      `.range` verbatim, not a range rebuilt from .lower and .upper. Bounds
+      are *exclusive* -- a value equal to a bound belongs to the next band --
+      and "0 to 34" reads as though it included 34. The generated field spells
+      that out as `0 <= stddev < 34`, and it names its own feature, so the
+      separate feature column went with it.
+    */ -}}
+    {{- range $bands }}
+    <tr>
+      <th scope="row"><code>{{ .range }}</code></th>
+      <td>{{ .setting }} {{ .display }}</td>
+    </tr>
+    {{- end }}
+  </tbody>
+</table>
+</div>
+{{- if .provenance }}
+{{- $p := hugo.Data.tuning.provenance }}
+<p class="benchmark__caption">
+  Fitted to {{ $p.split }}. Mean character similarity {{ $p.mean_char_sim }};
+  leave-one-out regret {{ $p.leave_one_out_mean_regret }} against
+  {{ $p.in_sample_mean_regret }} in-sample.
+</p>
+{{- end -}}

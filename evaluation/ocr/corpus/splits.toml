@@ -1,0 +1,204 @@
+# Corpus manifest: what each fixture is for.
+#
+# Two jobs, deliberately in one file, because both are per-fixture facts about
+# the corpus and splitting them across two manifests is how they drift:
+#
+#   splits/   which fixtures a band fit may learn from, and which are held back
+#             to measure whether it generalised
+#   published which fixtures the documentation site is allowed to show
+#
+# Hand-authored. `tests/ocr/test_calibration.py` asserts that every split
+# accounts for every fixture, so a new scan fails CI until someone classifies
+# it -- which is the point. Folding a held-out fixture into a fit is a product
+# decision and it should cost a visible diff here, not a quiet edit somewhere
+# else.
+#
+# Stems only, no file extensions: the corpus mixes .png, .jpg, .tif and .pdf,
+# and nothing here should have to care which.
+
+[excluded]
+stems = [
+  "king-of-kings-souvenir-1927",
+  # Fourteen fixtures added on 22 August 2026 (see corpus/CANDIDATES.md),
+  # after both splits below were defined. Neither split's fit or held_out
+  # may grow to absorb them: original-corpus is a frozen historical record
+  # of what the shipped bands actually saw, and all-rasters already spends
+  # the only held-out data the project has, on a specific pair of TIFFs
+  # already reasoned about. So all fourteen sit here -- not excluded from
+  # calibration permanently, since the corpus grew specifically to widen it
+  # (see [published] below), but from every split that exists today. A
+  # future split can draw on them once someone designs one.
+  #
+  # Six are PDFs, excluded for the same structural reason as
+  # king-of-kings-souvenir-1927 above: the auto-configuration bands never
+  # run on the PDF path.
+  "camera-1919",
+  "christmas-carol-1887",
+  "film-mercury-1928",
+  "film-spectator-1927",
+  "naca-technical-note-1952",
+  "st-cloud-tribune-1924",
+  # The eight rasters that sat here from 22 August to 28 September 2026 are
+  # gone: they had no ground truth, so no split could use them. Transcripts
+  # were generated on 28 September and they now populate [splits.wide-corpus]
+  # below. Only the PDFs remain, and they are excluded structurally.
+]
+reason = """
+Structural, and the only reason left here. The bands never run on the PDF
+path -- _ocr_pdf() takes concrete contrast and psm values and ignores auto
+entirely -- so fitting to any PDF would tune against material the result
+cannot affect, and would add roughly 25 minutes to every sweep per PDF.
+
+This list also held eight rasters between 22 August and 28 September 2026,
+for a different reason: they had no ground truth, so nothing could score
+them. That is fixed and they have moved to [splits.wide-corpus].
+"""
+
+# The corpus as it stood when the current bands were fitted by hand, on
+# 13 August 2026.
+#
+# Named "original-corpus" rather than the "original seven" this has been called
+# in conversation, because seven is the wrong number in the way that matters:
+# the seventh is the PDF, and the bands never saw it. Six rasters were fitted
+# to. The two TIFFs arrived on 17 August, after the fit, and were the only
+# held-out data the project had until the 28 September widening.
+#
+# Frozen. It is a historical record of what the shipped bands once saw, not a
+# split anyone should fit to again. Everything added since is held out from it
+# by definition -- that is what makes it the honest baseline -- so the eight
+# rasters transcribed on 28 September join held_out rather than the fit.
+[splits.original-corpus]
+description = "What the shipped bands were fitted to. The honest baseline."
+fit = [
+  "carthay-circle-postcard-back",
+  "carthay-circle-premiere",
+  "graumans-chinese-theatre",
+  "inside-facts-1930-cover",
+  "inside-facts-1930-page-six",
+  "kar-mi-troupe-poster",
+]
+held_out = [
+  "hollywood-music-box-playbill-1926",
+  "kinema-theater-ad-1920",
+  "bancroft-magician-poster",
+  "chinese-theatre-triptych-postcard",
+  "greek-theatre-night",
+  "hollywood-boulevard-east",
+  "hollywood-boulevard-west",
+  "over-the-fence-poster",
+  "parlor-match-poster",
+  "thurston-magician-poster",
+]
+
+# Every raster in the corpus *as it stood on 27 September 2026* -- eight of
+# them -- with nothing held back. The name is a misnomer since the widening
+# the next day took the corpus to sixteen; it is kept because brief 007 and
+# release 5.12.0's FIT_PROVENANCE both name it, and renaming it would break
+# the audit trail for a set of bands people may have installed.
+#
+# Frozen, like original-corpus above, and superseded by wide-corpus. The eight
+# rasters transcribed on 28 September are held out from it because that fit
+# genuinely never saw them.
+#
+# This split spends the only held-out data the corpus had at the time. It is the one that
+# can repair kinema-theater-ad-1920, because the PSM-6 edge is unconstrained
+# anywhere in (25.3, 56.1] on the fitted six and Kinema sits at 42.9 -- inside
+# that gap, so no fit that cannot see it will move the edge off it.
+#
+# The cost is that "does this generalise?" stops having a held-out answer and
+# has to be measured by leave-one-out instead. Recorded in brief 007's decision
+# log rather than assumed here.
+[splits.all-rasters]
+description = "The eight-raster corpus of 2026-09-27, nothing held back. Frozen; superseded by wide-corpus."
+fit = [
+  "carthay-circle-postcard-back",
+  "carthay-circle-premiere",
+  "graumans-chinese-theatre",
+  "hollywood-music-box-playbill-1926",
+  "inside-facts-1930-cover",
+  "inside-facts-1930-page-six",
+  "kar-mi-troupe-poster",
+  "kinema-theater-ad-1920",
+]
+held_out = [
+  "bancroft-magician-poster",
+  "chinese-theatre-triptych-postcard",
+  "greek-theatre-night",
+  "hollywood-boulevard-east",
+  "hollywood-boulevard-west",
+  "over-the-fence-poster",
+  "parlor-match-poster",
+  "thurston-magician-poster",
+]
+
+# The corpus after the 28 September 2026 widening, and the split the shipped
+# bands are fitted to.
+#
+# Brief 007 spent the only held-out data the project had, to repair
+# kinema-theater-ad-1920, and reported the cost: leave-one-out regret of 0.20
+# against 0.04 in sample, a gap that did not close at any band budget. The
+# conclusion was that the corpus was the binding constraint, not the model.
+# This split is the answer to that -- eight rasters that had been sitting in
+# [excluded] without transcripts since 22 August, now scored, doubling the
+# material the bands can see and restoring a genuine held-out measurement.
+#
+# How the four held-out fixtures were chosen, since this is the decision that
+# makes or breaks the measurement:
+#
+#   Two postcards and two posters, so the held-out set covers both families
+#   the widening added rather than testing one and ignoring the other.
+#
+#   The two Hollywood Boulevard postcards are held out *together*. They are
+#   companion views of one street by one publisher, shot and printed as a
+#   pair. Splitting them would put a near-duplicate of each held-out image in
+#   the fit set, and the holdout would then measure memorisation and report it
+#   as generalisation. That is the specific way this kind of split goes wrong.
+#
+#   They are not chosen for being easy or hard. greek-theatre-night has the
+#   widest measured spread of any new fixture and parlor-match-poster the
+#   second widest; both are in the *fit* set, because picking a holdout to
+#   flatter the result is the same error in the other direction.
+[splits.wide-corpus]
+description = "The 2026-09-28 corpus. What the shipped bands are fitted to, with four rasters genuinely held back."
+fit = [
+  "bancroft-magician-poster",
+  "carthay-circle-postcard-back",
+  "carthay-circle-premiere",
+  "chinese-theatre-triptych-postcard",
+  "graumans-chinese-theatre",
+  "greek-theatre-night",
+  "hollywood-music-box-playbill-1926",
+  "inside-facts-1930-cover",
+  "inside-facts-1930-page-six",
+  "kar-mi-troupe-poster",
+  "kinema-theater-ad-1920",
+  "parlor-match-poster",
+]
+held_out = [
+  "hollywood-boulevard-east",
+  "hollywood-boulevard-west",
+  "over-the-fence-poster",
+  "thurston-magician-poster",
+]
+
+# What the documentation site may show: the benchmark table, the walkthrough's
+# plates and the corpus contact sheet all read this.
+#
+# The corpus grew well beyond what any page should display on 22 August 2026 --
+# fourteen fixtures sourced specifically to widen calibration (see [excluded]
+# above) -- and publication being opt-in is what kept the site unchanged when
+# it did: a new fixture is calibration-only until it is named here, so the
+# corpus can grow without the research pages growing with it.
+[published]
+description = "The subset the site is allowed to show. Opt-in; new scans are not published by default."
+stems = [
+  "carthay-circle-postcard-back",
+  "carthay-circle-premiere",
+  "graumans-chinese-theatre",
+  "hollywood-music-box-playbill-1926",
+  "inside-facts-1930-cover",
+  "inside-facts-1930-page-six",
+  "kar-mi-troupe-poster",
+  "kinema-theater-ad-1920",
+  "king-of-kings-souvenir-1927",
+]

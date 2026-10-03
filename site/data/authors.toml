@@ -1,0 +1,26 @@
+# The byline register for content/articles/.
+#
+# An article's front matter carries `author` as one of the keys below, not a
+# name. Two reasons: partials/author.html fails the build on a key that is not
+# here, so a typo cannot ship a headless article the way a free-text name would;
+# and the spelling of a name lives in one place rather than once per article.
+#
+# This is the register, not the biography. The prose about each of us is on the
+# about page, in content/about.md, and stays there -- copying it here would give
+# the site two versions of the same paragraph to keep in step. `role` is the one
+# line the article foot needs to say why the author would know, and it is short
+# enough to be worth the duplication.
+#
+# `linkedin` is the profile handle, not a URL, matching the {{< person >}}
+# shortcode. partials/author.html builds the host and fails the build if a full
+# URL is passed instead.
+
+[stephen-masters]
+  name = "Stephen Masters"
+  role = "Pipelines and engineering"
+  linkedin = "stephenmasters"
+
+[yvette-mankerian]
+  name = "Yvette Mankerian"
+  role = "Collections systems and metadata"
+  linkedin = "yvettekm"

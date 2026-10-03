@@ -1,0 +1,133 @@
+# Lint and test on every push and pull request.
+#
+# Installs core plus [dev] only. The heavy backends -- paddle, marker, easyocr
+# -- pull PyTorch and PaddlePaddle and take minutes to install, and every test
+# that touches them mocks the dependency anyway, so paying that cost per run
+# would buy nothing.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A push superseding an in-flight run makes that run's answer worthless;
+# cancelling it saves the minutes. Review-fix bursts on a PR previously
+# re-ran the full suite once per push, all but the last discarded.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      # pytesseract is a wrapper; the engine itself is a system package. Poppler
+      # provides pdftoppm, which pdf2image shells out to for PDF input.
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y tesseract-ocr poppler-utils
+
+      - name: Install
+        run: pip install -e '.[dev]'
+
+      - name: Lint
+        run: |
+          ruff check src tests evaluation tools docs
+          ruff format --check src tests evaluation tools docs
+
+      # The full suite runs Tesseract over the corpus and takes well over a
+      # minute; the fast loop is the gate. `slow` tests run in the corpus job
+      # below, where their runtime does not sit in front of a merge.
+      - name: Test
+        run: pytest -m "not slow" --cov=tetrak_ocr --cov-report=term-missing
+
+      # `tuning.py`'s bands are generated from the committed sweep, and this
+      # re-derives them. It is the assertion in
+      # tests/ocr/test_calibration.py::test_the_shipped_bands_are_what_the_
+      # committed_sweep_produces, which is marked `slow` only because the
+      # 5x4 search takes about three minutes -- it runs no OCR. The corpus
+      # job runs `slow` tests on push to main and weekly, which would let a
+      # hand-edited band value reach main before anything complained, so the
+      # check is repeated here where it gates the merge.
+      #
+      # Unconditional, deliberately. A `paths:` filter would leave this
+      # pending forever on a pull request that touches nothing it watches,
+      # and it is a required status check.
+      - name: Bands match the committed sweep
+        run: python -m evaluation.ocr.calibration.fit --check
+
+  # Ported from scattercode.dev, which has run this arrangement for months.
+  # tetrak had no vulnerability scanning of any kind before this.
+  trivy:
+    name: Trivy scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Scan for vulnerabilities
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: library
+          severity: HIGH,CRITICAL
+
+      # A source-tree SBOM, which is not the same thing as the per-package
+      # SBOMs published with a release. This one covers what is committed --
+      # the site's package-lock.json and the workflow actions -- and is close
+      # to useless for Python, because pyproject.toml declares ranges rather
+      # than resolved versions. The documents consumers need are built from
+      # installed environments in release.yml.
+      - name: Generate source-tree SBOM
+        uses: aquasecurity/trivy-action@v0.36.0
+        if: always()
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: cyclonedx
+          output: sbom.cdx.json
+          exit-code: '0'
+
+      - name: Upload source-tree SBOM
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: sbom-source-tree
+          path: sbom.cdx.json
+          retention-days: 90
+
+  # cliff.toml and .githooks/commit-msg are copies of the shared templates in
+  # scattercode/release-pipelines. They have to be real files here -- git-cliff
+  # reads one from the repository root and git runs the other from the checkout
+  # -- so they cannot be referenced remotely the way the next-version action
+  # is. This is what stops a copy drifting unnoticed, which is the failure that
+  # motivated sharing them: thirteen repositories carried them and nothing
+  # compared any two.
+  templates:
+    name: Shared templates are current
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check out the shared templates
+        uses: actions/checkout@v7
+        with:
+          repository: scattercode/release-pipelines
+          ref: v1
+          path: .release-pipelines
+
+      - name: Compare
+        run: ./.release-pipelines/sync.sh --check .

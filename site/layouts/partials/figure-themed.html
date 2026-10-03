@@ -1,0 +1,41 @@
+{{- /*
+  A figure with light and dark renditions, switched by CSS.
+
+  mkdocs-material did this with `#only-light` / `#only-dark` URL fragments and
+  two <img> tags. Hugo has no equivalent, and dropping the dark rendition would
+  leave a light chart glaring on a dark page -- this site has a real dark
+  theme, so both are served and the stylesheet chooses.
+
+  The markup is a partial rather than a shortcode because the walkthrough
+  layout renders the same pair, and a layout cannot call a shortcode. The
+  {{< figure-themed >}} shortcode is a thin wrapper over this.
+
+  Context: a dict of
+    src     - base name under assets/images/, without the -light/-dark suffix
+              or the extension
+    alt     - required
+    width   - optional, defaults to 1400
+    caption - optional, rendered as markdown when `page` is given
+    class   - optional, added to the figure
+    page    - optional, the page to render the caption against
+*/ -}}
+{{- $base := .src }}
+{{- $alt := .alt }}
+{{- $w := .width | default "1400" }}
+<figure class="figure figure--themed{{ with .class }} {{ . }}{{ end }}">
+  {{- range $variant := slice "light" "dark" }}
+    {{- $path := printf "images/%s-%s.png" $base $variant }}
+    {{- with resources.Get $path }}
+      {{- /* $variant, not `.` -- inside `with`, the dot is rebound to the
+             resource, so `figure__{{ . }}` emitted the resource's own path as
+             the class name. .figure__light / .figure__dark then matched
+             nothing and both renditions rendered at once, in every theme. */ -}}
+      {{- $img := .Resize (printf "%sx webp q86" $w) }}
+      <img class="figure__{{ $variant }}" src="{{ $img.RelPermalink }}" alt="{{ $alt }}"
+           width="{{ $img.Width }}" height="{{ $img.Height }}" loading="lazy" decoding="async">
+    {{- else }}
+      {{- errorf "figure-themed: assets/%s not found" $path }}
+    {{- end }}
+  {{- end }}
+  {{- with .caption }}<figcaption>{{ if $.page }}{{ . | $.page.RenderString }}{{ else }}{{ . }}{{ end }}</figcaption>{{ end }}
+</figure>

@@ -1,0 +1,29 @@
+# Lefthook — git hooks manager. Install with: lefthook install
+# (requires the lefthook binary, e.g. `brew install lefthook`).
+#
+# pre-commit runs Ruff on staged Python files and the site's linters when
+# site sources are staged; commit-msg enforces Conventional Commits via the
+# shared script in .githooks/.
+# Ruff must be on PATH (e.g. `brew install ruff` or `pip install ruff`).
+# The site lint needs `npm ci` to have been run in site/.
+
+pre-commit:
+  parallel: true
+  commands:
+    ruff-lint:
+      glob: "*.py"
+      run: ruff check {staged_files}
+    ruff-format:
+      glob: "*.py"
+      run: ruff format --check {staged_files}
+    # Whole-project rather than per-file: the linters are configured in
+    # site/package.json with their own file globs, and running them on a
+    # staged subset would silently skip the config that CI applies.
+    site-lint:
+      glob: "site/**/*.{js,mjs,scss,md}"
+      run: npm --prefix site run lint
+
+commit-msg:
+  commands:
+    conventional:
+      run: .githooks/commit-msg {1}

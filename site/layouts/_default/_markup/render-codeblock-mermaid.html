@@ -1,0 +1,22 @@
+{{- /*
+  Replace a ```mermaid block with the SVG rendered for it at build time.
+
+  scripts/render-mermaid.mjs runs mermaid in Playwright's Chromium before Hugo
+  and writes assets/images/diagrams/mermaid-<hash>.svg, where the hash comes
+  from the diagram source. Looking the file up by that hash means an edited
+  diagram cannot quietly keep serving the old picture: the hash changes, the
+  file is missing, and the build fails here rather than publishing a stale one.
+
+  The alternative -- shipping mermaid to the browser -- costs 3.4 MB of
+  JavaScript for one diagram, on a site whose diagrams are otherwise all
+  build-time artefacts.
+*/ -}}
+{{- $hash := substr (sha1 (trim .Inner "\n\r\t ")) 0 12 }}
+{{- $path := printf "images/diagrams/mermaid-%s.svg" $hash }}
+{{- with resources.Get $path }}
+  <figure class="figure figure--diagram">
+    {{ .Content | safeHTML }}
+  </figure>
+{{- else }}
+  {{- errorf "mermaid: no SVG for the diagram in %s (expected %s). Run: cd site && node scripts/render-mermaid.mjs" $.Page.File.Path $path }}
+{{- end }}

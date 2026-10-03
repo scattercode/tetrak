@@ -1,0 +1,13 @@
+FREDERICK BANCROFT
+
+PRINCE OF
+MAGICIANS
+
+copyrighted 1895 by
+FREDERICK BANCROFT.
+
+THE SLAVE OF THE ORIENT
+
+Springer & Welty Co.
+LITH.N.Y.
+Broadway & 31 ST.

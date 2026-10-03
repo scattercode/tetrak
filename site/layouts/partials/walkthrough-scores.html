@@ -1,0 +1,54 @@
+{{- /*
+  The per-document figure strip on a walkthrough plate.
+
+  Every engine's character similarity and word recall for one corpus item,
+  read from the row it is handed rather than written down anywhere. The
+  marking is the one the site's benchmark table already uses, so a reader who
+  has seen that table recognises this: best local in bold, the ceiling
+  reference set back and asterisked.
+
+  Ties are the normal case rather than an edge, and every engine holding the
+  best score is marked. auto-local does not compute a transcript of its own --
+  it selects one of the others' -- so on most rows it scores exactly what the
+  winning engine scored. Marking only the first would make routing look like
+  it had lost a race it had just won.
+
+  Context: a dict of
+    row     - the CSV row for this fixture, as a slice
+    col     - column name -> index
+    engines - the walkthrough's engine table, in display order
+*/ -}}
+{{- $row := .row }}
+{{- $col := .col }}
+{{- $engines := .engines }}
+
+{{- /* Best local score on this row. */ -}}
+{{- $best := -1.0 }}
+{{- range $engines }}
+  {{- if not .ceiling }}
+    {{- $v := index $row (index $col (printf "%s_chr" .key)) }}
+    {{- if ne $v "N/A" }}{{ if gt (float $v) $best }}{{ $best = float $v }}{{ end }}{{ end }}
+  {{- end }}
+{{- end }}
+
+<div class="wt-scores">
+  <p class="wt-scores__label">Character similarity / word recall</p>
+  <dl class="wt-scores__grid">
+    {{- range $engines }}
+      {{- $chr := index $row (index $col (printf "%s_chr" .key)) }}
+      {{- $wrd := index $row (index $col (printf "%s_wrd" .key)) }}
+      {{- $isBest := and (not .ceiling) (ne $chr "N/A") (eq (float $chr) $best) }}
+      <div class="wt-scores__row{{ if $isBest }} is-best{{ end }}{{ if .ceiling }} is-ceiling{{ end }}">
+        <dt><code>{{ .label }}</code>{{ if .ceiling }}<span class="wt-scores__ref" title="Ceiling reference, not a measurement">*</span>{{ end }}</dt>
+        <dd>
+          {{- if eq $chr "N/A" -}}
+            <span title="This engine cannot read this file">N/A</span>
+          {{- else -}}
+            {{ printf "%.2f" (float $chr) }} / {{ printf "%.2f" (float $wrd) }}
+          {{- end -}}
+        </dd>
+      </div>
+    {{- end }}
+  </dl>
+  <p class="wt-scores__note">Bold is best local. * ceiling reference, not a measurement.</p>
+</div>

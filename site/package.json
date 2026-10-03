@@ -1,0 +1,45 @@
+{
+  "name": "tetrak-ocr-site",
+  "private": true,
+  "description": "Hugo site for Tetrak OCR",
+  "scripts": {
+    "postinstall": "node scripts/setup-dartsass.mjs",
+    "start": "hugo server --disableFastRender --renderToMemory",
+    "build": "hugo --gc --minify",
+    "clean": "rimraf public resources",
+    "lint": "npm-run-all lint:**",
+    "lint:styles": "stylelint \"assets/scss/**/*.scss\" --allow-empty-input",
+    "lint:scripts": "eslint assets/js scripts eslint.config.mjs --no-error-on-unmatched-pattern",
+    "lint:functions": "cd .. && eslint --config site/eslint.config.mjs functions --no-error-on-unmatched-pattern",
+    "prepare": "cd .. && lefthook install || true",
+    "gen:api": "sh -c 'PY=../.venv/bin/python; [ -x \"$PY\" ] || PY=$(command -v python3); \"$PY\" ../tools/generate_api_docs.py'",
+    "prestart": "npm run -s gen:api && npm run -s gen:diagrams && npm run -s gen:bands",
+    "prebuild": "npm run -s gen:api && npm run -s gen:diagrams && npm run -s gen:bands",
+    "test:browser": "playwright test",
+    "lint:markdown": "markdownlint-cli2 \"../*.md\" \"content/**/*.md\"",
+    "audit:deps": "npm audit --audit-level=high",
+    "postbuild": "node scripts/check-build-output.mjs",
+    "gen:diagrams": "node scripts/render-mermaid.mjs",
+    "gen:bands": "sh -c 'PY=../.venv/bin/python; [ -x \"$PY\" ] || PY=$(command -v python3); \"$PY\" ../tools/generate_tuning_data.py'"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.48.0",
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "eslint": "^10.8.1",
+    "globals": "^17.11.0",
+    "markdownlint-cli2": "^0.23.2",
+    "mermaid": "^11.16.1",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^6.0.1",
+    "sass-embedded": "^1.80.0",
+    "stylelint": "^16.10.0",
+    "stylelint-config-standard-scss": "^13.1.0"
+  },
+  "dependencies": {
+    "hugo-extended": "^0.161.1"
+  },
+  "overrides": {
+    "adm-zip": "^0.6.0"
+  }
+}

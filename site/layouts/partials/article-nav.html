@@ -1,0 +1,45 @@
+{{- /*
+  Previous and next article, at the foot of one.
+
+  Built from the section's own list rather than from .PrevInSection, so the
+  direction is stated here rather than inferred: Hugo's pair is named for
+  position in the default ordering, which is date-descending, and "next" in that
+  ordering is the newer article. Reading the collection and taking the pages
+  either side of this one says which is which in the template, where it can be
+  checked.
+
+  RegularPagesRecursive, not RegularPages: articles live in year and month
+  directories under the section, and while those directories are not sections --
+  so the non-recursive call happens to return the same set today -- a collection
+  that silently empties if that ever changes is not worth the two saved
+  characters.
+*/ -}}
+{{- $articles := .CurrentSection.RegularPagesRecursive.ByDate.Reverse -}}
+{{- $newer := "" -}}
+{{- $older := "" -}}
+{{- $found := false -}}
+{{- range $articles -}}
+  {{- if $found }}
+    {{- if not $older }}{{ $older = . }}{{ end }}
+  {{- else if eq .RelPermalink $.RelPermalink }}
+    {{- $found = true }}
+  {{- else }}
+    {{- $newer = . }}
+  {{- end }}
+{{- end -}}
+{{- if or $newer $older }}
+  <nav class="article-nav" aria-label="More articles">
+    {{- with $older }}
+      <a class="article-nav__link article-nav__link--prev" href="{{ .RelPermalink }}">
+        <span class="article-nav__label">← Previous</span>
+        <span class="article-nav__title">{{ .Title }}</span>
+      </a>
+    {{- end }}
+    {{- with $newer }}
+      <a class="article-nav__link article-nav__link--next" href="{{ .RelPermalink }}">
+        <span class="article-nav__label">Next →</span>
+        <span class="article-nav__title">{{ .Title }}</span>
+      </a>
+    {{- end }}
+  </nav>
+{{- end }}

@@ -1,0 +1,25 @@
+{{- /*
+  Corpus thumbnail linking to its large rendition.
+
+  Replaces the mkdocs-material construction this site used to carry -- a nested
+  image-inside-link with `{ .glightbox data-title="..." }` attribute lists.
+  Those are attr_list/glightbox extensions; Hugo renders the markup and then
+  prints the attribute list as literal text, which is exactly what it was doing
+  on /tutorial/ and /reference/corpus/ until this replaced it.
+
+  The markup itself is in partials/lightbox.html, because the walkthrough
+  layout needs the same element and layouts cannot call shortcodes.
+
+  Usage:
+    {{< lightbox src="corpus/kar-mi-troupe-poster"
+                 alt="Vaudeville chromolithograph, colour on colour"
+                 title="The great Victorina Troupe -- c. 1914"
+                 width="170" >}}
+*/ -}}
+{{- partial "lightbox.html" (dict
+      "src" (.Get "src")
+      "alt" (.Get "alt")
+      "title" (.Get "title")
+      "width" (.Get "width")
+      "class" (.Get "class")
+      "where" .Page.File.Path) -}}

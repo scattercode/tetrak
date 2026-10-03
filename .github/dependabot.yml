@@ -1,0 +1,43 @@
+# Dependabot keeps the workflow actions current.
+#
+# Added August 2026, after an audit found actions/checkout pinned anywhere
+# between v2 and v7 across the sibling repositories. The only two repos on the
+# current major -- tetrak-easyocr-armenian and tetrak-hy-trainer -- were the
+# only two with this file. Everything else had drifted, because nothing was
+# bumping it. The config is the fix; the version sweep that came with it is
+# just catching up.
+#
+# The commit-message prefix matters: this repository enforces Conventional
+# Commits through .githooks/commit-msg, and release.yml computes the next
+# version with git-cliff by parsing commit types. Dependabot commits on
+# GitHub's side and bypasses the hook, so without a prefix its PRs would land
+# as "Bump x from y to z" -- valid to git-cliff's catch-all, but inconsistent
+# with every other commit in the history.
+#
+# `ci` rather than `build`: these are workflow dependencies, not package ones,
+# and it matches the two satellite repositories.
+#
+# Scoped to actions only, deliberately. pip (pyproject.toml) and npm
+# (site/package.json) are not enrolled -- that would be a decision about PR
+# volume on a 540-package lockfile, not about the drift this fixes. Security
+# advisories are separate and unaffected: those come from Dependabot alerts,
+# which do not need this file.
+# The group exists so a batch of action bumps arrives as one pull request. The
+# sibling sites learned this the hard way with npm: five separate lockfile PRs
+# conflict with each other by construction, because merging any one of them
+# rewrites the lockfile the others were built against. Actions have no lockfile,
+# so the conflict does not arise here -- but one PR a week beats six, and the
+# whole set moves together the way the sweep that added this file did.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    groups:
+      github-actions:
+        patterns:
+          - "*"

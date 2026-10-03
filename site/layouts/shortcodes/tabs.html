@@ -1,0 +1,16 @@
+{{- /*
+  Tab set. Replaces mkdocs-material's `=== "macOS"` content tabs.
+
+  Usage:
+    {{< tabs >}}
+      {{< tab "macOS" >}} ... {{< /tab >}}
+      {{< tab "Debian / Ubuntu" >}} ... {{< /tab >}}
+    {{< /tabs >}}
+
+  Radio inputs rather than script: the tabs work with JavaScript disabled and
+  are keyboard-navigable for free. `.Ordinal` scopes the radio group so two
+  tab sets on one page do not fight.
+*/ -}}
+<div class="tabs" data-tabs="{{ .Ordinal }}">
+  {{ .Inner }}
+</div>

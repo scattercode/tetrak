@@ -1,0 +1,114 @@
+// Design tokens for Tetrak OCR.
+//
+// Ported from the Claude Design handoff, specifically the `:root` block in
+// `OCR Pipeline Site.dc.html` -- not from the Broadsheet `_ds/styles.css` that
+// the prototype also loads. The two are different systems: Broadsheet is a
+// generic newsprint kit with cyan and magenta process accents and Source Serif
+// 4 throughout, and the prototype overrides it completely, defining a warm
+// paper/ink/clay palette with Playfair Display headings and never referencing
+// a single `--color-*` token from it. The rendered design is this one, so this
+// is the system the site keeps.
+//
+// Every value below is from the prototype unchanged, except where a comment
+// says otherwise.
+
+:root {
+  // --- Paper and ink -------------------------------------------------------
+  // Warm off-white grounds, three steps deep, against a near-black that keeps
+  // a little brown in it. `--rule` is the only border colour in the system.
+  --paper: #f7f3ec;
+  --paper-2: #efe9df;
+  --paper-3: #e2dacd;
+  --ink: #1e1c19;
+  --ink-soft: #6d675e;
+  --rule: #d8d0c2;
+
+  // --- Accent --------------------------------------------------------------
+  // Clay is the single interface accent: links, the primary button, kickers,
+  // focus rings. `--clay-deep` is the text-on-paper variant, dark enough to
+  // clear the contrast floor for body links; `--clay` is for fills and marks.
+  --clay: #b08d4f;
+  --clay-deep: #8a6a33;
+  --amber: #c9a86a;
+
+  // --- Engine colours ------------------------------------------------------
+  // Used sparingly, and only to distinguish OCR engines from one another in
+  // diagrams and charts. Never for interface state.
+  --engine-blue: #5d7186;
+  --engine-green: #7f9384;
+  --engine-orange: #a8543a;
+  --engine-purple: #8a7f93;
+  --engine-teal: #5e8784;
+
+  // paddle-vl gets its own hue rather than sharing paddle's. The tesseract
+  // pair share one because they are a single engine configured two ways;
+  // these two are different models that happen to ship in the same package,
+  // and they are the pair a reader is most likely to be comparing.
+  --engine-rose: #8f6b72;
+
+  // --- Type ----------------------------------------------------------------
+  // Playfair Display carries the headings and is the reason the site reads as
+  // print rather than documentation. Source Serif 4 is the body face. IBM Plex
+  // Mono covers code, kickers, figures and anything tabular.
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-body: "Source Serif 4", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  // --- Measure and rhythm --------------------------------------------------
+  // The prototype sets these inline per element. Collected here so a page does
+  // not have to restate them, and so the scale is visible in one place.
+  --measure: 60ch;
+  --measure-tight: 44ch;
+  --page-max: 1220px;
+  --page-pad: 32px;
+  --rail: 220px;
+  --gap: 64px;
+}
+
+// A 32px gutter either side is a fifth of a phone screen. Narrowing it is part
+// of what keeps the masthead's tools row inside the viewport at the smallest
+// widths, and it gives the prose back its measure. Only the gutter changes --
+// everything that positions against it, including the walkthrough's full-bleed
+// bands, reads the token rather than the number.
+@media (width <= 480px) {
+  :root {
+    --page-pad: 20px;
+  }
+}
+
+// Dark is a genuine inversion rather than a recolour: the same hues, with the
+// paper steps darkened and the ink lifted. Clay moves up to `--amber`'s
+// register so it still reads as an accent against a dark ground.
+//
+// Three states, as the sites' shared convention requires: an explicit choice
+// stamps `data-theme`, and the default "system" setting stamps nothing, so the
+// media query has to carry the un-stamped case on its own.
+@mixin dark-tokens {
+  --paper: #1c1e21;
+  --paper-2: #25282c;
+  --paper-3: #323639;
+  --ink: #f2eee6;
+  --ink-soft: #a8a297;
+  --rule: #3c4045;
+
+  --clay: #c9a86a;
+  --clay-deep: #dcc08a;
+  --amber: #d8bc86;
+
+  --engine-blue: #8ea3b8;
+  --engine-green: #9db3a4;
+  --engine-orange: #c9765a;
+  --engine-purple: #a99fb2;
+  --engine-teal: #92b5b2;
+  --engine-rose: #b3949a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    @include dark-tokens;
+  }
+}
+
+:root[data-theme="dark"] {
+  @include dark-tokens;
+}

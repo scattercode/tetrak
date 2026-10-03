@@ -1,0 +1,29 @@
+<
+ee
+=
+<
+9
+a
+€
+9
+g
+wy
++
+As]
+e
+9
+i
+us
+2
+a
+
+THIS SPACE FOR WRITING MESSAGES
+
+PLACE
+ONE CENT
+STAMP
+HERE
+
+MADE IN U.S. A
+
+

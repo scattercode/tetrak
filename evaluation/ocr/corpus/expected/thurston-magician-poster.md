@@ -1,0 +1,9 @@
+THURSTON
+THE GREAT
+MAGICIAN
+
+Mr. KELLAR Says :
+"THURSTON is the greatest
+Magician the World has ever known."
+
+COPYRIGHT 1912 BY THE STROBRIDGE LITHO CO. CINCINNATI & NEW YORK

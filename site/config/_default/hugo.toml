@@ -1,0 +1,136 @@
+# Tetrak OCR — Hugo configuration.
+#
+# Themeless: layouts/, assets/ and content/ live at the repository root,
+# following velostevie. There is one site here, so a theme directory would add
+# a layer of indirection without buying separation.
+
+title = "Tetrak OCR"
+baseURL = "https://tetrak.dev/"
+locale = "en-gb"
+defaultContentLanguage = "en"
+enableGitInfo = true
+enableRobotsTXT = true
+enableInlineShortcodes = true
+
+# Hugo title-cases the titles it derives for list pages, which turned the tag
+# `ocr` into a page headed "Ocr" and titled "Ocr · Tetrak OCR" in the browser
+# tab. Tags are lowercase and hyphenated by convention here, and the term is the
+# tag -- capitalising it publishes a word the site does not use. The list pages
+# that want a proper title all have an _index.md that gives them one, including
+# content/tags/_index.md, which exists for exactly this reason.
+capitalizeListTitles = false
+
+# British English throughout, matching the other sites.
+[languages]
+  [languages.en]
+    label = "English"
+    weight = 1
+
+# Articles are filed on disk under content/articles/<year>/<month>/ so a section
+# that accumulates for years stays navigable in an editor, and published flat at
+# /articles/<year>/<month>/<slug>/. The date directories are deliberately not
+# sections: only a top-level directory or one holding an _index.md is, so nothing
+# renders at /articles/2026/ and the section keeps a single index page. Hugo
+# strips the leading date from the filename when it derives :slug, so
+# 2026-08-30-a-title.md publishes as .../a-title/ with no `slug` in front matter.
+[permalinks]
+  articles = "/articles/:year/:month/:slug/"
+
+# Declaring any taxonomy replaces Hugo's default set, which is the point twice
+# over: articles need `tags`, and the default set also carries `categories`,
+# which nothing on the site has ever used -- it was still building an empty
+# /categories/ page and putting it in the sitemap.
+[taxonomies]
+  tag = "tags"
+
+[build]
+  writeStats = true
+
+[outputs]
+  # index.json is the search index: built once at build time and filtered in
+  # the browser, rather than a search service. Build time over runtime.
+  home = ["HTML", "JSON"]
+
+[markup]
+  [markup.goldmark.renderer]
+    # The docs contain hand-written HTML in a few places -- the hero figure,
+    # the card grids -- carried over from the mkdocs source.
+    unsafe = true
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel = 3
+  [markup.highlight]
+    # No inline styles: the code block takes its colours from the design
+    # tokens like everything else.
+    noClasses = false
+    lineNos = false
+    tabWidth = 2
+
+[params]
+  description = "Local-first OCR orchestration for archival material, and a benchmark comparing five OCR engines against a corpus of Los Angeles stage and picture-palace ephemera, c. 1910-1945."
+  repo = "https://github.com/scattercode/tetrak"
+
+  # Plausible: privacy-friendly, no cookies, no consent banner needed.
+  #
+  # First-party path served by the Cloudflare Pages Function at
+  # functions/js/script.js.js (repository root, not site/ -- Cloudflare
+  # resolves it against the Pages root directory). The event beacon is
+  # likewise proxied via functions/api/event.js and wired up with
+  # plausible.init({endpoint:"/api/event"}) in baseof.html. Proxying keeps
+  # both requests same-origin so tracker blocklists that match the
+  # plausible.io domain do not block them. The upstream hashed script URL
+  # lives in the Pages Function, not here.
+  #
+  # Emitted only when hugo.IsProduction, so hugo server never tracks.
+  [params.analytics]
+    plausible_src = "/js/script.js"
+
+# The site lives in site/, the package and its evaluation data at the repository
+# root. These mounts give Hugo a read-only view of the two root files it needs,
+# so nothing has to be copied or symlinked into the site and the CSV keeps one
+# home. Mount sources are relative to this project root (site/), and Hugo does
+# allow them to point above it -- which is what makes the split possible.
+#
+# Declaring any mount replaces Hugo's defaults for that target, so the ordinary
+# directories are restated here. Omitting them silently empties the site.
+[module]
+  [[module.mounts]]
+    source = "content"
+    target = "content"
+  [[module.mounts]]
+    source = "layouts"
+    target = "layouts"
+  [[module.mounts]]
+    source = "assets"
+    target = "assets"
+  [[module.mounts]]
+    source = "static"
+    target = "static"
+  [[module.mounts]]
+    source = "i18n"
+    target = "i18n"
+  [[module.mounts]]
+    source = "data"
+    target = "data"
+  [[module.mounts]]
+    source = "archetypes"
+    target = "archetypes"
+
+  # Read at build time by the {{< benchmark >}} shortcode. The harness writes
+  # it; the site never holds a copy.
+  [[module.mounts]]
+    source = "../evaluation/ocr/benchmark.csv"
+    target = "assets/evaluation/benchmark.csv"
+
+  # Read at build time by the {{< registers >}} shortcode. Written by
+  # tools/register_comparison.py, whose own inputs are gitignored, so unlike
+  # benchmark.csv this one cannot be recomputed by a build.
+  [[module.mounts]]
+    source = "../evaluation/ocr/registers.csv"
+    target = "assets/evaluation/registers.csv"
+
+  # Pulled into content/licensing.md by {{< include >}}, so the published page
+  # and the file GitHub shows beside the LICENSE cannot drift apart.
+  [[module.mounts]]
+    source = "../LICENSING.md"
+    target = "assets/LICENSING.md"

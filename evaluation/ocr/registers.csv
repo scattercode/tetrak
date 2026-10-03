@@ -1,0 +1,10 @@
+register,label,tetrak-hy v6 (ours)_chr,tetrak-hy v6 (ours)_wrd,hye-calfa-n_chr,hye-calfa-n_wrd,hye-paddle_chr,hye-paddle_wrd,marker_chr,marker_wrd,tesseract-hye_chr,tesseract-hye_wrd
+totovents-works,"Totovents, Works",0.9868,0.9683,0.9844,0.9413,0.9849,0.9405,0.8142,0.8067,0.9383,0.7394
+medical-encyclopedia,Medical encyclopedia,0.9646,0.9677,0.9753,0.8290,0.3025,0.9331,0.8882,0.9141,0.9730,0.8768
+otyan-works,"Otyan, Works",0.9872,0.9647,0.9782,0.9291,0.9812,0.9343,0.9200,0.8372,0.9230,0.7270
+baronian-vol10,"Baronian, Works",0.9863,0.9442,0.9817,0.9106,0.9834,0.9185,0.8639,0.7869,0.9425,0.7444
+faustus-1968,Faustus of Byzantium (1968),0.9699,0.9163,0.9762,0.9138,0.9271,0.9222,0.9187,0.8602,0.9286,0.7157
+tumanyan-elzh5,Tumanyan (academic edition),0.9558,0.9145,0.9503,0.9040,0.9697,0.9130,0.6584,0.7082,0.8887,0.7103
+ase-vol2,Encyclopedia (ASE vol. 2),0.9703,0.9017,0.9600,0.8426,0.3342,0.8648,0.5262,0.8358,0.9456,0.7728
+dictionary-hy-en,Dictionary (hy–en),0.8570,0.6883,0.4015,0.1092,0.4348,0.4574,0.6628,0.6781,0.3386,0.0462
+mean,Mean over registers,0.9597,0.9082,0.9010,0.7974,0.7397,0.8605,0.7816,0.8034,0.8598,0.6666

@@ -1,0 +1,23 @@
+{{- /*
+  A figure whose image goes through Hugo's asset pipeline.
+
+  Replaces the docs' raw <img> tags and mkdocs' image handling. `src` is
+  relative to assets/images/, matching the convention in both other sites --
+  never static/images/, so the pipeline can resize and convert.
+
+  Usage:
+    {{< figure src="design/how-tetrak-ocr-works.webp" alt="..." caption="..." >}}
+    {{< figure src="..." alt="..." class="hero-figure" >}}
+*/ -}}
+{{- $src := .Get "src" }}
+{{- with resources.Get (printf "images/%s" $src) }}
+  {{- $w := $.Get "width" | default "1400" }}
+  {{- $img := .Resize (printf "%sx webp q82" $w) }}
+  <figure class="figure{{ with $.Get "class" }} {{ . }}{{ end }}">
+    <img src="{{ $img.RelPermalink }}" alt="{{ $.Get "alt" }}"
+         width="{{ $img.Width }}" height="{{ $img.Height }}" loading="lazy" decoding="async">
+    {{- with $.Get "caption" }}<figcaption>{{ . | $.Page.RenderString }}</figcaption>{{ end }}
+  </figure>
+{{- else }}
+  {{- errorf "figure: assets/images/%s not found (called from %s)" $src $.Page.File.Path }}
+{{- end }}

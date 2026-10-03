@@ -1,0 +1,23 @@
+{{- /*
+  An article's tags, as links to their term pages.
+
+  Resolved with site.GetPage rather than built from the string, per the site's
+  linking rule: going through the page object means the URL carries the baseURL
+  path and a term that stops existing fails the build instead of publishing a
+  404. A tag always has a term page -- Hugo generates one from the taxonomy --
+  so the else branch here is a guard against the taxonomy being renamed, not a
+  case that comes up in normal writing.
+
+  Renders nothing at all for an untagged page, rather than an empty list: every
+  documentation page on the site is untagged and this partial is safe to call on
+  any of them.
+*/ -}}
+{{- with .Params.tags }}
+  <ul class="tag-list">
+    {{- range . }}
+      {{- $term := site.GetPage (printf "/tags/%s" (urlize .)) }}
+      {{- if not $term }}{{ errorf "tags: no term page for %q -- has the `tag` taxonomy been renamed in hugo.toml?" . }}{{ end }}
+      <li><a class="tag" href="{{ $term.RelPermalink }}">{{ $term.LinkTitle }}</a></li>
+    {{- end }}
+  </ul>
+{{- end }}

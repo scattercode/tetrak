@@ -1,0 +1,17 @@
+{{- /*
+  A grid of people, for the about page.
+
+  Usage:
+    {{< people >}}
+      {{< person name="…" role="…" linkedin="…" >}} bio {{< /person >}}
+    {{< /people >}}
+
+  Wrapper only: it holds the grid and nothing else, so the bios stay in
+  content/ as prose rather than moving into a data file or into raw HTML. The
+  same shape as {{< tabs >}} / {{< tab >}}, which is the site's one existing
+  pair of nested shortcodes -- the inner shortcodes have already rendered by
+  the time .Inner is read here.
+*/ -}}
+<div class="people">
+  {{ .Inner }}
+</div>

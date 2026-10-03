@@ -1,0 +1,28 @@
+{{- /*
+  A tag's page: everything filed under one term.
+
+  Only articles carry tags -- the documentation pages are navigated by the
+  masthead and the section indexes, not by taxonomy -- so this reuses the
+  articles listing wholesale rather than growing a second row component that
+  would drift from it.
+
+  The h1 says "Tagged X" rather than just "X". A page whose entire heading is a
+  single lowercase word gives a reader arriving from search no idea what they
+  have landed on.
+*/ -}}
+{{ define "title" }}Tagged {{ .Title }} · {{ site.Title }}{{ end }}
+
+{{ define "main" }}
+  <div class="kicker">Tag</div>
+  <h1>Tagged {{ .Title }}</h1>
+  <p class="standfirst">
+    {{ len .Pages }} article{{ if ne (len .Pages) 1 }}s{{ end }} tagged “{{ .Title }}”.
+  </p>
+  {{ .Content }}
+
+  {{- partial "article-list.html" .Pages.ByDate.Reverse }}
+
+  {{- with site.GetPage "/tags" }}
+    <p class="articles__foot"><a href="{{ .RelPermalink }}">All tags</a></p>
+  {{- end }}
+{{ end }}

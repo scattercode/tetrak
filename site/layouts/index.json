@@ -1,0 +1,21 @@
+{{- /*
+  The search index, built once here rather than searched on a server. The
+  browser fetches it on first search and filters in memory -- the
+  scattercode.dev pattern.
+
+  Full page text, not an excerpt. An earlier version truncated to 1200
+  characters and searching "triage" found two pages when five discuss it: the
+  term appears well below the fold on most of them. Fourteen pages of prose is
+  about 90 KB, fetched once and never per keystroke, which is a fair price for
+  search that actually finds things.
+*/ -}}
+{{- $pages := slice }}
+{{- range where .Site.RegularPages "Params.private" "!=" true }}
+  {{- $pages = $pages | append (dict
+      "title" .Title
+      "section" (.Parent.Title | default "Tetrak OCR")
+      "url" .RelPermalink
+      "text" .Plain
+  ) }}
+{{- end }}
+{{- $pages | jsonify -}}

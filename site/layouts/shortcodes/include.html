@@ -1,0 +1,33 @@
+{{- /*
+  Include a file from outside the site. Replaces pymdownx.snippets'
+  `--8<-- "path"`, used by licensing.md to pull in the root LICENSING.md rather
+  than restating it.
+
+  The path is resolved against Hugo's assets, not the filesystem: readFile
+  cannot see above the project root, and the site now sits in site/ while
+  LICENSING.md stays at the repository root beside the LICENSE. hugo.toml
+  mounts it in. Anything else this shortcode is pointed at needs a mount too,
+  which is deliberate -- it keeps the set of files the site reaches into
+  declared in one place.
+
+  Fails the build on a missing path rather than rendering an empty page.
+
+  The included file's own H1 is dropped. A file like LICENSING.md is a standalone
+  document on GitHub and needs a title of its own; inside the site that title is
+  already rendered from front matter by the page template, so including it whole
+  put "Licensing" on the page twice. Stripping it here rather than in the source
+  file keeps the GitHub view correct, and rather than in the page template keeps
+  every other page unaffected.
+
+  Only a leading H1 goes, and `##` and below are left alone: a standalone
+  document's section levels already line up with the site's convention that `##`
+  is the top level inside a page. `#[ \t]+` rather than `#` so `## Heading` is
+  not mistaken for a title.
+*/ -}}
+{{- $path := .Get 0 }}
+{{- with resources.Get $path }}
+  {{- $body := replaceRE `\A\s*#[ \t]+[^\n]*\r?\n+` "" .Content }}
+  {{ $body | $.Page.RenderString (dict "display" "block") }}
+{{- else }}
+  {{ errorf "include: %q is not mounted -- add it to [module.mounts] in config/_default/hugo.toml (called from %s)" $path $.Page.File.Path }}
+{{- end }}

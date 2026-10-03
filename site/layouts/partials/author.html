@@ -1,0 +1,53 @@
+{{- /*
+  Resolve an article's `author` front-matter key against data/authors.toml and
+  return the record, so a caller can write {{ $a := partial "author.html" . }}.
+
+  Front matter carries the key, not a name -- `author: stephen-masters`. A name
+  typed into each article would be a second spelling of it per article and would
+  publish silently when mistyped; a key is checked here, and a missing or
+  unknown one fails the build. That is the same bargain the figure, lightbox and
+  person shortcodes already make: the site would rather not build than ship a
+  page with a hole in it.
+
+  `author` is required. An article is a signed piece of writing, and the
+  archetype fills the field in, so its absence is a mistake rather than a
+  reasonable default -- and a site-wide default author would put the wrong name
+  on somebody else's article without ever saying so.
+*/ -}}
+{{- $known := slice }}
+{{- range $key, $record := hugo.Data.authors }}
+  {{- $known = $known | append $key }}
+{{- end }}
+{{- if not $known }}
+  {{- errorf "author: data/authors.toml is missing or empty" }}
+{{- end }}
+
+{{- /* errorf logs and carries on rather than halting, so these are chained
+       rather than written as four independent ifs: an article with an unknown
+       key would otherwise fail once for the key and again for the missing name
+       it could not have had, and the second message is the one that scrolls
+       into view. One defect, one message. */ -}}
+{{- $key := .Params.author }}
+{{- $author := "" }}
+{{- if not $key }}
+  {{- errorf "author: %q has no `author` in its front matter -- set it to one of: %s" .File.Path (delimit $known ", ") }}
+{{- else }}
+  {{- $author = index hugo.Data.authors $key }}
+  {{- if not $author }}
+    {{- errorf "author: %q names author %q, which is not in data/authors.toml -- known authors are: %s" .File.Path $key (delimit $known ", ") }}
+  {{- else if not $author.name }}
+    {{- errorf "author: data/authors.toml entry %q has no `name`" $key }}
+  {{- else if and $author.linkedin (or (strings.Contains $author.linkedin "/") (strings.Contains $author.linkedin ":")) }}
+    {{- /* The same guard as the {{< person >}} shortcode, for the same reason:
+           the host is built at the point of use, so a full profile URL pasted
+           in here would publish linkedin.com/in/https://linkedin.com/in/… */ -}}
+    {{- errorf "author: data/authors.toml entry %q has a URL in `linkedin` -- it takes the profile handle, got %q" $key $author.linkedin }}
+  {{- end }}
+{{- end }}
+
+{{- /* A dict rather than nothing on failure. errorf has already marked the
+       build as failed, and returning an empty value would have every caller
+       dereference nil and bury that message under a page of template errors. */ -}}
+{{- if not $author }}{{ $author = dict "name" "" "role" "" "linkedin" "" }}{{ end }}
+
+{{- return $author }}

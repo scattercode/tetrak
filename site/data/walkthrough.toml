@@ -1,0 +1,340 @@
+## The research walkthrough, in one place.
+##
+## Two artefacts render this file: the site page at /research/walkthrough/
+## (site/layouts/research/walkthrough.html) and the slide deck
+## (tools/generate_presentation.py). Hugo reads it natively as
+## `site.Data.walkthrough`; Python reads it with stdlib `tomllib`, which is why
+## it is TOML rather than YAML -- neither side needs a dependency for it.
+##
+## THIS FILE HOLDS PROSE AND STRUCTURE ONLY. Every figure comes from
+## evaluation/ocr/benchmark.csv at render time, in both media, the same way the
+## {{< benchmark >}} shortcode and tools/generate_benchmark_chart.py already
+## work. The deck used to carry sentences like "recall runs 0.71 to 0.91"
+## typed in by hand, and they went stale the first time the harness re-ran.
+## Write qualitatively here; let the numbers arrive from the CSV beside it.
+##
+## Document titles, subtitles and challenges agree with
+## site/content/reference/corpus.md deliberately -- the same nine items should
+## be described the same way wherever they appear.
+
+[meta]
+title = "OCR for historical archives"
+subtitle = "A comparison of text recognition engines"
+standfirst = "Which OCR engine should you point at a box of archive scans? We built a fixed corpus of Los Angeles stage and picture-palace ephemera, generated reference transcripts, and measured every engine we could install against every document. This is that work, in order."
+byline = "Stephen Masters · Yvette Mankerian"
+footer = "Tetrak OCR · tetrak.dev"
+date = "August 2026"
+
+## --- The spine ---------------------------------------------------------------
+## Five beats. The deck gives each one an agenda row and a section marker; the
+## page sets the numeral oversized in the margin.
+
+[[chapter]]
+number = "1"
+title = "The challenge"
+blurb = "Why OCR matters for archival work, and what makes historical documents difficult to digitise."
+
+[[chapter]]
+number = "2"
+title = "The engines"
+blurb = "What exists, how each one works, and the difference between pattern matching, neural recognition and layout understanding."
+
+[[chapter]]
+number = "3"
+title = "The corpus"
+blurb = "Nine real documents, chosen to span the failure modes that matter in archive digitisation rather than to flatter anything."
+
+[[chapter]]
+number = "4"
+title = "The results"
+blurb = "What the measurements say: which engine to reach for, and where each one falls down."
+
+[[chapter]]
+number = "5"
+title = "What follows"
+blurb = "The findings that survived, and the questions still open."
+
+## --- Why this is hard --------------------------------------------------------
+
+[[challenge]]
+title = "Faded ink and poor contrast"
+body = "Aged paper and aged ink converge. Letters blend into the ground, and the threshold that recovers one part of a page destroys another."
+
+[[challenge]]
+title = "Decorative typography"
+body = "Historic mastheads and showbills use hand-lettered, arched and ornamented letterforms that no character model has been trained on."
+
+[[challenge]]
+title = "Complex page layouts"
+body = "Multi-column articles, mixed sizes, and text flowing around illustration. Finding the words and reading them in the right order are separate problems, and most engines solve only the first."
+
+[[challenge]]
+title = "Volume"
+body = "Transcribing a collection by hand is not a plan. Whatever runs has to run unattended, and has to say something useful when it fails."
+
+## --- The engines -------------------------------------------------------------
+## `key` is the column stem in evaluation/ocr/benchmark.csv, so both renderers can
+## look a row up without a translation table.
+##
+## `accent` names a design token, never a literal colour. The engine palette
+## exists only to tell engines apart in charts and diagrams -- it is never used
+## for interface state. tesseract and tesseract-auto share a hue because they
+## are one engine, configured two ways.
+
+[[engine]]
+key = "tesseract"
+label = "tesseract"
+availability = "Free · local"
+accent = "engine-blue"
+body = "Traditional pattern-matching OCR, and the one everybody already has. Fast, predictable, and entirely dependent on being handed a well-prepared image."
+best_for = "Typed and printed documents, and PDFs"
+limits = "Decorative faces, faded scans, anything multi-column"
+
+[[engine]]
+key = "tesseract-auto"
+label = "tesseract-auto"
+availability = "Free · local"
+accent = "engine-blue"
+body = "The same engine with contrast and page-segmentation chosen per image instead of left at the default. Tuning the engine you have turned out to beat switching to a different one."
+best_for = "Clean printed captions, postcard reverses, labels"
+limits = "Bands fitted to this corpus; they need re-fitting more widely"
+
+[[engine]]
+key = "easyocr"
+label = "easyocr"
+availability = "Free · local"
+accent = "engine-green"
+body = "A neural detector and recogniser. Finds text regions the others miss, particularly on textured and low-contrast grounds, then struggles to put them in order."
+best_for = "Low-contrast, textured illustration fronts"
+limits = "No PDF support; weak on complex layouts"
+
+[[engine]]
+key = "easyocr-hy"
+label = "easyocr-hy"
+availability = "Free · local"
+accent = "engine-green"
+body = "EasyOCR’s detector with the project’s own Armenian recogniser behind it, and its lines put in column order before they are joined. It is measured here because it is a local backend, not because this corpus suits it: the corpus is English-language, and the model was trained on Armenian print."
+best_for = "Armenian print, including multi-column pages"
+limits = "Trained for Armenian; reads English-language material poorly"
+
+[[engine]]
+key = "paddle"
+label = "paddle"
+availability = "Free · local"
+accent = "engine-purple"
+body = "Baidu’s detection-and-recognition pipeline. Strong word coverage on dense images, and the best local reader of small type on a busy sheet."
+best_for = "Dense small type, playbills, image pages"
+limits = "No PDF support; character order suffers on ornamental type"
+
+[[engine]]
+key = "paddle-vl"
+label = "paddle-vl"
+availability = "Free · local"
+accent = "engine-rose"
+body = "A document vision-language model rather than a detector and classifier: it generates the transcript from the image instead of recognising each glyph in turn. It reads the dense multi-column pages this corpus is hardest on, and reads PDFs and multi-page TIFFs directly."
+best_for = "Dense newsprint, multi-column pages, documents rather than images"
+limits = "Minutes per page, not seconds — batch work only; opt-in to auto-local"
+
+[[engine]]
+key = "marker"
+label = "marker"
+availability = "Free · local"
+accent = "engine-orange"
+body = "A document-to-Markdown converter rather than an OCR engine: it models the page as structure — headings, columns, tables — and reads within it."
+best_for = "Multi-page PDFs; multi-column articles needing clean output"
+limits = "Slow on ordinary hardware; reads image-heavy pages as figures"
+
+[[engine]]
+key = "vision"
+label = "vision"
+availability = "Free · local · macOS"
+accent = "engine-teal"
+body = "Apple’s on-device recogniser, through the Vision framework. It ships with macOS — no weights to download, no first-call penalty — so on a Mac it joins the fan-out at essentially no cost and reads clean print quickly."
+best_for = "Clean printed type on a Mac, at zero setup cost"
+limits = "macOS only; no PDF support; sparse, unordered output on complex layouts"
+
+[[engine]]
+key = "auto-local"
+label = "auto-local"
+availability = "Free · local · routing"
+accent = "clay"
+body = "Not a standalone engine. It runs every local engine eligible for the file, scores the transcripts with no reference text, and keeps the best one. Per file, not per batch."
+best_for = "Mixed collections, run unattended, nothing leaving the machine"
+limits = "Slower by definition; its selection heuristic still loses ground"
+
+[[engine]]
+key = "claude"
+label = "claude"
+availability = "API · paid · ceiling reference"
+accent = "ink-soft"
+ceiling = true
+body = "A vision model, and the source of the reference transcripts every other engine is scored against — including its own. Its column is self-consistency, not accuracy, and it is excluded from every ‘best local’ comparison on this page."
+best_for = "Material nothing local reads: ornamental type, multi-column"
+limits = "Per-page cost, an internet connection, material leaving site"
+
+## --- The corpus --------------------------------------------------------------
+## `file` matches the `fixture` column in evaluation/ocr/benchmark.csv.
+## `image` is the rendition base name under site/assets/images/corpus/; both a
+## `<image>.webp` and a `<image>-large.webp` are committed for every item.
+## `hero` marks the five that get a full plate of their own -- the deck's
+## walkthrough pacing depends on there being five, not nine.
+
+[[document]]
+file = "inside-facts-1930-cover.jpg"
+image = "corpus/inside-facts-1930-cover"
+hero = true
+title = "Inside Facts of Stage and Screen"
+subtitle = "LA theatrical trade weekly, 31 May 1930 · JPEG"
+alt = "Front page of Inside Facts of Stage and Screen, 31 May 1930, a dense multi-column newspaper under a heavy display masthead"
+challenge = "Dense multi-column newsprint under a heavy display masthead, on aged low-contrast paper. Every local engine finds most of the words and then reads them in the wrong order, so recall holds up while character similarity collapses. Finding the text and understanding the page are different problems, and this is the document that separates them."
+
+[[document]]
+file = "kar-mi-troupe-poster.jpg"
+image = "corpus/kar-mi-troupe-poster"
+hero = true
+title = "The great Victorina Troupe"
+subtitle = "Vaudeville chromolithograph, c. 1914 · JPEG"
+alt = "Vaudeville chromolithograph poster for the Victorina Troupe sword swallowing act, with hand-lettered display type arched over an illustration"
+challenge = "Curved and arched hand-lettered display type, colour on colour, with caption text at the bottom in a size the scan barely holds. Nothing local reads it — plain Tesseract returns essentially nothing at all. The widest gap in the corpus between what a local engine manages and what a vision model does."
+
+[[document]]
+file = "carthay-circle-postcard-back.png"
+image = "corpus/carthay-circle-postcard-back"
+hero = true
+title = "Carthay Circle Theatre, reverse"
+subtitle = "Tichnor linen postcard, c. 1930–45 · PNG"
+alt = "Reverse of the Carthay Circle postcard, showing text rotated ninety degrees, a faded rubber stamp, handwriting and large empty areas"
+challenge = "Clean printed type, awkwardly arranged: rotated ninety degrees, around a faded rubber stamp and a line of handwriting, with large empty areas between. Auto-configured Tesseract comes within a few points of the ceiling here — free, offline and fast. This is the case where reaching for an API is hard to justify."
+
+[[document]]
+file = "graumans-chinese-theatre.jpg"
+image = "corpus/graumans-chinese-theatre"
+hero = true
+title = "Grauman’s Chinese Theatre"
+subtitle = "Tichnor linen postcard, c. 1930–45 · JPEG"
+alt = "Linen postcard of Grauman’s Chinese Theatre, Hollywood, a colour halftone with marquee lettering at the edge of legibility"
+challenge = "A colour halftone where the marquee lettering sits right at the edge of legibility and competes with the image around it. The local engines cluster on character similarity but recover only about half the words, and Marker’s layout model reads the whole card as a figure and returns almost nothing."
+
+[[document]]
+file = "king-of-kings-souvenir-1927.pdf"
+image = "corpus/king-of-kings-souvenir-1927"
+hero = true
+title = "The King of Kings souvenir programme"
+subtitle = "Roadshow programme, 1927 · 21-page PDF"
+alt = "First page of The King of Kings roadshow souvenir programme, 1927, showing a tinted ground and script headings"
+challenge = "The only multi-page item, and the reason PDF support is not a detail: EasyOCR and PaddleOCR cannot open it at all. Tesseract and Marker both manage strong recall on the typeset body text, across tinted grounds, script headings and drop caps."
+
+[[document]]
+file = "inside-facts-1930-page-six.jpg"
+image = "corpus/inside-facts-1930-page-six"
+hero = false
+title = "Inside Facts, page six"
+subtitle = "Same issue, 31 May 1930 · JPEG"
+alt = "Interior page of the same newspaper issue, multi-column body text broken up by ruled advertisement boxes"
+challenge = "Multi-column body text broken up by ruled advertisement boxes. The same reading-order problem as the front page, with the masthead removed so it can be measured on its own."
+
+[[document]]
+file = "carthay-circle-premiere.jpg"
+image = "corpus/carthay-circle-premiere"
+hero = false
+title = "Carthay Circle Theatre premiere"
+subtitle = "Tichnor linen postcard, c. 1930–45 · JPEG"
+alt = "Linen postcard showing a world premiere at the Carthay Circle Theatre, Los Angeles, with caption text reversed out of a dark night sky"
+challenge = "Caption text reversed out of a dark night sky, over a textured linen ground — low contrast in exactly the place the text actually is."
+
+[[document]]
+file = "hollywood-music-box-playbill-1926.tif"
+image = "corpus/hollywood-music-box-playbill-1926"
+hero = false
+title = "Hollywood Music Box, Ken-Geki playbill"
+subtitle = "Week beginning 18 June 1926 · archival TIFF"
+alt = "Playbill for the Hollywood Music Box Theatre, a tall narrow sheet of dense small type listing a Japanese touring drama company’s programme"
+challenge = "Dense small type over a full sheet: cast lists, plot synopses and ticket prices at footnote size, photographed on a dark mount as museum holdings usually are."
+
+[[document]]
+file = "kinema-theater-ad-1920.tif"
+image = "corpus/kinema-theater-ad-1920"
+hero = false
+title = "Kinema Theater display advertisement"
+subtitle = "Los Angeles Evening Express, 2 October 1920 · archival TIFF"
+alt = "Newspaper display advertisement for the Kinema Theater, with hand-lettered headlines and body text set around a large illustration"
+challenge = "Hand-lettered headlines, a programme column in tiny type, and body text flowing around a large illustration. Tesseract reads the column and misses the masthead entirely."
+
+## --- What the evidence says --------------------------------------------------
+## Three claims, set as pull quotes on the page and as the summary slide in the
+## deck. No figures: the deck's old version asserted "~0.98 on average" for
+## Claude, which had been true of an earlier run and was not true of this one.
+
+[[finding]]
+title = "Claude sets a ceiling, and is not a competitor"
+body = "It generated the reference transcripts every other engine is scored against, including its own. Reading its column as a win is reading the wrong thing. What it does tell you is roughly how much of each document is legible at all."
+
+[[finding]]
+title = "No single local engine is strong across the corpus"
+body = "Different engines win on different documents, and the winners are not close to each other. There is no setting you can choose once and be right about, which is the finding that decided the architecture."
+
+[[finding]]
+title = "Choosing per file closes most of the gap"
+body = "auto-local runs the engines eligible for each file, scores the transcripts without a reference, and keeps the best. It beats every individual local engine on both metrics, entirely offline and free — and it is still losing ground to an oracle that knows the answer."
+
+## --- Choosing for your own material -------------------------------------------
+## Kept in step with the table on content/_index.md and the fuller one under
+## "Choosing a tool for your own material" in content/research/_index.md.
+
+[[recommendation]]
+material = "Clean printed captions, postcards, labels"
+engine = "tesseract-auto"
+second = "easyocr"
+why = "Close to the ceiling, free, offline and fast"
+
+[[recommendation]]
+material = "Multi-column newsprint and magazines"
+engine = "claude"
+second = "marker"
+why = "Reading order is the whole problem, and only layout understanding solves it"
+
+[[recommendation]]
+material = "Decorative, hand-lettered, ornamental type"
+engine = "claude"
+second = ""
+why = "Nothing local reads it"
+
+[[recommendation]]
+material = "Multi-page PDFs"
+engine = "marker"
+second = "tesseract"
+why = "EasyOCR and PaddleOCR cannot read PDFs at all"
+
+[[recommendation]]
+material = "Mixed material, run unattended"
+engine = "auto-local"
+second = ""
+why = "Runs the viable local engines and keeps the best transcript"
+
+[[recommendation]]
+material = "Anything confidential"
+engine = "auto-local"
+second = "tesseract-auto"
+why = "Everything stays on the machine; no API call"
+
+## --- Still open ---------------------------------------------------------------
+
+[[question]]
+title = "The selection heuristic leaves accuracy on the table"
+body = "auto-local’s scorer loses ground against an oracle that knows which transcript is best. That is a scoring weight rather than an engine limitation, and it is the cheapest accuracy work available."
+
+[[question]]
+title = "The auto-configuration bands are overfitted"
+body = "They were fitted against most of this corpus and need re-fitting on a wider set before they can be trusted elsewhere."
+
+[[question]]
+title = "The ground truth is machine-generated"
+body = "Human-checked reference transcripts would remove the benchmark’s central weakness, and would let Claude be measured rather than assumed."
+
+[[question]]
+title = "Nothing here generalises beyond archival print of this era"
+body = "Same period, same condition, same script. Whether the pipeline holds up on other scripts is untested; an open Armenian Tesseract model exists and would make the cheapest first experiment."
+
+[[question]]
+title = "Rights, before anything else"
+body = "Would the rights attached to a given collection permit sending its scans to a third-party service at all? Where the answer is no, the local path is not a preference, it is the only option."

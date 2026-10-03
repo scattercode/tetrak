@@ -1,0 +1,178 @@
+{{- /*
+  The per-register cross-engine table, read from evaluation/ocr/registers.csv
+  at build time.
+
+  Why this exists at all: neither input to that table is in the repository.
+  The trainer's runs/ is gitignored in full and so are the cached spans under
+  evaluation/layout/spans/, so unlike the fixture benchmark there is nothing
+  Hugo could recompute. The two articles that published this table in
+  September therefore typed it in by hand, and within three weeks both copies
+  disagreed with the harness -- hye-paddle had been filled in on all eight
+  registers and took the mean. tools/register_comparison.py --emit writes the
+  CSV; this reads it; neither page holds a copy.
+
+  Only engines measured on *every* register reach the CSV, so a mean over a
+  column is a mean over the same pages in every column.
+
+  A partial rather than a shortcode so a layout can render it too, matching
+  partials/benchmark.html. The {{< registers >}} shortcode is a thin wrapper.
+
+  Context: a dict of
+    view     - "full" (default), a row per register in one metric; or
+               "summary", a row per engine carrying both means. The engines
+               reference page wants the means and links out for the detail,
+               and it had its own hand-typed copy of them until this view
+               existed.
+    metric   - "wrd" (default) or "chr". Ignored by the summary view, which
+               shows both.
+    boldBest - false to suppress the best-per-row marking
+*/ -}}
+
+{{- $res := resources.Get "evaluation/registers.csv" }}
+{{- if not $res }}
+  {{- errorf "registers: evaluation/ocr/registers.csv is not mounted -- check [module.mounts] in config/_default/hugo.toml" }}
+{{- end }}
+{{- $csv := $res.Content | transform.Unmarshal (dict "format" "csv" "delimiter" ",") }}
+
+{{- $header := index $csv 0 }}
+{{- $rows := after 1 $csv }}
+{{- $metric := .metric | default "wrd" }}
+{{- if not (in (slice "wrd" "chr") $metric) }}
+  {{- errorf "registers: metric must be \"wrd\" or \"chr\", got %q" $metric }}
+{{- end }}
+{{- /* Every row but the mean is a register. Derived rather than written
+       down: a caption asserting "eight" would outlive the eighth register
+       exactly the way the hand-typed tables outlived their figures. */ -}}
+{{- $registerCount := 0 }}
+{{- range $rows }}{{ if ne (index . 0) "mean" }}{{ $registerCount = add $registerCount 1 }}{{ end }}{{ end }}
+{{- $view := .view | default "full" }}
+{{- if not (in (slice "full" "summary") $view) }}
+  {{- errorf "registers: view must be \"full\" or \"summary\", got %q" $view }}
+{{- end }}
+{{- $boldBest := ne .boldBest false }}
+
+{{- $col := dict }}
+{{- range $i, $name := $header }}
+  {{- $col = merge $col (dict $name $i) }}
+{{- end }}
+
+{{- /* Engines in the order the tool wrote them: ours first, then externals. */ -}}
+{{- $engines := slice }}
+{{- range $header }}
+  {{- if strings.HasSuffix . "_chr" }}
+    {{- $engines = $engines | append (strings.TrimSuffix "_chr" .) }}
+  {{- end }}
+{{- end }}
+
+{{- if eq $view "summary" }}
+  {{- $mean := false }}
+  {{- range $rows }}{{ if eq (index . 0) "mean" }}{{ $mean = . }}{{ end }}{{ end }}
+  {{- if not $mean }}
+    {{- errorf "registers: registers.csv has no mean row -- regenerate it with tools/register_comparison.py --emit" }}
+  {{- end }}
+
+  {{- /* Ordered by word recall, the column the page argues from. */ -}}
+  {{- $ranked := slice }}
+  {{- range $engines }}
+    {{- $ranked = $ranked | append (dict
+          "name" .
+          "chr" (float (index $mean (index $col (printf "%s_chr" .))))
+          "wrd" (float (index $mean (index $col (printf "%s_wrd" .))))) }}
+  {{- end }}
+  {{- $ranked = sort $ranked "wrd" "desc" }}
+
+  {{- $bestChr := -1.0 }}
+  {{- $bestWrd := -1.0 }}
+  {{- if $boldBest }}
+    {{- range $ranked }}
+      {{- if gt .chr $bestChr }}{{ $bestChr = .chr }}{{ end }}
+      {{- if gt .wrd $bestWrd }}{{ $bestWrd = .wrd }}{{ end }}
+    {{- end }}
+  {{- end }}
+
+<div class="table-scroll">
+<table class="benchmark">
+  <thead>
+    <tr>
+      <th scope="col">Backend</th>
+      <th scope="col" class="benchmark__num">Char similarity</th>
+      <th scope="col" class="benchmark__num">Word recall</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{- range $ranked }}
+      <tr>
+        <th scope="row">
+          {{- if strings.HasSuffix .name "(ours)" }}{{ .name }}{{ else }}<code>{{ .name }}</code>{{ end -}}
+        </th>
+        <td class="benchmark__num{{ if eq .chr $bestChr }} is-best{{ end }}">{{ printf "%.3f" .chr }}</td>
+        <td class="benchmark__num{{ if eq .wrd $bestWrd }} is-best{{ end }}">{{ printf "%.3f" .wrd }}</td>
+      </tr>
+    {{- end }}
+  </tbody>
+</table>
+</div>
+
+<p class="benchmark__caption">
+  Means over the {{ $registerCount }} evaluation registers, generated from
+  <code>evaluation/ocr/registers.csv</code> at build time.
+  {{ if $boldBest }}Bold marks the best in each column. {{ end }}
+  Only engines measured on every register appear.
+</p>
+
+{{- else }}
+
+<div class="table-scroll">
+<table class="benchmark">
+  <thead>
+    <tr>
+      <th scope="col">Register</th>
+      {{- range $engines }}
+        <th scope="col" class="benchmark__num">
+          {{- if strings.HasSuffix . "(ours)" }}{{ . }}{{ else }}<code>{{ . }}</code>{{ end -}}
+        </th>
+      {{- end }}
+    </tr>
+  </thead>
+  <tbody>
+    {{- range $rows }}
+      {{- $row := . }}
+      {{- $isSummary := eq (index $row 0) "mean" }}
+
+      {{- /* Unlike the fixture benchmark, whose Average row holds totals in
+             its seconds columns, every cell in this summary row is a mean of
+             the same quantity as the rows above it -- so marking the best one
+             says something true, and it is the figure the argument turns on. */ -}}
+      {{- $best := -1.0 }}
+      {{- if $boldBest }}
+        {{- range $engines }}
+          {{- $v := float (index $row (index $col (printf "%s_%s" . $metric))) }}
+          {{- if gt $v $best }}{{ $best = $v }}{{ end }}
+        {{- end }}
+      {{- end }}
+
+      <tr{{ if $isSummary }} class="benchmark__summary"{{ end }}>
+        <th scope="row">{{ index $row 1 }}</th>
+        {{- range $engines }}
+          {{- $v := float (index $row (index $col (printf "%s_%s" . $metric))) }}
+          <td class="benchmark__num{{ if and $boldBest (eq $v $best) }} is-best{{ end }}">
+            {{- printf "%.3f" $v -}}
+          </td>
+        {{- end }}
+      </tr>
+    {{- end }}
+  </tbody>
+</table>
+</div>
+
+<p class="benchmark__caption">
+  {{ if eq $metric "wrd" }}Word recall — order-insensitive, so it measures
+  recognition almost independently of layout.{{ else }}Character similarity —
+  order-sensitive, so it collapses where the reading order is
+  wrong.{{ end }}
+  Generated from <code>evaluation/ocr/registers.csv</code> at build time.
+  {{ if $boldBest }}Bold marks the best engine per register. {{ end }}
+  Only engines measured on every register appear.
+</p>
+
+{{- end }}

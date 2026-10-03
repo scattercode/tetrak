@@ -1,0 +1,259 @@
+{{- /*
+  The research walkthrough: the argument the slide deck makes, laid out as a
+  page.
+
+  It renders from two sources and holds no copy of either:
+
+    site/data/walkthrough.toml   the prose and the structure
+    evaluation/benchmark.csv     every figure on the page
+
+  tools/generate_presentation.py renders the same two into the deck, which is
+  why the TOML exists at all -- the deck used to carry its own hand-typed
+  version of this argument, and the two disagreed within a fortnight.
+
+  The page is deliberately more graphic than the rest of the site, and it does
+  that within the design system rather than around it: no cards, no boxed
+  callouts, no second accent. The scale comes from the corpus imagery, from
+  display-size numerals, and from whitespace. If you find yourself reaching for
+  a border to separate two things here, they want more space instead.
+*/ -}}
+
+{{ define "main" }}
+  {{- $w := hugo.Data.walkthrough }}
+  {{- if not $w }}{{ errorf "walkthrough: site/data/walkthrough.toml is missing" }}{{ end }}
+
+  {{- /* The benchmark, parsed once and passed down. Same source and the same
+         `transform.Unmarshal` route as partials/benchmark.html: the CSV lives
+         at the repository root and is mounted into assets/ by [module.mounts],
+         because os.ReadFile cannot reach above the project root. */ -}}
+  {{- $res := resources.Get "evaluation/benchmark.csv" }}
+  {{- if not $res }}
+    {{- errorf "walkthrough: evaluation/benchmark.csv is not mounted -- check [module.mounts] in config/_default/hugo.toml" }}
+  {{- end }}
+  {{- $csv := $res.Content | transform.Unmarshal (dict "format" "csv" "delimiter" ",") }}
+  {{- $header := index $csv 0 }}
+  {{- $col := dict }}
+  {{- range $i, $name := $header }}{{ $col = merge $col (dict $name $i) }}{{ end }}
+  {{- $rows := dict }}
+  {{- range after 1 $csv }}{{ $rows = merge $rows (dict (index . 0) .) }}{{ end }}
+
+  {{- /* Engines in the order the walkthrough introduces them, and only those
+         the harness actually measured. A described engine with no column is a
+         real inconsistency and fails the build rather than rendering blank. */ -}}
+  {{- $engines := slice }}
+  {{- range $w.engine }}
+    {{- if not (isset $col (printf "%s_chr" .key)) }}
+      {{- errorf "walkthrough: walkthrough.toml describes engine %q but benchmark.csv has no %s_chr column" .key .key }}
+    {{- end }}
+    {{- $engines = $engines | append . }}
+  {{- end }}
+  {{- $locals := where $engines "ceiling" "!=" true }}
+  {{- $avg := index $rows "Average" }}
+
+<article class="wt">
+
+  {{- /* --- Opening ------------------------------------------------------ */}}
+  <header class="wt__open">
+    {{- with .Params.kicker }}<div class="kicker">{{ . }}</div>{{ end }}
+    <h1>{{ $w.meta.title }}</h1>
+    <p class="wt__lede">{{ $w.meta.subtitle }}</p>
+    <p class="standfirst wt__standfirst">{{ $w.meta.standfirst }}</p>
+    <p class="wt__byline">{{ $w.meta.byline }} · {{ $w.meta.date }}</p>
+  </header>
+
+  {{- /* --- The corpus, up front ------------------------------------------
+         The material is the strongest graphic the page has, so it leads
+         rather than waiting until section three. */}}
+  <section class="wt-sheet" aria-label="The corpus">
+    <div class="wt-sheet__grid">
+      {{- range $w.document }}
+        <figure class="wt-sheet__item">
+          {{ partial "lightbox.html" (dict
+               "src" .image "alt" .alt "title" (printf "%s — %s" .title .subtitle)
+               "where" "layouts/research/walkthrough.html") }}
+          <figcaption>{{ .title }}</figcaption>
+        </figure>
+      {{- end }}
+    </div>
+    <p class="wt-sheet__note">
+      Nine items on one theme — the Los Angeles stage and its picture palaces,
+      c. 1910–1945. Click any of them to see what the engines were actually
+      given. Provenance and rights for every item are in
+      <a href="{{ (site.GetPage "/reference/corpus").RelPermalink }}">the corpus reference</a>.
+    </p>
+  </section>
+
+  {{- /* --- Contents ----------------------------------------------------- */}}
+  <section class="wt-chapters" aria-label="Contents">
+    <ol class="wt-chapters__list">
+      {{- range $w.chapter }}
+        <li class="wt-chapter">
+          <span class="wt-chapter__num" aria-hidden="true">{{ .number }}</span>
+          <h2 class="wt-chapter__title">{{ .title }}</h2>
+          <p class="wt-chapter__blurb">{{ .blurb }}</p>
+        </li>
+      {{- end }}
+    </ol>
+  </section>
+
+  {{- /* --- 1. The challenge --------------------------------------------- */}}
+  <section class="wt-section" id="challenge">
+    <div class="kicker">One · The challenge</div>
+    <h2 class="wt-section__head">Thousands of documents await digitisation, and every one of them is different</h2>
+    <div class="wt-quads">
+      {{- range $i, $c := $w.challenge }}
+        <div class="wt-quad">
+          <span class="wt-quad__num" aria-hidden="true">{{ add $i 1 }}</span>
+          <h3 class="wt-quad__title">{{ $c.title }}</h3>
+          <p class="wt-quad__body">{{ $c.body }}</p>
+        </div>
+      {{- end }}
+    </div>
+  </section>
+
+  {{- /* --- 2. The engines ----------------------------------------------- */}}
+  <section class="wt-section" id="engines">
+    <div class="kicker">Two · The engines</div>
+    <h2 class="wt-section__head">What we measured, and what each one is</h2>
+    <div class="wt-engines">
+      {{- range $engines }}
+        <div class="wt-engine" style="--accent: var(--{{ .accent }})">
+          <p class="wt-engine__avail">{{ .availability }}</p>
+          <h3 class="wt-engine__name"><code>{{ .label }}</code></h3>
+          <p class="wt-engine__body">{{ .body }}</p>
+        </div>
+      {{- end }}
+    </div>
+  </section>
+
+  {{- /* --- 3. The corpus, five at length -------------------------------- */}}
+  <section class="wt-section" id="corpus">
+    <div class="kicker">Three · The corpus</div>
+    <h2 class="wt-section__head">Five documents, and what each one breaks</h2>
+
+    {{- $heroes := where $w.document "hero" true }}
+    {{- range $i, $doc := $heroes }}
+      {{- $row := index $rows $doc.file }}
+      <div class="wt-plate{{ if eq (mod $i 2) 1 }} wt-plate--flip{{ end }}">
+        <div class="wt-plate__figure">
+          {{ partial "lightbox.html" (dict
+               "src" $doc.image "alt" $doc.alt
+               "title" (printf "%s — %s" $doc.title $doc.subtitle)
+               "where" "layouts/research/walkthrough.html") }}
+        </div>
+        <div class="wt-plate__body">
+          <p class="wt-plate__count">Document {{ add $i 1 }} of {{ len $heroes }}</p>
+          <h3 class="wt-plate__title">{{ $doc.title }}</h3>
+          <p class="wt-plate__sub">{{ $doc.subtitle }}</p>
+          <p class="wt-plate__challenge">{{ $doc.challenge }}</p>
+          {{- with $row }}
+            {{ partial "walkthrough-scores.html" (dict
+                 "row" . "col" $col "engines" $engines) }}
+          {{- end }}
+        </div>
+      </div>
+    {{- end }}
+  </section>
+
+  {{- /* --- 4. The results ----------------------------------------------- */}}
+  <section class="wt-section" id="results">
+    <div class="kicker">Four · The results</div>
+    <h2 class="wt-section__head">Choosing per file beats choosing an engine</h2>
+    <p class="wt-section__lede">
+      Averaged over the whole corpus. Character similarity is order-sensitive
+      and word recall is not, so they are always reported as a pair — the gap
+      between them is where the interesting behaviour lives.
+    </p>
+
+    <div class="wt-bars">
+      {{- range $locals }}
+        {{- $chr := index $avg (index $col (printf "%s_chr" .key)) }}
+        {{- $wrd := index $avg (index $col (printf "%s_wrd" .key)) }}
+        <div class="wt-bar" style="--accent: var(--{{ .accent }})">
+          <p class="wt-bar__name"><code>{{ .label }}</code></p>
+          <div class="wt-bar__track">
+            <div class="wt-bar__fill wt-bar__fill--chr" style="width: {{ mul (float $chr) 100 }}%"></div>
+            <div class="wt-bar__fill wt-bar__fill--wrd" style="width: {{ mul (float $wrd) 100 }}%"></div>
+          </div>
+          <p class="wt-bar__figs">{{ printf "%.2f" (float $chr) }} <span>/</span> {{ printf "%.2f" (float $wrd) }}</p>
+        </div>
+      {{- end }}
+      <p class="wt-bars__key">
+        <span class="wt-bars__swatch wt-bars__swatch--chr"></span> character similarity
+        <span class="wt-bars__swatch wt-bars__swatch--wrd"></span> word recall
+        — <code>claude</code> is omitted here: it generated the reference
+        transcripts everything else is scored against, so its bar would measure
+        self-consistency rather than accuracy.
+      </p>
+    </div>
+
+    <h3 class="wt-section__sub">Every engine against every document</h3>
+    {{ partial "benchmark.html" (dict "boldBest" true) }}
+
+    <h3 class="wt-section__sub">The same numbers, drawn</h3>
+    {{ partial "figure-themed.html" (dict
+         "src" "evaluation/benchmark-comparison"
+         "alt" "Grouped bar chart of average character similarity and word recall for every backend, with the Claude ceiling reference drawn apart, hatched and greyed, behind a divider"
+         "caption" "Both metrics per backend, with the ceiling reference set apart.") }}
+  </section>
+
+  {{- /* --- What the evidence says ---------------------------------------- */}}
+  <section class="wt-section" id="findings">
+    <div class="kicker">The findings</div>
+    <div class="wt-findings">
+      {{- range $w.finding }}
+        <div class="wt-finding">
+          <h3 class="wt-finding__title">{{ .title }}</h3>
+          <p class="wt-finding__body">{{ .body }}</p>
+        </div>
+      {{- end }}
+    </div>
+  </section>
+
+  {{- /* --- Choosing ------------------------------------------------------ */}}
+  <section class="wt-section" id="choosing">
+    <div class="kicker">Choosing</div>
+    <h2 class="wt-section__head">Which engine for which material?</h2>
+    <dl class="wt-choose">
+      {{- range $w.recommendation }}
+        <div class="wt-choose__row">
+          <dt class="wt-choose__material">{{ .material }}</dt>
+          <dd class="wt-choose__engine">
+            <code>{{ .engine }}</code>
+            {{- with .second }}<span class="wt-choose__second">then <code>{{ . }}</code></span>{{ end }}
+          </dd>
+          <dd class="wt-choose__why">{{ .why }}</dd>
+        </div>
+      {{- end }}
+    </dl>
+  </section>
+
+  {{- /* --- 5. What follows ------------------------------------------------ */}}
+  <section class="wt-section" id="open">
+    <div class="kicker">Five · What follows</div>
+    <h2 class="wt-section__head">What is still open</h2>
+    <div class="wt-opens">
+      {{- range $w.question }}
+        <div class="wt-open">
+          <h3 class="wt-open__title">{{ .title }}</h3>
+          <p class="wt-open__body">{{ .body }}</p>
+        </div>
+      {{- end }}
+    </div>
+  </section>
+
+  {{- /* --- Onward -------------------------------------------------------- */}}
+  <footer class="wt-onward">
+    <p class="wt-onward__lead">
+      This is the walkthrough. The argument in full — the method, its central
+      weakness, the finding we retracted, and the four mechanisms the evidence
+      forced into the product — is on
+      <a href="{{ (site.GetPage "/research/in-depth").RelPermalink }}">the research in depth</a>.
+    </p>
+    <p class="wt-onward__meta">
+      Every figure above is read from <code>evaluation/benchmark.csv</code> at
+      build time. Reproduce it with <code>tetrak-ocr evaluate --all --save</code>.
+    </p>
+  </footer>
+</article>
+{{ end }}

@@ -1,0 +1,1253 @@
+PAGE SEX
+INSIDE FACTS OF STAGE AND SCREEN
+SATURDAY; MAY 31, 1930
+NSIDE) RAcTS IIFYOREHG ITELA-PHONEY
+0f Stageana Sereev
+SUMMER SEGSHOWG}
+b)=
+JAMES MADISON
+Pobliahed EverySaturday
+line
+with
+thc  general   policy
+One
+#0
+Foreign
+{5.00
+ofthe-sumier
+months; Lon
+Mur-
+Hello, Norma  Talmadge:
+Hello; Wm;
+Le Baron.
+Advertiaing Rates
+Application
+ra
+director
+the
+Lon   Murray
+Hello; James   Madlison.
+Hello.
+School
+ior
+Dancing
+James  Madison 
+As
+bi-monthly publication
+Entered as
+Second
+Class
+Matter, No-
+Dramatics,
+has
+announced
+the
+What is
+hotcl clerk's motto
+simile, please:
+vember 17=
+1924.
+the Post
+Ofice
+Los Angeles_
+California_
+under
+commencement this
+weck for Poste
+when
+etLy
+comes
+the Act of March
+1879.
+along?
+common
+autographed
+weekly
+publication
+Entered
+Second
+Clasg
+Matter,
+April
+Graduates
+and
+Teachers
+Courses
+photos
+movie
+producer _
+11927 ,
+aL the Post
+Ofice
+at Los Angcles
+California;
+under
+the:
+Act
+Tap;
+Of
+Rhythm;
+Eccentric,
+to the
+swect,
+office.
+March 3,1879.
+Ballet,
+etc
+Murray
+states
+that
+this
+course
+consise
+TO
+olre
+cert
+day
+for
+n
+months
+Hello; Clive   Brook:
+Hello,
+Sid
+Grauman.
+Publiahed by
+hich
+time
+the
+Teachers
+Inaide Facts Publishing_Company, Inc
+Graduates will
+eccive twenty
+Hello. James   Madison.
+Hello
+James
+Madison.
+800-801Waroer Broa:
+Downtewn Bldg  Loa Angeles, Calif:
+ctical
+Sec
+routines
+Conssting
+Who is the meanest man you
+Los
+Angeles - Fublic
+Telephone TUcker 7832
+Waltz   Clog;
+Buck;
+Soft
+Shoe
+ever
+met?
+Eccentric
+Off
+Rhythm;
+ccentric
+brary
+claims [0 have the
+old-
+JACK JOSEPHS
+President and
+Musical
+Comedy_
+Military
+Buck;
+bankrupt
+managcr
+who
+magazine
+the
+world;
+ARTHUR
+WM
+GREEN
+and
+Coundel
+Grotesquc,
+a [e
+cchnique
+putalum
+the
+Wie
+cooler,
+Bet
+thcy
+WILLIAM €
+OWENS
+Secretery
+and
+General Managar
+Acrobatic
+Foundation:
+Two
+LOm
+the
+actors
+cauidn't
+even
+doctor'$   waiting
+room
+plete
+routine
+cach
+type
+of the
+whistle
+for
+their
+salary:
+Vol: XI
+Saturday,
+May 31, 1930
+No:
+above
+dances
+will
+staged
+Murray;
+Professionals will also be
+accepted
+this
+course
+Hcllo;
+Weaver   Brothers,
+Hello
+Jack  White;
+urrzy
+states
+ha 5
+made
+the
+Hello.
+Charles
+Kurtzman_
+who
+leave
+the
+coast
+for
+tuition of this
+course_nominal
+and
+Hello. James
+Madison:
+James   Madison:
+bigger position in New
+York
+next
+wcek;
+has though still
+suggests
+immiediate registration
+Why
+have
+employees
+his
+early
+thirties,
+created
+for
+himself
+reputation
+which
+the
+limuited
+umber
+What thought
+cin
+You
+add
+the Educational and Metropoli
+accepted;
+Private Tcachers-
+COuISE
+today
+UuInAn
+enlighten -
+Studios   quit
+LWo
+almost any
+showman
+even though twice
+his age
+mighe
+envy_
+will also be
+by Lon
+Murray
+ment?
+picce
+earing
+The  position
+which
+he
+is   leaving
+that
+Divisional
+personally:
+E
+erSons
+living
+underwear?
+Manager for
+Publix
+and in this position
+has
+won wide
+abon
+Pasadena,
+may
+register
+honeymoon is over when
+they believe in com-
+Pasadena
+tudio
+1146
+the
+Fb & 0 d
+discovers
+that
+binations
+spread admiration among
+those
+who
+wherein
+lie
+tbe
+his
+'dream
+Anors
+essentials
+of good theatrical achievement
+exccutive
+capa-
+Heathcr
+city.
+Tle houses
+under
+his authority
+have
+been
+conductedein
+RCA TO HAVE N.
+Hello, Gcorge Fawcett:
+manner
+which_
+outside, fairly
+oozed
+forth
+etFonilled
+invita-
+5300,000,000  "CITY"
+Hello_
+Duncan Sisters.
+tion
+for
+patronage_
+and
+which
+on
+the
+inside
+the
+Hello. James
+Madison;
+Hello
+James   Madison.
+exterior expectations
+holding forth
+perfect courtesy
+and
+The
+Radio
+Corporation
+They tell me
+have
+comfort
+evety
+nook
+and
+cranny
+eroct
+business city in New
+York
+gangsters
+spoken
+head   [or
+business.
+hounded by 44th streel ,
+4Bth
+street
+ofin  Chicago?
+Kurtzman iS
+destined t0 be
+big figure
+show business_
+and Fifth and Sixth
+Allan
+What
+YOu
+sell,
+Vacuum
+without
+doubt,
+and when
+he
+arrives
+the
+eastern
+cost
+Will
+5300,O0O,Qoo,
+ad
+'Batter
+and   Yegg
+Men.'
+eleaners|
+his
+many
+California
+friends
+will watch
+his
+career
+not
+only
+the
+space
+will
+rcady
+Occu
+with
+friendly
+interest;
+but
+with
+the
+interest
+born
+pancy
+ithin
+thc
+period
+Hno
+watching
+capable
+mnan
+ascendency.
+And
+all
+upon
+his
+yeara;
+40-story   structure
+the
+Hello,
+Marie  Dressler.
+Hello,   Billie Dove:
+center
+Will"
+house the
+omm
+offices
+will
+wish
+him
+the
+verv
+greatest
+success
+the
+Radio
+Pictures; RKO Theatres 
+Hello
+James   Madison.
+Hello,  James  Madison.
+which
+to  fill;
+that of personal
+assistant
+to  Harry
+Radio
+Corporation
+merica
+omt
+Arthur
+encral
+manager
+the:
+Eastern
+Theatres
+RC
+Fhotophone;
+RCA
+Victor
+opinion
+of thc
+What
+'bone
+did
+the:
+Anti-
+Ecn
+Corporation
+RKO
+Productions
+average
+Congressman
+Saloon League
+Jast week
+position
+which he
+most fully adapted
+and
+sen-
+Electric
+Corporation
+tient choice
+on the
+part ofMr.
+Arthur_
+estinghouse
+selected
+his:
+cigarctles
+They
+wanted
+arrest
+somne
+General
+Electric
+Corporation;
+Ma-
+his
+brains_
+Calaveras
+County
+tional
+Broadcasting
+Cotnpany
+and
+choose
+wvory
+tips:
+being
+petrified:
+OPENS
+AT DAN'S
+subsidiary
+organizations
+the
+RCA
+Two
+theatres
+willebe
+built
+SAN
+FRANCISCO,
+May
+29.
+the   ground
+floor,
+7000
+WITH 0'ROURKE
+RoGovOY SHIFTS
+In Holly-
+Jack
+Reed
+opened
+this
+weck
+scats
+ano
+the other
+4500
+The
+SAN  FRANCISCO,
+May
+SAN
+latter
+Will be
+Faudn
+house.
+Charle;
+Montal;
+Eastern
+tap
+FRANCISCO ,
+May
+Johnny
+Davis
+Coffee
+structor
+ha;
+been
+added
+the | George
+Rogovay
+has
+left
+thet
+Nowe
+Dan $,
+ham
+and
+cg8
+emporium;
+ACKERMAN DUE
+staR
+the
+William
+0'Rourke
+Warfield
+Theatre
+Orchestrz
+'here
+suceeds
+Art
+Varian;
+dance   studio,
+sunenim
+'ised 
+Thaig
+take the first
+cello chair
+Michet
+Les
+Poe
+continues
+the
+piano
+SAN
+FRANCISCO
+May
+Rourke:
+Miss 0'Rourke
+Torm-
+Piastro'5
+ymphony
+Orchestra
+this   theatrical
+Irving
+Ackerman 0f Ackernian and
+ng new
+classes
+staircase dances:
+He alsoeis
+first
+cellist at
+the Na-
+(Continued from Page 2)
+hangout,
+where
+Harris is
+due
+return
+Ehis
+weck
+and
+tap rhythm routines-
+tional
+Broadcasting   Company.
+to "Scandals of 1926-7,'
+and
+along-
+setting
+record;
+[rom
+shortistay in New
+York.
+having
+Uan
+there
+number
+side of Tom  is
+Sammy
+Ledner and
+FANOHON
+Akn
+MAROO
+PEFATNT
+cans
+Business
+the
+the Mrs;
+Sam wis our
+predecessar
+grade
+here.
+THE FLYING BARTLETTS
+with George
+White for
+Tnan
+years:
+Ned Buckley,.
+Tbalr
+Bpoctacular
+offering
+THE
+OLOUDB"
+Sam
+out
+United
+Artists,
+OUT
+FOR
+PICTURE
+Not
+entura 
+wltb
+"BroadF4y
+Vonu;ca
+uoa
+production
+manager
+and
+Tom
+Old
+Timer
+in
+AOT FULLY PROTEOTED
+PATENT
+APPLIED FOR
+Ox; and they are
+Al In
+SAN
+FRANCISCO_
+May
+Hollywood Now:
+The
+blackface
+comedy
+teat
+Profession Dies
+And
+nlni
+for the weekly surprise,
+Bud
+Harrison
+Ad
+Pcenic
+Elmo
+and we have one
+eek,
+which
+leave
+Fanchion and
+Marco s "Good-
+NELLIE
+SULLIVAN
+hare
+mnentionedi
+weekly
+inathis col
+fellows-
+Idea
+Scattle
+ERANCISCO,
+Wm
+This  time
+again
+the
+Hollywood;
+wherc
+make;
+SAN
+AND HER INTERNATIONAL REVUE
+"RADDIO
+Smith and
+Ben
+picture
+for
+Christie.
+They
+e
+The
+ranks of
+the
+Old
+Timers
+Was
+Bernie  would
+lessened
+the
+death
+their
+SonG?
+DANOES
+Listening
+rejoin
+the
+unit
+Louis
+oldest
+member;
+Ned   Buckley, 93,
+Oluba and  Tboatces
+OLympln  2340
+very
+nifty
+female   singer;
+renarkt
+July 18.
+who
+died
+his
+homne
+Santa
+to the Mr ,
+She'
+good,
+and
+why
+retired
+aen
+thc
+amouGCr
+squawked
+WIL BUR
+Rosa
+last
+weck:
+Buckley
+some
+45 years
+ago,
+considered
+"Miss
+Jane
+Green
+willf
+ing
+etc.
+the
+oldest
+living
+theatrica
+nen
+Jane
+peach
+and 
+on;
+and
+SANFRANCISCO_
+ager,
+dating back to the days
+whet
+GEORGE
+and  FLORENCE
+takes
+back
+"The   Dancing
+Richard
+Wilbur
+the
+Wilbur
+had
+Buckley'
+aticucs
+and
+Girl;"
+Winter
+Garden
+produc-
+of   Honolulu;
+arrived
+here:
+later
+tne
+delphi Theatre, located
+BALLET
+MASTER AND MISTRESS
+Lion
+ofwhich
+HaFa
+Stage
+this-week
+livery
+stable on
+California
+Formerly 68
+Succeaaful
+Weeka Producing Weekly Changet
+And
+every
+one is : In
+Hol-
+Street
+bctwecn
+Rearney
+F
+Auatralia"
+Largest
+Tehant
+lywood
+Now.
+PAR SHORTS PROGRAM
+pOML_
+The  program
+Lhie
+Adel
+THE STATESYDNEY
+BELASCO SIGNS INA
+More than doubling their  produc -
+phi
+consisted
+first
+Iuale
+Producert
+Desirin
+Origint
+WRITE
+WIRE
+and
+Jemaic
+minstrel show followed
+Ina
+Claire
+has
+heen
+signed by
+tion output
+the   short-subject
+olio
+and
+closco
+Permanent Address : INSIDE FACTS, Los Angeles
+Belasco
+and
+Curran
+appear
+vision, Paramount will_make 178 of
+three-icLmeller
+which all mem-
+"Rebound
+Donald Ogden Stew -
+them
+their
+1930-31
+program
+bers of the cast took part; whether
+coinedy
+DOW
+curtent
+New
+Last year the total nurmber of
+they
+Wcrc
+the
+Lype_
+York;
+The 
+producers , expect
+subiects produced
+Wa=
+arc
+Many performers got their
+early
+nut
+several
+the:
+original
+produced
+the
+Paramount | training
+Buckley'
+EARLE
+WALLACE
+New
+York
+campany,
+and
+Stewart
+New
+ork
+studio:
+addition
+anong them being_Eddic_
+Jelf
+Ta
+come
+also,
+The
+production
+there
+will
+104
+issues
+Para-
+Angees;
+Bernard
+Dyllyn_
+Alwayu
+Buty Devcloping DancingAStaru but Nover Too Buuy
+will play
+the
+Belasco
+hcrc
+mount
+Sound
+Included
+Kobby
+Gilbert
+and Goldie_
+Craataand Produce
+Ahe
+Curran
+San
+Francisco
+the
+list
+crenn
+Sono
+Wilson
+Gudorca
+eram
+Gus
+Leon-
+Oririnal DANCE
+ROUTINES
+nio
+REVUES
+That  Sell 
+will open the latter part of June.
+talkertoons
+pictorials,
+104
+one-
+Billy
+White,
+Harry
+Orndorf;
+Belmont Theatre Bldg- Firet aud Vermont
+rce
+acts and 26 two-reel
+comedies:
+Flora
+Walsh;
+Charlie
+Reed,
+as
+EXpouition 1196
+Lou Anrelet, Calif:
+the present time 35 pictures
+Mills,
+amnes
+Laodwn
+Charles
+the new group
+completed.
+Mestayer;
+Mollie
+Williams
+rank
+BBB
+Lavarnie;
+Gogill
+Brosa
+and  Harry
+NOLAN ASSIGNED
+LeClaire.
+Buey
+wock
+-Plenty
+fight-
+Roscoc;
+stage
+doorman
+BUD
+Murray
+(Aatociatod)
+Jng
+4Hl'
+AhEU
+Nolan,
+who
+has   been
+the
+Oasio
+now
+oldest
+Cladyu  Murray
+Cluncen
+the
+dout
+signed
+fve-ycar
+contract
+former
+theatrical
+mnanager
+the
+scHooLfoStaGE
+Lafa Page
+Oummn
+huch
+Universal,
+has
+heen-
+Coast.
+Wnl
+with
+a5signed
+the
+Malle
+Blg
+erowd
+doun
+tolking
+starring roleain "Outside the
+aw
+3rrr
+BBVBRLY
+BLVD,
+Angelee
+TeL
+DO.
+0721
+over
+The
+Plio
+is being prepared at
+Uni-
+PRACTICAL' STAGE TRAINING
+Wersa
+Tor immediate
+production:
+Artistic Scenic Advertising
+STAGE T4P DANCING (In 41 Its Branches)
+The  OELLAR
+VETS' SHOW
+Curtaina
+QUDURLND
+BALLET_
+fdacclque
+SIGNOR G V_
+ROSI
+Oorino
+Beraat
+and
+Holnruud
+Far the
+Beatein
+America
+Houlerird
+bdtroed
+Tno
+Disabled
+Veterans
+CURTAIN  PRIVILEGES
+Qabuanga
+nhona
+nmher
+GRanlte
+[o open
+show
+"Paths af
+Glory .
+BOUGHT
+FOR
+CASH
+HOI
+Enor
+the
+Square Theatre,
+OR SCENERY
+VALLIE
+Paroin
+ITOm
+Eocilll
+04t
+writting by Wallace
+tarke
+Chas. F.
+HARVEY
+KARELS
+CHRYRLER
+Aji:
+Thompson 
+B0xg
+rnera
+EARL
+TUCKER
+SIGNED
+Scenic
+SCHOOL OF DANCING
+Thank You:
+Earl
+"Snake
+Hips'
+Tucker;
+Bated
+Avenue
+the
+Broadway
+stage;
+has
+been
+Phone OLympia  2914
+7377 Beverly Blvd:
+OR:
+2688
+signed
+Metro-Goldwyn-MayerE
+Hollywood,
+Calif:
+for "The
+Time
+Yea{
+Stage
+and
+Birl
+Suites
+and
+Fost
+The
+Editor
+Vlce
+Pred:
+got
+iron
+tan
+Tlic
+Because
+know
+Bicl"
+Bu
+by
+kreat
+How
+slope
+also
+leaving;
+post
+Whal
+Fox
+pull
+very
+trees
+one
+wood
+lout
+May
+they
+Gy.
+EMay
+Players
+Orcr
+ectore
+Du"
+part
+Ehort
+bring
+Foy.
+and
+News_
+Pbone
+Says:
+Mary
+planning
+Windsor
+Co:
+41215
+March

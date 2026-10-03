@@ -1,0 +1,35 @@
+{{- /*
+  One person inside {{< people >}}: a mono role label, the name, the bio, and
+  a link out.
+
+  Usage:
+    {{< person name="Ada Lovelace" role="Analytical engines" linkedin="adalovelace" >}}
+    Bio prose, as many paragraphs as it takes.
+    {{< /person >}}
+
+  `linkedin` is the profile handle, not the full URL, and the host is built
+  here. Two reasons: a full URL in a shortcode attribute trips markdownlint's
+  MD034, and turning that rule off site-wide would stop it catching bare URLs
+  in the prose it is actually for. Pasting the whole URL in fails the build
+  rather than producing linkedin.com/in/https://linkedin.com/in/…
+
+  `role` and `linkedin` are optional; `name` is not, and its absence fails the
+  build rather than publishing a headless bio -- the same bargain the figure
+  and lightbox shortcodes make with a missing asset.
+*/ -}}
+{{- $name := .Get "name" }}
+{{- if not $name }}{{ errorf "person: name is required (%s)" .Position }}{{ end }}
+{{- $handle := .Get "linkedin" }}
+{{- if and $handle (or (strings.Contains $handle "/") (strings.Contains $handle ":")) }}
+  {{- errorf "person: linkedin is a profile handle, not a URL -- got %q (%s)" $handle .Position }}
+{{- end }}
+<article class="person">
+  {{- with .Get "role" }}<p class="person__role">{{ . }}</p>{{ end }}
+  <h2 class="person__name">{{ $name }}</h2>
+  <div class="person__bio">
+    {{ .Inner | .Page.RenderString (dict "display" "block") }}
+  </div>
+  {{- with $handle }}
+    <p class="person__links"><a href="https://www.linkedin.com/in/{{ . }}/">LinkedIn ↗</a></p>
+  {{- end }}
+</article>

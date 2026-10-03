@@ -1,0 +1,32 @@
+{{- /*
+  Self-hosted webfonts.
+
+  The prototype linked Google Fonts. Self-hosting removes a third-party
+  request, keeps the page working offline, and matches the build-time
+  principle the rest of the project follows.
+
+  The files live in assets/fonts/, fetched once by scripts/vendor-fonts.mjs and
+  committed. The @font-face rules are in assets/scss/_fonts.scss; this partial
+  only preloads, so the browser can start the download before it has parsed the
+  stylesheet that asks for it.
+
+  Preloading everything would be counter-productive -- each preload competes
+  with the others. Only the two faces above the fold are preloaded: the display
+  weight for the page title and the body regular. The rest load normally.
+*/ -}}
+{{- /* Every face has to be published, or the @font-face rule points at a 404.
+       Hugo only emits an asset something asks for, and a preload link is the
+       only thing asking -- so preloading a subset silently dropped three files
+       from the build while the stylesheet went on requesting all five. */ -}}
+{{- $preload := slice "playfair-display-700" "source-serif-4-400" }}
+{{- range slice "playfair-display-700" "source-serif-4-400" "source-serif-4-600" "source-serif-4-400-italic" "ibm-plex-mono-400" }}
+  {{- $name := . }}
+  {{- with resources.Get (printf "fonts/%s.woff2" $name) }}
+    {{- .Publish }}
+    {{- if in $preload $name }}
+    <link rel="preload" as="font" type="font/woff2" href="{{ .RelPermalink }}" crossorigin>
+    {{- end }}
+  {{- else }}
+    {{- errorf "fonts: assets/fonts/%s.woff2 is missing -- run node scripts/vendor-fonts.mjs" $name }}
+  {{- end }}
+{{- end }}

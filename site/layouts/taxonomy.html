@@ -1,0 +1,38 @@
+{{- /*
+  The list of tags.
+
+  Terms are ordered by count, heaviest first, rather than alphabetically: the
+  page's job is to show what the site actually writes about, and an alphabetical
+  list buries that under whichever subject happens to start with an "a".
+
+  The count is part of the link text rather than a separate element, so it is
+  announced with the term instead of as a loose number after it.
+*/ -}}
+{{ define "main" }}
+  {{- with .Params.kicker }}<div class="kicker">{{ . }}</div>{{ else }}<div class="kicker">Index</div>{{ end }}
+  <h1>{{ .Title }}</h1>
+  {{- with .Params.standfirst }}<p class="standfirst">{{ . }}</p>{{ end }}
+  {{ .Content }}
+
+  {{- $terms := .Data.Terms.ByCount }}
+  {{- if $terms }}
+    <ul class="tag-list tag-list--index">
+      {{- range $terms }}
+        {{- /* The term and its count are read out here because `with` below
+               rebinds the dot to the term page, where neither field exists. */ -}}
+        {{- $term := .Term }}
+        {{- $count := .Count }}
+        {{- with site.GetPage (printf "/tags/%s" (urlize $term)) }}
+          {{- /* The anchor's markup is kept on one line: broken across lines,
+                 the indentation collapses into a space between the "#" the CSS
+                 draws and the term, and the index reads "# archives". */ -}}
+          <li><a class="tag" href="{{ .RelPermalink }}">{{ .LinkTitle }} <span class="tag__count">{{ $count }}</span></a></li>
+        {{- else }}
+          {{- errorf "taxonomy: no term page for %q" $term }}
+        {{- end }}
+      {{- end }}
+    </ul>
+  {{- else }}
+    <p class="articles__empty">Nothing is tagged yet.</p>
+  {{- end }}
+{{ end }}

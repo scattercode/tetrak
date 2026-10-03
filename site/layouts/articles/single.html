@@ -1,0 +1,28 @@
+{{- /*
+  One article.
+
+  The opening is _default/single.html's -- breadcrumbs, kicker, h1, standfirst --
+  because an article is a page on this site before it is a blog post, and giving
+  it a masthead of its own would make it read as a different site. What it adds
+  is the apparatus a dated, signed piece needs and a documentation page does
+  not: when it was published, who wrote it, what it is about, and what to read
+  next.
+
+  Tags sit after the body rather than in the meta line. In the meta line they
+  compete with the date and byline for the reader's attention before they have
+  read anything; at the foot they are what they actually are -- a way on to the
+  next thing.
+*/ -}}
+{{ define "main" }}
+  {{ partial "breadcrumbs.html" . }}
+  {{- with .Params.kicker }}<div class="kicker">{{ . }}</div>{{ end }}
+  <h1>{{ .Title }}</h1>
+  {{- with .Params.standfirst }}<p class="standfirst">{{ . }}</p>{{ end }}
+  {{ partial "article-meta.html" . }}
+
+  {{ .Content }}
+
+  {{ partial "tags.html" . }}
+  {{ partial "article-author.html" . }}
+  {{ partial "article-nav.html" . }}
+{{ end }}

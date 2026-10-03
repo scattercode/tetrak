@@ -1,0 +1,30 @@
+{{- /*
+  A list of articles, grouped by year. Takes a page collection.
+
+      {{ partial "article-list.html" $articles }}
+
+  Grouping is unconditional rather than "only once there is more than one
+  year". A conditional would mean the index changed shape the first time an
+  article crossed a new year -- and the year set at display size is a piece of
+  the page's furniture, not a disclosure that only earns its place at volume.
+
+  The empty branch matters more than it looks: the section shipped before its
+  first article, and a layout that renders nothing for an empty collection
+  gives a reader a page with a heading and a blank below it.
+*/ -}}
+{{- if . }}
+  <div class="articles">
+    {{- range .GroupByDate "2006" }}
+      <section class="articles__year">
+        <h2 class="articles__year-label">{{ .Key }}</h2>
+        <div class="articles__rows">
+          {{- range .Pages }}
+            {{- partial "article-row.html" . }}
+          {{- end }}
+        </div>
+      </section>
+    {{- end }}
+  </div>
+{{- else }}
+  <p class="articles__empty">Nothing published here yet.</p>
+{{- end }}

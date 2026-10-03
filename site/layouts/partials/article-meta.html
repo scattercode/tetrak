@@ -1,0 +1,20 @@
+{{- /*
+  The line under an article's standfirst: when it was published, how long it
+  runs, and who wrote it.
+
+  Mono and soft, like the kicker -- it is apparatus, not prose, and the design
+  system has one register for that. The separators are aria-hidden so a screen
+  reader reads three facts rather than "30 August 2026 middle dot 6 min read".
+
+  .ReadingTime is Hugo's own, computed from the rendered word count at build
+  time. Rolling our own would be a second answer to a question Hugo already
+  answers, and the figure is an estimate either way.
+*/ -}}
+{{- $author := partial "author.html" . -}}
+<p class="article-meta">
+  <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2 January 2006" }}</time>
+  <span class="article-meta__sep" aria-hidden="true">·</span>
+  <span>{{ .ReadingTime }} min read</span>
+  <span class="article-meta__sep" aria-hidden="true">·</span>
+  <span>{{ $author.name }}</span>
+</p>

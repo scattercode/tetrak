@@ -1,0 +1,133 @@
+{{- /*
+  The benchmark table, read straight from evaluation/benchmark.csv at build
+  time.
+
+  This is the point of the migration. The mkdocs version was hand-transcribed
+  from the generated table and went stale every time the benchmark was re-run
+  -- three times in one day, each needing all 63 cells re-checked by script to
+  catch what the eye missed. Reading the CSV deletes the failure mode: the page
+  cannot disagree with the data because it holds no copy of it.
+
+  `getCSV` was the obvious function for this and was removed in Hugo 0.123;
+  `transform.Unmarshal` replaces it. The CSV lives at the repository root in
+  evaluation/, outside this site, and is mounted into assets/ by the module
+  mounts in hugo.toml -- os.ReadFile cannot reach above the project root, and
+  copying the file in would reintroduce exactly the second copy this shortcode
+  exists to remove.
+
+  The markup is a partial rather than a shortcode because the walkthrough
+  layout renders the same table, and a layout cannot call a shortcode. The
+  {{< benchmark >}} shortcode is a thin wrapper over this.
+
+  Context: a dict of
+    metric   - "score" (default) or "sec"
+    boldBest - false to suppress the best-local marking
+
+  Backends are discovered from the header rather than listed here, so adding
+  one to the harness needs no change on this side.
+*/ -}}
+
+{{- $res := resources.Get "evaluation/benchmark.csv" }}
+{{- if not $res }}
+  {{- errorf "benchmark: evaluation/benchmark.csv is not mounted -- check [module.mounts] in config/_default/hugo.toml" }}
+{{- end }}
+{{- $csv := $res.Content | transform.Unmarshal (dict "format" "csv" "delimiter" ",") }}
+
+{{- $header := index $csv 0 }}
+{{- $rows := after 1 $csv }}
+{{- $metric := .metric | default "score" }}
+
+{{- /* "Best" is computed from the _chr columns, so marking it in the seconds
+       view would bold a cell for its accuracy while the cell shows a time --
+       which every reader would take to mean "fastest". The results page passes
+       bold-best="false" there already, but a correct page should not depend on
+       remembering that, so the seconds view refuses the marking outright. */ -}}
+{{- $boldBest := and (ne .boldBest false) (ne $metric "sec") }}
+
+{{- /* column name -> index, so a row lookup is one map hit rather than a
+       nested scan per cell. */ -}}
+{{- $col := dict }}
+{{- range $i, $name := $header }}
+  {{- $col = merge $col (dict $name $i) }}
+{{- end }}
+
+{{- /* Backends in the order the harness wrote them. */ -}}
+{{- $backends := slice }}
+{{- range $header }}
+  {{- if strings.HasSuffix . "_chr" }}
+    {{- $backends = $backends | append (strings.TrimSuffix "_chr" .) }}
+  {{- end }}
+{{- end }}
+
+{{- /* Claude is a ceiling reference, not a competitor: it generated the ground
+       truth everything else is scored against. Marked, and excluded from
+       "best local", exactly as the mkdocs table did. */ -}}
+{{- $ceiling := "claude" }}
+
+<div class="table-scroll">
+<table class="benchmark">
+  <thead>
+    <tr>
+      <th scope="col">Fixture</th>
+      {{- range $backends }}
+        <th scope="col" class="benchmark__num">
+          <code>{{ . }}</code>{{ if eq . $ceiling }}<span class="benchmark__ref" title="Ceiling reference, not a measurement">*</span>{{ end }}
+        </th>
+      {{- end }}
+    </tr>
+  </thead>
+  <tbody>
+    {{- range $rows }}
+      {{- $row := . }}
+      {{- $fixture := index $row 0 }}
+      {{- $isSummary := or (eq $fixture "Average") (eq $fixture "Total seconds") }}
+
+      {{- /* Best local score on this row, for the bold marking. */ -}}
+      {{- $best := -1.0 }}
+      {{- if and $boldBest (not $isSummary) }}
+        {{- range $backends }}
+          {{- if ne . $ceiling }}
+            {{- $v := index $row (index $col (printf "%s_chr" .)) }}
+            {{- if ne $v "N/A" }}
+              {{- if gt (float $v) $best }}{{ $best = (float $v) }}{{ end }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+
+      <tr{{ if $isSummary }} class="benchmark__summary"{{ end }}>
+        {{- /* The harness writes *totals* into the Average row's _sec columns,
+               so labelling that row "Average" in the seconds view would state
+               something false. The mkdocs table called it "Total seconds". */ -}}
+        {{- $label := $fixture }}
+        {{- if and $isSummary (eq $metric "sec") (eq $fixture "Average") }}{{ $label = "Total seconds" }}{{ end }}
+        <th scope="row">{{ if $isSummary }}{{ $label }}{{ else }}<code>{{ $fixture }}</code>{{ end }}</th>
+
+        {{- range $backends }}
+          {{- $backend := . }}
+          {{- $chr := index $row (index $col (printf "%s_chr" $backend)) }}
+          {{- $wrd := index $row (index $col (printf "%s_wrd" $backend)) }}
+          {{- $sec := index $row (index $col (printf "%s_sec" $backend)) }}
+          {{- $isBest := and $boldBest (not $isSummary) (ne $backend $ceiling) (ne $chr "N/A") (eq (float $chr) $best) }}
+
+          <td class="benchmark__num{{ if $isBest }} is-best{{ end }}{{ if eq $backend $ceiling }} is-ceiling{{ end }}">
+            {{- if eq $metric "sec" -}}
+              {{ if eq $sec "N/A" }}—{{ else }}{{ printf "%.1f" (float $sec) }}{{ end }}
+            {{- else if eq $chr "N/A" -}}
+              <span title="This backend cannot read this file">N/A</span>
+            {{- else -}}
+              {{ printf "%.2f" (float $chr) }}/{{ printf "%.2f" (float $wrd) }}
+            {{- end -}}
+          </td>
+        {{- end }}
+      </tr>
+    {{- end }}
+  </tbody>
+</table>
+</div>
+
+<p class="benchmark__caption">
+  Generated from <code>evaluation/benchmark.csv</code> at build time.
+  {{ if $boldBest }}Bold marks the best <strong>local</strong> backend per fixture. {{ end }}
+  <code>claude</code> generated the ground truth and is a ceiling reference rather than a score.
+</p>

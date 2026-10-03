@@ -1,0 +1,18 @@
+{{- /*
+  Admonition. Replaces mkdocs-material's `!!! note "Title"` blocks, of which
+  the docs use 9 files' worth.
+
+  Usage:  {{< note title="Optional title" kind="warning" >}} body {{< /note >}}
+
+  `kind` is note (default), warning or caution. Anything else falls back to
+  note rather than rendering an unstyled box.
+*/ -}}
+{{- $kinds := slice "note" "warning" "caution" }}
+{{- $kind := .Get "kind" | default "note" }}
+{{- if not (in $kinds $kind) }}{{ $kind = "note" }}{{ end }}
+<aside class="admonition admonition--{{ $kind }}">
+  {{- with .Get "title" }}<p class="admonition__title">{{ . }}</p>{{ end }}
+  <div class="admonition__body">
+    {{ .Inner | .Page.RenderString (dict "display" "block") }}
+  </div>
+</aside>

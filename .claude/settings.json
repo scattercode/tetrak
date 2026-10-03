@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(jq -r '.tool_input.file_path // empty'); if echo \"$FILE\" | grep -qE 'evaluation/ocr/corpus/images/[^/]+\\.(jpg|jpeg|png|tif|tiff|pdf)$'; then echo \"{\\\"hookSpecificOutput\\\": {\\\"hookEventName\\\": \\\"PostToolUse\\\", \\\"additionalContext\\\": \\\"New corpus image added: $FILE. Load the tetrak-corpus skill and follow its sequence: provenance in SOURCES.md, ground truth via python tools/generate_expected.py --fixture $FILE, thumbnails, the corpus page card, then re-run the benchmark.\\\"}}\"; fi",
+            "statusMessage": "Checking for new fixture image..."
+          }
+        ]
+      }
+    ]
+  }
+}

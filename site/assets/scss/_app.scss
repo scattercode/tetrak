@@ -1,0 +1,925 @@
+// Page-level layout: masthead, the two-column page with its rail, footer.
+// Measurements are the prototype's.
+
+// --- Masthead ----------------------------------------------------------------
+.masthead {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+
+  &__inner {
+    max-width: var(--page-max);
+    margin: 0 auto;
+    padding: 14px var(--page-pad);
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+
+  &__brand {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex: none;
+    color: var(--ink);
+
+    &:hover {
+      color: var(--ink);
+      text-decoration: none;
+    }
+  }
+
+  &__name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  &__version {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--clay);
+    letter-spacing: 0.06em;
+  }
+
+  &__nav {
+    display: flex;
+    gap: 22px;
+    flex: 1;
+    align-items: center;
+
+    a {
+      font-size: 0.97rem;
+      color: var(--ink-soft);
+      padding: 4px 0;
+      white-space: nowrap;
+
+      &:hover {
+        color: var(--clay-deep);
+        text-decoration: none;
+      }
+
+      // The current page is marked by weight and colour rather than an
+      // underline, which would collide with the link hover treatment.
+      &[aria-current="page"] {
+        color: var(--ink);
+        font-weight: 600;
+      }
+    }
+  }
+
+  &__tools {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+  }
+
+  &__repo {
+    font-size: 0.875rem;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+}
+
+// --- Page --------------------------------------------------------------------
+// Content column plus a sticky rail. The rail is the "On this page" list, and
+// it collapses away rather than wrapping under the content on narrow screens.
+.page {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 0 var(--page-pad);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--rail);
+  gap: var(--gap);
+  align-items: start;
+
+  &__body {
+    min-width: 0;
+    padding: 56px 0 96px;
+    animation: fadeup 0.4s ease both;
+  }
+}
+
+.rail {
+  position: sticky;
+  top: 96px;
+  padding-top: 60px;
+  font-size: 0.9rem;
+
+  &__label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+
+  // Hugo emits a nested <nav><ul>; strip it back to a plain column of links.
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  li ul {
+    margin-top: 10px;
+    padding-left: 14px;
+  }
+
+  a {
+    color: var(--ink-soft);
+    line-height: 1.35;
+
+    &:hover {
+      color: var(--clay-deep);
+      text-decoration: none;
+    }
+  }
+
+  &__foot {
+    margin-top: 34px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    font-size: 0.875rem;
+  }
+}
+
+// --- Footer ------------------------------------------------------------------
+.footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 40px;
+
+  &__inner {
+    max-width: var(--page-max);
+    margin: 0 auto;
+    padding: 36px var(--page-pad) 56px;
+    display: flex;
+    justify-content: space-between;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  &__blurb {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    max-width: 46ch;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  &__links {
+    display: flex;
+
+    // Four links at 28px apart are wider than a small phone, and without this
+    // the row was the one thing still pushing the page sideways at 320px.
+    flex-wrap: wrap;
+    gap: 12px 28px;
+    font-size: 0.9rem;
+  }
+}
+
+// --- Home --------------------------------------------------------------------
+// The card grids the landing page carries over from the mkdocs source.
+.grid.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 44px 56px;
+  margin: 3rem 0;
+  padding: 0;
+  list-style: none;
+
+  > ul {
+    display: contents;
+    list-style: none;
+  }
+
+  li {
+    list-style: none;
+  }
+
+  // General before specific: the card body, then the card title that overrides
+  // it. Reversing these trips no-descending-specificity, and rightly so.
+  li > p {
+    max-width: none;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+
+  li > p:first-child {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    letter-spacing: -0.015em;
+    margin: 0 0 0.4rem;
+    color: var(--ink);
+  }
+}
+
+.hero-figure img {
+  width: 100%;
+  border: 1px solid var(--rule);
+}
+
+// --- Motion ------------------------------------------------------------------
+@keyframes fadeup {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// --- Narrow screens ----------------------------------------------------------
+// Below the prototype's 1000px breakpoint the nav and rail both go, leaving a
+// single column. The burger reveals the nav.
+@media (width <= 1000px) {
+  .masthead__nav {
+    display: none;
+  }
+
+  .page {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .rail {
+    display: none;
+  }
+}
+
+@media (width > 1000px) {
+  [data-menu-toggle] {
+    display: none;
+  }
+}
+
+// The nav is already gone below 1000px, so what the narrow masthead has to fit
+// is the wordmark plus the whole tools row -- and at phone widths it did not:
+// the row overran the viewport and took the burger off-screen with it, which
+// also left the page scrolling sideways. What goes is the pair that earns the
+// least here: the repository link, which is private and 404s for most readers
+// anyway, and the keyboard hint, since there is no "/" to press on a phone.
+// The row is then pushed to the right edge rather than packed against the
+// wordmark.
+@media (width <= 640px) {
+  .masthead__inner {
+    gap: 16px;
+  }
+
+  .masthead__tools {
+    margin-left: auto;
+  }
+
+  .masthead__repo,
+  .btn-search__key {
+    display: none;
+  }
+}
+
+// --- Walkthrough -------------------------------------------------------------
+// /research/walkthrough/ only. The page is deliberately more graphic than the
+// rest of the site, and it gets there within the system rather than around it:
+// no cards, no boxed callouts, no second accent. The scale comes from the
+// corpus imagery, from display-size numerals, and from air. Every separation
+// below is whitespace first and a hairline second.
+//
+// If a future section here wants a border to hold it together, it wants more
+// space instead. That is the one rule the rest of the site is built on and the
+// reason this page still looks like the same site.
+
+// A wide page collapses the rail track. Without this a page that renders no
+// rail still reserves 220px plus the 64px gap and sits visibly off-centre.
+.page--wide {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+.wt {
+  display: flex;
+  flex-direction: column;
+  gap: 108px;
+}
+
+// --- Opening -----------------------------------------------------------------
+.wt__lede {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+  font-style: italic;
+  line-height: 1.2;
+  color: var(--clay-deep);
+  margin: 0.2em 0 1.6rem;
+}
+
+.wt__standfirst {
+  max-width: var(--measure);
+  margin-bottom: 1.6rem;
+}
+
+.wt__byline {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+// --- Contact sheet -----------------------------------------------------------
+// Bleeds to the page gutter with a negative inline margin, never to the
+// viewport: `calc(50% - 50vw)` overflows by the scrollbar width and the suite
+// has a test that the body never scrolls sideways.
+.wt-sheet {
+  margin-inline: calc(var(--page-pad) * -1);
+  padding-inline: var(--page-pad);
+
+  // Nine explicit columns, not auto-fit. The corpus is nine items and the
+  // sheet should read as one row of nine; auto-fit sized them to eight and
+  // wrapped the ninth onto a line of its own.
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    gap: 18px 14px;
+  }
+
+  &__item {
+    margin: 0;
+
+    // Uniform tiles holding whole items, the way a photographic contact sheet
+    // does. `cover` was tried and is wrong here: the corpus includes a tall
+    // newspaper advertisement and a programme cover with a wide blank head, and
+    // cropping to the top of those showed two empty rectangles.
+    img {
+      width: 100%;
+      height: 168px;
+      object-fit: contain;
+      object-position: center;
+      background: var(--paper-2);
+    }
+
+    figcaption {
+      margin-top: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      line-height: 1.35;
+      letter-spacing: 0.02em;
+      color: var(--ink-soft);
+    }
+  }
+
+  &__note {
+    margin: 26px 0 0;
+    max-width: var(--measure);
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+  }
+}
+
+// --- Contents ----------------------------------------------------------------
+.wt-chapters {
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.wt-chapter {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 20ch) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0 32px;
+  padding: 26px 0;
+  border-top: 1px solid var(--rule);
+
+  &:last-child {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  &__num {
+    font-family: var(--font-display);
+    font-size: 2.6rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--clay);
+  }
+
+  &__title {
+    font-size: 1.4rem;
+    margin: 0;
+    text-transform: none;
+  }
+
+  &__blurb {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--ink-soft);
+  }
+}
+
+// --- Section furniture -------------------------------------------------------
+.wt-section {
+  &__head {
+    margin-top: 0;
+    max-width: 22ch;
+  }
+
+  &__lede {
+    max-width: var(--measure);
+    font-size: 1.08rem;
+    color: var(--ink-soft);
+  }
+
+  &__sub {
+    margin-top: 3rem;
+  }
+}
+
+// --- The four difficulties ---------------------------------------------------
+.wt-quads {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 48px 44px;
+  margin-top: 3rem;
+}
+
+.wt-quad {
+  border-top: 2px solid var(--clay);
+  padding-top: 20px;
+
+  &__num {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--clay);
+  }
+
+  &__title {
+    font-size: 1.22rem;
+    margin: 0.6rem 0 0.5rem;
+  }
+
+  &__body {
+    margin: 0;
+    font-size: 0.98rem;
+    color: var(--ink-soft);
+  }
+}
+
+// --- The engines -------------------------------------------------------------
+.wt-engines {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 44px 40px;
+  margin-top: 3rem;
+}
+
+.wt-engine {
+  border-top: 2px solid var(--accent);
+  padding-top: 18px;
+
+  &__avail {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  &__name {
+    margin: 0.5rem 0 0.6rem;
+    font-size: 1.25rem;
+
+    code {
+      font-size: 1em;
+    }
+  }
+
+  &__body {
+    margin: 0;
+    font-size: 0.98rem;
+    color: var(--ink-soft);
+  }
+}
+
+// --- Document plates ---------------------------------------------------------
+// Asymmetric and alternating: the scan on one side, the argument on the other,
+// separated by air rather than by a rule.
+.wt-plate {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 56px;
+  align-items: start;
+  margin-top: 5rem;
+
+  &--flip {
+    .wt-plate__figure { order: 2; }
+    .wt-plate__body { order: 1; }
+  }
+
+  &__count {
+    margin: 0 0 0.8rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--clay-deep);
+  }
+
+  &__title {
+    margin: 0 0 0.3rem;
+    font-size: 1.7rem;
+  }
+
+  &__sub {
+    margin: 0 0 1.4rem;
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+
+  &__challenge {
+    margin: 0;
+    padding-top: 1.4rem;
+    border-top: 2px solid var(--clay);
+    font-size: 1.06rem;
+    line-height: 1.62;
+    max-width: var(--measure);
+  }
+}
+
+// --- Per-document figures ----------------------------------------------------
+.wt-scores {
+  margin-top: 2rem;
+
+  &__label {
+    margin: 0 0 0.7rem;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 2px 40px;
+    margin: 0;
+  }
+
+  &__row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    padding: 3px 0;
+
+    dt,
+    dd {
+      margin: 0;
+    }
+
+    code {
+      font-size: 1em;
+    }
+
+    // Best local, and the ceiling set back. Same marking as .benchmark, so a
+    // reader who has seen the results table recognises this without a legend.
+    &.is-best {
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    &.is-ceiling {
+      color: var(--ink-soft);
+    }
+  }
+
+  &__ref {
+    color: var(--clay);
+  }
+
+  &__note {
+    margin: 0.9rem 0 0;
+    font-size: 0.78rem;
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+}
+
+// --- Average bars ------------------------------------------------------------
+// Drawn in CSS from the CSV at build time rather than by a charting library.
+// Build time over runtime, and the bars take their colour from the same engine
+// tokens the matplotlib chart below them uses.
+.wt-bars {
+  margin: 3rem 0 0;
+  max-width: 900px;
+}
+
+.wt-bar {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) 108px;
+  align-items: center;
+  gap: 20px;
+  padding: 9px 0;
+
+  &__name {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+
+    code {
+      font-size: 1em;
+    }
+  }
+
+  &__track {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__fill {
+    height: 9px;
+    min-width: 2px;
+
+    &--chr {
+      background: var(--accent);
+    }
+
+    // Word recall is the same engine measured a second way, so it is the same
+    // colour set back rather than a second hue. A second colour here would
+    // read as a second engine.
+    &--wrd {
+      background: var(--accent);
+      opacity: 0.42;
+    }
+  }
+
+  &__figs {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    color: var(--ink-soft);
+
+    span {
+      color: var(--rule);
+    }
+  }
+
+  &s__key {
+    margin: 1.4rem 0 0;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+
+  &s__swatch {
+    display: inline-block;
+    width: 22px;
+    height: 8px;
+    margin-right: 5px;
+    margin-left: 10px;
+    vertical-align: baseline;
+    background: var(--ink-soft);
+
+    &:first-child {
+      margin-left: 0;
+    }
+
+    &--wrd {
+      opacity: 0.42;
+    }
+  }
+}
+
+// --- Findings ----------------------------------------------------------------
+// The page's spot colour. Set at display size with a clay rule above, which is
+// as close to a pull quote as the system goes.
+.wt-findings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 52px 48px;
+}
+
+.wt-finding {
+  border-top: 2px solid var(--clay);
+  padding-top: 22px;
+
+  &__title {
+    margin: 0 0 0.7rem;
+    font-size: 1.5rem;
+    color: var(--clay-deep);
+  }
+
+  &__body {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--ink-soft);
+  }
+}
+
+// --- Choosing ----------------------------------------------------------------
+.wt-choose {
+  margin: 3rem 0 0;
+
+  &__row {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 4fr) minmax(0, 6fr);
+    align-items: baseline;
+    gap: 16px 32px;
+    padding: 18px 0;
+    border-top: 1px solid var(--rule);
+
+    &:last-child {
+      border-bottom: 1px solid var(--rule);
+    }
+  }
+
+  &__material {
+    font-size: 1.05rem;
+  }
+
+  &__engine {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--clay-deep);
+  }
+
+  &__second {
+    display: block;
+    margin-top: 4px;
+    color: var(--ink-soft);
+  }
+
+  &__why {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+  }
+}
+
+// --- Still open --------------------------------------------------------------
+.wt-opens {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 44px 48px;
+  margin-top: 3rem;
+}
+
+.wt-open {
+  border-top: 1px solid var(--rule);
+  padding-top: 18px;
+
+  &__title {
+    margin: 0 0 0.6rem;
+    font-size: 1.2rem;
+  }
+
+  &__body {
+    margin: 0;
+    font-size: 0.96rem;
+    color: var(--ink-soft);
+  }
+}
+
+// --- Onward ------------------------------------------------------------------
+.wt-onward {
+  border-top: 2px solid var(--clay);
+  padding-top: 28px;
+
+  &__lead {
+    margin: 0 0 1rem;
+    font-size: 1.15rem;
+    max-width: var(--measure);
+  }
+
+  &__meta {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+  }
+}
+
+// --- Narrow screens ----------------------------------------------------------
+// The sheet steps down before the rest of the page does: nine tiles stop being
+// legible well above the point at which the plates need to stack.
+@media (width <= 1180px) {
+  .wt-sheet__grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (width <= 700px) {
+  .wt-sheet__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (width <= 900px) {
+  .wt {
+    gap: 72px;
+  }
+
+  .wt-chapter {
+    grid-template-columns: 56px minmax(0, 1fr);
+
+    &__num {
+      font-size: 2rem;
+      grid-row: span 2;
+    }
+
+    &__blurb {
+      grid-column: 2;
+    }
+  }
+
+  .wt-plate {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+
+    &--flip {
+      .wt-plate__figure { order: 0; }
+      .wt-plate__body { order: 0; }
+    }
+  }
+
+  .wt-bar {
+    grid-template-columns: 118px minmax(0, 1fr) 92px;
+    gap: 12px;
+  }
+
+  .wt-choose__row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+}
+
+// --- Articles ----------------------------------------------------------------
+// The articles index and the tag pages. Both render partials/article-list.html,
+// so both get this.
+//
+// Separated by whitespace and by the type scale, with no rule between the years
+// and no box round a row -- the same bargain the rest of the site makes. A year
+// heading here was tried with a hairline under it and it turned the index into
+// a table: the run of large numerals down the left of the page is already the
+// strongest thing on it, and a rule only competed with the titles.
+//
+// The year is set soft rather than in full ink. It is a signpost between
+// groups, not a thing to read, and at display size in full ink it outweighed
+// every article title beneath it.
+.articles {
+  display: flex;
+  flex-direction: column;
+  gap: 4.5rem;
+  margin: 3.5rem 0 0;
+}
+
+.articles__year-label {
+  margin: 0 0 2rem;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.articles__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 2.75rem;
+}
+
+// The empty state. The section existed before its first article did, and a
+// listing that renders nothing leaves a heading with a blank underneath it.
+.articles__empty {
+  color: var(--ink-soft);
+  font-style: italic;
+  margin: 2.5rem 0 0;
+}
+
+// The closing line under a listing: the feed on the articles index, the way
+// back to the tag index on a term page. One class, because it is one piece of
+// furniture -- a quiet line of small type after the last row.
+.articles__foot {
+  margin: 4rem 0 0;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}

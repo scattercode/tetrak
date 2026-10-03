@@ -1,0 +1,6 @@
+{{ define "main" }}
+  {{- with .Params.kicker }}<div class="kicker">{{ . }}</div>{{ end }}
+  <h1>{{ .Title }}</h1>
+  {{- with .Params.standfirst }}<p class="standfirst">{{ . }}</p>{{ end }}
+  {{ .Content }}
+{{ end }}

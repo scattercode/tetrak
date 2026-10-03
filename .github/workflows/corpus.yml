@@ -1,0 +1,43 @@
+# The corpus-backed accuracy thresholds: `pytest -m slow` runs a real OCR
+# engine over the evaluation corpus to catch preprocessing drift.
+#
+# Formerly a job inside ci.yml that ran on every merge to main, which meant a
+# multi-minute Tesseract pass for documentation and site merges that could not
+# possibly have moved an accuracy number. It now runs when something that can
+# move one changes -- the package, the tests, the corpus or the dependency
+# declarations -- plus weekly, so drift with no matching code change (a
+# Tesseract or Pillow release, most plausibly) still gets caught within days
+# rather than never.
+name: Corpus
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "evaluation/**"
+      - "pyproject.toml"
+  schedule:
+    # Mondays 06:20 UTC -- offset from the top of the hour, when GitHub's
+    # shared-runner queue is most congested and scheduled runs get delayed.
+    - cron: "20 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  corpus:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: sudo apt-get update && sudo apt-get install -y tesseract-ocr poppler-utils
+      - run: pip install -e '.[dev]'
+      - name: Accuracy thresholds against the corpus
+        run: pytest -m slow

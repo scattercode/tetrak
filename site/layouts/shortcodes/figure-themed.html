@@ -1,0 +1,23 @@
+{{- /*
+  A figure with light and dark renditions, switched by CSS.
+
+  mkdocs-material did this with `#only-light` / `#only-dark` URL fragments and
+  two <img> tags. Hugo has no equivalent, and dropping the dark rendition would
+  leave a light chart glaring on a dark page -- this site has a real dark
+  theme, so both are served and the stylesheet chooses.
+
+  The markup is in partials/figure-themed.html, because the walkthrough layout
+  renders the same pair and layouts cannot call shortcodes.
+
+  Usage:
+    {{< figure-themed src="evaluation/benchmark-comparison" alt="..." >}}
+
+  `src` omits the -light / -dark suffix and the extension.
+*/ -}}
+{{- partial "figure-themed.html" (dict
+      "src" (.Get "src")
+      "alt" (.Get "alt")
+      "width" (.Get "width")
+      "caption" (.Get "caption")
+      "class" (.Get "class")
+      "page" .Page) -}}

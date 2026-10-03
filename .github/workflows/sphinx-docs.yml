@@ -1,0 +1,101 @@
+name: Sphinx docs
+
+on:
+  push:
+    branches: [main]
+    # The Sphinx reference reads docs/ and the package's docstrings; the
+    # Hugo site never enters it.
+    paths-ignore:
+      - "site/**"
+  # No path filter on pull_request: these are required checks, and a
+  # workflow filtered out by path never starts, so never reports, and leaves
+  # the pull request blocked.
+  pull_request:
+  # There was a `workflow_run: [Release]` trigger here, because Release used
+  # to push with GITHUB_TOKEN, which by design never retriggers `push`
+  # workflows -- so the push above always built one commit before the tag
+  # existed and the published version trailed permanently.
+  #
+  # Release now pushes as the `scattercode-release` App, whose token is a
+  # real identity and does trigger `push`. Its commit is the tagged commit,
+  # so the push path above builds at the tag and publishes a clean version.
+  # Keeping workflow_run as well would deploy the same commit twice per
+  # release, serialised through the `pages` concurrency group for no gain.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Two regimes in one expression. Deploying runs (push, dispatch) keep
+# the original serialised `pages` group with no
+# cancellation, so a deploy is never killed mid-flight. Pull-request
+# builds deploy nothing and get a per-ref group with cancellation, so a
+# review-fix push stops the superseded build instead of paying for it.
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('sphinx-pr-{0}', github.ref) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # Named for what it builds, not for the verb. The Docs workflow also has a
+  # job called `build`, and a required status check matches on the context
+  # string -- so while both were called `build`, requiring it matched two
+  # different checks and could not be relied on to gate either.
+  api-docs-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # hatch-vcs derives the version from `git describe --tags`. The
+          # default shallow clone has no tags reachable, so conf.py's
+          # `tetrak_ocr._version` falls back to setuptools_scm's "no tag
+          # found" guess (0.1.dev1+g<sha>) instead of the real release.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install the package and Sphinx toolchain
+        run: pip install -e '.[apidocs]'
+
+      - name: Build
+        run: sphinx-build -W -b html docs docs/_build/html
+
+      - uses: actions/configure-pages@v6
+        if: >-
+          (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+          github.event_name == 'workflow_dispatch'
+
+      - uses: actions/upload-pages-artifact@v5
+        if: >-
+          (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+          github.event_name == 'workflow_dispatch'
+        with:
+          path: docs/_build/html
+
+  deploy:
+    needs: api-docs-build
+    # `needs.api-docs-build`, not `needs.build`. Renaming the job to
+    # disambiguate the required status check left this reference pointing at
+    # a job that no longer exists, so it resolved to nothing, never equalled
+    # 'true', and silently disabled every post-release deploy -- the exact
+    # path that exists to publish the docs at a tag rather than one commit
+    # past it. Nothing failed; the docs just stopped updating after releases.
+    #
+    # workflow_dispatch deploys too. Recovering from a skipped release deploy
+    # otherwise means waiting for the next release, which is a long way round
+    # for a page that is already wrong.
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

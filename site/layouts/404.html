@@ -1,0 +1,37 @@
+{{- /*
+  The not-found page.
+
+  Hugo emits public/404.html only when this template exists -- it is not
+  automatic, and for a long time this file was not here. Cloudflare Pages
+  serves the nearest 404.html up the directory tree, so with nothing to find
+  every unknown URL fell through to the home page with a 200: dead links looked
+  healthy to any checker pointed at production, and /404.html itself returned
+  the home page. One template at the root covers the whole site.
+
+  Destinations come from the main menu rather than hard-coded paths. Hugo
+  resolves pageRef into .URL with the baseURL path already on it, so a renamed
+  page fails the build instead of publishing a dead link from the one page
+  whose entire job is dead links.
+
+  No new component: the kicker, standfirst and list are the same ones every
+  other page uses. A 404 that introduced a box would be the only box on the
+  site.
+*/ -}}
+{{ define "main" }}
+  <div class="kicker">Error 404</div>
+  <h1>Page not found</h1>
+  <p class="standfirst">
+    Nothing on the site matches that address. The documentation was
+    restructured in August 2026 and a few pages moved; an old link may not have
+    survived it.
+  </p>
+
+  <p>Press <kbd>/</kbd> to search the site, or pick up the trail here:</p>
+
+  <ul>
+    {{- range .Site.Menus.main }}
+      {{- if not .URL }}{{ errorf "menu entry %q has no URL -- check its pageRef in config/_default/menus/" .Name }}{{ end }}
+      <li><a href="{{ .URL }}">{{ .Name }}</a></li>
+    {{- end }}
+  </ul>
+{{ end }}

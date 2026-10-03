@@ -1,0 +1,44 @@
+{
+  "extends": [
+    "stylelint-config-standard-scss"
+  ],
+  "rules": {
+    "property-no-vendor-prefix": null,
+    "selector-class-pattern": [
+      "^([a-z][a-z0-9]*)(-[a-z0-9]+)*(__([a-z][a-z0-9]*)(-[a-z0-9]+)*)?(--([a-z][a-z0-9]*)(-[a-z0-9]+)*)?$",
+      {
+        "message": "Expected class selector to be BEM or kebab-case"
+      }
+    ],
+    "declaration-block-single-line-max-declarations": null,
+    "scss/comment-no-empty": null,
+    "color-no-hex": [
+      true,
+      {
+        "message": "Raw hex colour \u2014 use a design token via var(--\u2026). Tokens are defined in _tokens.scss; see the tetrak-ocr-design skill."
+      }
+    ],
+    "value-keyword-case": [
+      "lower",
+      {
+        "ignoreKeywords": [
+          "Georgia",
+          "SFMono-Regular",
+          "optimizeLegibility"
+        ]
+      }
+    ],
+    "custom-property-empty-line-before": null,
+    "no-descending-specificity": null
+  },
+  "overrides": [
+    {
+      "files": [
+        "assets/scss/_tokens.scss"
+      ],
+      "rules": {
+        "color-no-hex": null
+      }
+    }
+  ]
+}

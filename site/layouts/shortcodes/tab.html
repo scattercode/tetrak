@@ -1,0 +1,7 @@
+{{- $set := .Parent.Ordinal }}
+{{- $id := printf "tab-%d-%d" $set .Ordinal }}
+<input class="tabs__radio" type="radio" id="{{ $id }}" name="tabs-{{ $set }}"{{ if eq .Ordinal 0 }} checked{{ end }}>
+<label class="tabs__label" for="{{ $id }}">{{ .Get 0 }}</label>
+<div class="tabs__panel">
+  {{ .Inner | .Page.RenderString (dict "display" "block") }}
+</div>

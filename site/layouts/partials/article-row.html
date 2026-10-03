@@ -1,0 +1,28 @@
+{{- /*
+  One article in a listing: the articles index and the tag term pages both use
+  it, which is the whole reason it is a partial rather than markup inlined in
+  either layout.
+
+  The heading is an h3 on purpose. Both callers group their rows under an h2
+  year heading, so h1 → h2 → h3 runs unbroken. If a third caller ever lists
+  articles without that grouping, give it the year headings too rather than
+  passing a level in here -- the outline is easier to keep right than a
+  parameter is.
+
+  The lead is `standfirst`, the same field the rest of the site uses for the
+  sentence under a title, so an article does not need a second summary written
+  for the listing. .Summary is the fallback, plainified because Hugo's summary
+  carries the markup of whatever paragraph it cut from.
+*/ -}}
+<article class="article-row">
+  <p class="article-row__date">
+    <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2 Jan" }}</time>
+  </p>
+  <div class="article-row__body">
+    <h3 class="article-row__title"><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
+    <p class="article-row__lead">
+      {{- with .Params.standfirst }}{{ . }}{{ else }}{{ .Summary | plainify | truncate 220 }}{{ end -}}
+    </p>
+    {{- partial "tags.html" . }}
+  </div>
+</article>

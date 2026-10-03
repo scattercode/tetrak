@@ -1,0 +1,35 @@
+{{- /* Sticky masthead: wordmark, version, nav, search, theme toggle. */ -}}
+<header class="masthead">
+  <div class="masthead__inner">
+    {{- /* site.Home.RelPermalink, not `"/" | relURL`. A leading slash makes
+           Hugo treat the path as already rooted and drop the baseURL's path
+           segment, so `"/" | relURL` yields "/" rather than "/ocr-pipeline/" --
+           which is how every link in this masthead came to point at the domain
+           root. Asking a page for its own permalink cannot get this wrong. */ -}}
+    <a class="masthead__brand" href="{{ site.Home.RelPermalink }}">
+      <span class="masthead__name">{{ .Site.Title }}</span>
+      {{- /* Read from the git tag rather than hard-coded, the way hatch-vcs
+             already derives the package version. One source of truth. */ -}}
+      {{- with .Site.Params.version }}<span class="masthead__version">{{ . }}</span>{{ end }}
+    </a>
+
+    <nav class="masthead__nav" aria-label="Main">
+      {{- range .Site.Menus.main }}
+        {{- /* .URL, not .PageRef: PageRef is the raw string from the menu
+               config ("/install"), not a resolved link. Hugo resolves pageRef
+               into .URL for us, with the baseURL path already on it. */ -}}
+        {{- if not .URL }}{{ errorf "menu entry %q has no URL -- check its pageRef in config/_default/menus/" .Name }}{{ end }}
+        <a href="{{ .URL }}"{{ if $.IsMenuCurrent "main" . }} aria-current="page"{{ end }}>{{ .Name }}</a>
+      {{- end }}
+    </nav>
+
+    <div class="masthead__tools">
+      <button class="btn-search" data-search-open type="button">
+        <span>Search</span><span class="btn-search__key">/</span>
+      </button>
+      <button class="btn-icon" data-theme-toggle type="button" title="Toggle theme" aria-label="Toggle theme">◐</button>
+      <a class="masthead__repo" href="{{ .Site.Params.repo }}">GitHub ↗</a>
+      <button class="btn-icon" data-menu-toggle type="button" aria-label="Menu">≡</button>
+    </div>
+  </div>
+</header>

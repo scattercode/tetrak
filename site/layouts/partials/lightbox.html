@@ -1,0 +1,45 @@
+{{- /*
+  A corpus thumbnail that opens its full-size rendition.
+
+  The markup lives in a partial rather than in the shortcode because the
+  walkthrough layout needs it too, and a layout cannot call a shortcode. The
+  shortcode is a thin wrapper over this, so both produce the same element and
+  the lightbox script and its overlay work identically wherever it appears.
+
+  Both renditions are pre-generated and committed by
+  tools/generate_corpus_thumbnails.py, because the sources include a PDF and a
+  pair of archival TIFFs, and poppler is not something to require of a docs
+  build. They are already sized and encoded, so this links them rather than
+  putting them back through .Resize: re-encoding an optimised WebP only loses
+  quality.
+
+  `width` constrains the displayed size via CSS. The intrinsic width/height
+  attributes stay truthful so the aspect ratio is reserved before load and the
+  page does not shift.
+
+  Context: a dict of
+    src   - rendition base name under assets/images/, without the extension
+    alt   - required
+    title - optional, defaults to alt
+    width - optional, px
+    class - optional, added to the anchor
+    where - optional, named in the error when the asset is missing
+*/ -}}
+{{- $src := .src -}}
+{{- $thumb := resources.Get (printf "images/%s.webp" $src) -}}
+{{- $large := resources.Get (printf "images/%s-large.webp" $src) -}}
+{{- $where := .where | default "a template" -}}
+{{- if not $thumb -}}
+  {{- errorf "lightbox: assets/images/%s.webp not found (called from %s)" $src $where -}}
+{{- end -}}
+{{- if not $large -}}
+  {{- errorf "lightbox: assets/images/%s-large.webp not found (called from %s)" $src $where -}}
+{{- end -}}
+{{- $title := .title | default .alt -}}
+<a class="lightbox{{ with .class }} {{ . }}{{ end }}" href="{{ $large.RelPermalink }}" data-lightbox
+   data-title="{{ $title }}" aria-label="{{ $title }} — view full size">
+  <img src="{{ $thumb.RelPermalink }}" alt="{{ .alt }}"
+       width="{{ $thumb.Width }}" height="{{ $thumb.Height }}"
+       {{ with .width }}style="width:{{ . }}px"{{ end }}
+       loading="lazy" decoding="async">
+</a>

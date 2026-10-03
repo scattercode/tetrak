@@ -1,0 +1,167 @@
+// Element-level defaults. Everything here is a bare element selector; anything
+// that needs a class belongs in _components.scss, and anything that only one
+// page uses belongs in _app.scss.
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  // The body paints its own ground explicitly. Inheriting it would leave the
+  // page transparent over whatever the browser or host decides, which is the
+  // classic way a dark-mode page ends up with light-mode text.
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.022em;
+  text-wrap: balance;
+  margin: 0 0 0.4em;
+}
+
+// The prototype sets h1 uppercase with a hair of tracking. It only reads well
+// at display size, so it is scoped to h1 rather than the whole display face.
+h1 {
+  font-size: clamp(2.6rem, 6vw, 4.125rem);
+  line-height: 1.02;
+  letter-spacing: -0.028em;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+h2 {
+  font-size: clamp(1.8rem, 3.2vw, 2.375rem);
+  margin-top: 2.2em;
+}
+
+h3 {
+  font-size: 1.5rem;
+  letter-spacing: -0.015em;
+  margin-top: 1.6em;
+}
+
+// Body copy fills the content column rather than sitting at a 60ch measure.
+// The measure is the conventional readable width and the design prototype used
+// it, but it was applied to paragraphs only -- so prose stopped at 571px while
+// the headings, tables and card grids beside it ran the full 872px, and the
+// text read as though it had failed to fill the space.
+//
+// Capping the column instead was tried and was worse: `.grid.cards` lays out on
+// `repeat(auto-fit, minmax(280px, 1fr))`, so a narrower container collapses the
+// two-column card sections to one. Anything that constrains width here has to
+// leave the layout containers alone.
+p,
+ul,
+ol {
+  max-width: none;
+}
+
+a {
+  color: var(--clay-deep);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--clay);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+// Never leave the browser's default focus ring; the accent is the system's.
+:focus-visible {
+  outline: 2px solid var(--clay);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: rgb(181 98 58 / 22%);
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+button {
+  font-family: inherit;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+// Wide content scrolls inside its own container so the page body never scrolls
+// sideways -- the benchmark table is the reason this exists.
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.95rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 12px 12px 12px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+th {
+  font-weight: 650;
+  border-bottom: 2px solid var(--ink);
+}
+
+// Figures carry their own caption styling; the prototype leans on them heavily
+// for the two hero illustrations.
+figure {
+  margin: 0 0 2.5rem;
+}
+
+// A caption is annotation of the image directly above it, so it reads as one
+// object with the figure and has to end where the figure ends. At 64ch it
+// stopped roughly two thirds of the way across a full-width diagram and looked
+// like a paragraph that had lost its place. This is the same correction made
+// for paragraphs above -- figcaption was simply missed at the time.
+//
+// Both captions on the site sit under full-width diagrams, so matching the
+// figure is matching the image. A future figure narrower than the column would
+// want its caption constrained to the image, not to the column; do that on the
+// figure, not by reintroducing a measure here.
+figcaption {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  max-width: none;
+  line-height: 1.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

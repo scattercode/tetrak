@@ -1,0 +1,17 @@
+{{- /*
+  The per-register cross-engine table, read from evaluation/ocr/registers.csv
+  at build time.
+
+  The markup is in partials/registers.html, because a layout cannot call a
+  shortcode and this table may yet be wanted in one.
+
+  Usage:
+    {{< registers >}}                    a row per register, word recall
+    {{< registers metric="chr" >}}       the same, character similarity
+    {{< registers view="summary" >}}     a row per engine, both means
+    {{< registers bold-best="false" >}}  without the best-in-column marking
+*/ -}}
+{{- partial "registers.html" (dict
+      "view" (.Get "view")
+      "metric" (.Get "metric")
+      "boldBest" (ne (.Get "bold-best") "false")) -}}

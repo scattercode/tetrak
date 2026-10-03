@@ -1,0 +1,783 @@
+// Reusable UI classes. Measurements come from the prototype; where a value is
+// changed, the comment says why.
+
+// --- Kicker ------------------------------------------------------------------
+// The small mono label above a heading. Used on every page as the section
+// signature, and it is most of what makes the pages read as a set.
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--clay);
+  margin-bottom: 1rem;
+}
+
+.standfirst {
+  font-size: 1.28rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  max-width: var(--measure-tight);
+  text-wrap: pretty;
+  margin: 0 0 2.2rem;
+}
+
+// --- Buttons -----------------------------------------------------------------
+.btn-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 6px 10px;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--clay);
+    color: var(--ink);
+  }
+
+  &__key {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    opacity: 0.7;
+  }
+}
+
+.btn-icon {
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+
+  &:hover {
+    border-color: var(--clay);
+    color: var(--clay);
+  }
+}
+
+// --- Code blocks -------------------------------------------------------------
+// The prototype's signature: paper-2 ground with a clay rule down the left, no
+// box. Applies to fenced blocks; inline code stays unadorned.
+.highlight {
+  position: relative;
+  background: var(--paper-2);
+  border-left: 3px solid var(--clay);
+  padding: 20px 24px;
+  margin: 0 0 1.4rem;
+  overflow-x: auto;
+  max-width: 660px;
+
+  pre,
+  code {
+    background: none;
+    padding: 0;
+    font-size: 0.9rem;
+    line-height: 1.85;
+  }
+}
+
+.copy-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  font-size: 0.75rem;
+  padding: 4px 9px;
+  color: var(--ink-soft);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--clay);
+    color: var(--clay);
+  }
+}
+
+// --- Admonitions -------------------------------------------------------------
+// Set as marginalia rather than the boxed callouts mkdocs-material used: a rule
+// down the left and a mono title, consistent with the code block treatment. The
+// design has no boxes anywhere, so a bordered card would read as foreign.
+.admonition {
+  border-left: 3px solid var(--rule);
+  padding: 4px 0 4px 20px;
+  margin: 0 0 1.6rem;
+  max-width: var(--measure);
+
+  &__title {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0 0 0.4rem;
+    color: var(--ink-soft);
+  }
+
+  &__body > :last-child {
+    margin-bottom: 0;
+  }
+
+  &--warning {
+    border-left-color: var(--engine-orange);
+
+    .admonition__title {
+      color: var(--engine-orange);
+    }
+  }
+
+  &--caution {
+    border-left-color: var(--clay);
+
+    .admonition__title {
+      color: var(--clay-deep);
+    }
+  }
+}
+
+// --- Tabs --------------------------------------------------------------------
+// Radio-driven, so no script and free keyboard support. Labels are pulled ahead
+// of the panels with `order`, so the DOM keeps input/label/panel adjacent and
+// the sibling selectors below can reach across.
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 0 1.6rem;
+  max-width: 660px;
+
+  &__radio {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  &__label {
+    order: -1;
+    padding: 7px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: var(--ink-soft);
+    border-bottom: 2px solid transparent;
+  }
+
+  &__panel {
+    display: none;
+    width: 100%;
+  }
+
+  &__radio:checked + &__label {
+    color: var(--ink);
+    border-bottom-color: var(--clay);
+  }
+
+  &__radio:checked + &__label + &__panel {
+    display: block;
+  }
+
+  &__radio:focus-visible + &__label {
+    outline: 2px solid var(--clay);
+    outline-offset: 2px;
+  }
+}
+
+// --- Tables ------------------------------------------------------------------
+// Wide tables scroll inside their own container so the page body never scrolls
+// sideways. The benchmark table is nine columns and needs it.
+.table-scroll {
+  overflow-x: auto;
+  margin: 0 0 1rem;
+  max-width: 100%;
+}
+
+.benchmark {
+  font-size: 0.85rem;
+
+  // Nine columns overflowed the prose column by ~20px at desktop width, which
+  // meant a scrollbar for the sake of two characters. Tightening the cell
+  // gutters closes it; the .table-scroll wrapper still catches narrower
+  // viewports, where scrolling is the right answer rather than a near-miss.
+  th,
+  td {
+    padding: 10px 8px 10px 0;
+  }
+
+  &__num {
+    padding-left: 10px;
+    text-align: right;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  th[scope="row"] {
+    font-weight: 400;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .is-best {
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  // Claude is a reference, not a competitor. Set back so the eye reads the
+  // local columns first.
+  .is-ceiling {
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+
+  &__summary {
+    th,
+    td {
+      font-weight: 650;
+      border-top: 2px solid var(--ink);
+    }
+  }
+
+  &__ref {
+    color: var(--clay);
+  }
+
+  &__caption {
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    max-width: var(--measure);
+  }
+}
+
+// --- Figures -----------------------------------------------------------------
+.figure {
+  margin: 0 0 2.6rem;
+
+  img {
+    display: block;
+    width: 100%;
+    border: 1px solid var(--rule);
+    background: var(--paper-2);
+  }
+}
+
+// Light/dark figure pairs. Both renditions ship; the stylesheet picks one, so
+// a chart drawn on white does not glare on a dark page. Three theme states, as
+// everywhere else: the media query must carry the un-stamped default alone.
+.figure--themed {
+  .figure__dark { display: none; }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) & {
+      .figure__light { display: none; }
+      .figure__dark { display: block; }
+    }
+  }
+
+  :root[data-theme="dark"] & {
+    .figure__light { display: none; }
+    .figure__dark { display: block; }
+  }
+
+  :root[data-theme="light"] & {
+    .figure__light { display: block; }
+    .figure__dark { display: none; }
+  }
+}
+
+// --- People ------------------------------------------------------------------
+// The bios on the about page, from {{< people >}} / {{< person >}}.
+//
+// Two columns, and no box: each person is held by a 2px clay rule above the
+// block and by the air around it, exactly as .wt-finding does on the
+// walkthrough. A card with a border here would be the first boxed container on
+// the site, and the page reads as a set with the rest precisely because it is
+// not one.
+//
+// Two columns on the standard content column and one on a phone, which is what
+// minmax(280px, 1fr) gives without a media query: three tracks and their gaps
+// need 936px and the column is 872px, so a third person wraps onto a second row
+// at a readable measure rather than squeezing the page into thirds. The about
+// page is deliberately not `wide` for the same reason -- its prose then sets at
+// the width every other page on the site uses.
+.people {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 52px 48px;
+  margin: 3rem 0 0;
+}
+
+.person {
+  border-top: 2px solid var(--clay);
+  padding-top: 22px;
+
+  &__role {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  &__name {
+    margin: 0.5rem 0 0.9rem;
+    font-size: 1.5rem;
+  }
+
+  // Full ink, not --ink-soft. The blurb blocks elsewhere are set back because
+  // they annotate something else on the page; here the bio is the page.
+  &__bio p {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  &__links {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+}
+
+// --- Lightbox ----------------------------------------------------------------
+// Corpus thumbnails. The link is the affordance, so it gets a visible hover and
+// a focus ring — a reader tabbing through the corpus page should be able to see
+// where they are.
+.lightbox {
+  display: block;
+
+  img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--rule);
+    background: var(--paper-2);
+  }
+
+  &:hover img {
+    border-color: var(--clay);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--clay);
+    outline-offset: 3px;
+  }
+}
+
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgb(58 35 24 / 82%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 4vh 4vw;
+  cursor: zoom-out;
+
+  &[hidden] { display: none; }
+
+  &__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    max-height: 100%;
+  }
+
+  img {
+    max-width: 100%;
+
+    // Leave room for the caption rather than letting a tall scan push it off.
+    max-height: 82vh;
+    object-fit: contain;
+    background: var(--paper);
+  }
+
+  &__caption {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    text-align: center;
+
+    // Fixed against the dark scrim rather than a theme token: this overlay is
+    // the same dark in both themes, so an --ink that flips would vanish here.
+    color: rgb(255 255 255 / 82%);
+    max-width: var(--measure-tight);
+  }
+}
+
+// --- Search ------------------------------------------------------------------
+.search {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgb(58 35 24 / 42%);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+
+  &[hidden] { display: none; }
+
+  &__panel {
+    width: min(660px, 92vw);
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    box-shadow: 0 24px 64px rgb(58 35 24 / 28%);
+    overflow: hidden;
+  }
+
+  &__input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 1.15rem;
+    padding: 18px 22px;
+    outline: none;
+  }
+
+  &__results {
+    max-height: 52vh;
+    overflow: auto;
+  }
+
+  &__hit {
+    display: block;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink);
+
+    &:hover {
+      background: var(--paper-2);
+      text-decoration: none;
+    }
+  }
+
+  &__section {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--clay);
+    margin-bottom: 3px;
+  }
+
+  &__title {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+
+  &__empty {
+    padding: 18px 22px;
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  &__foot {
+    padding: 10px 22px;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    display: flex;
+    justify-content: space-between;
+  }
+}
+
+// The mobile nav, revealed by the burger below the 1000px breakpoint.
+.masthead__nav.is-open {
+  display: flex;
+  position: absolute;
+  inset: 100% 0 auto;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px var(--page-pad) 20px;
+  background: var(--paper-2);
+  border-top: 1px solid var(--rule);
+}
+
+// --- Breadcrumbs -------------------------------------------------------------
+// Orientation for anyone arriving mid-site — from search, or through one of the
+// aliases that keep old URLs working. Set small and quiet: it is a signpost,
+// not part of the reading.
+.breadcrumbs {
+  margin: 0 0 1.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+
+  ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  li + li::before {
+    content: "/";
+    margin-right: 0.5rem;
+    color: var(--rule);
+  }
+
+  a {
+    color: var(--ink-soft);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--clay-deep);
+      text-decoration: underline;
+    }
+  }
+
+  [aria-current="page"] {
+    color: var(--ink);
+  }
+}
+
+// --- Tags --------------------------------------------------------------------
+// The taxonomy labels on articles, on the tag index and at the foot of an
+// article.
+//
+// No pill, no fill, no per-tag colour. The other sites give each tag a coloured
+// dot; this one has a single accent by design, and thirty tags in thirty hues
+// would be the second accent arriving by the back door. A tag here is the same
+// object as the kicker -- a small mono label -- differing only in that it is a
+// link, so it takes the accent on hover like every other link does.
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  list-style: none;
+  margin: 2.4rem 0 0;
+  padding: 0;
+}
+
+.tag {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-decoration: none;
+
+  &::before {
+    content: "#";
+    color: var(--clay);
+    margin-right: 2px;
+  }
+
+  &:hover {
+    color: var(--clay-deep);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  // Tabular, so a column of counts on the tag index lines up rather than
+  // shuffling by a pixel per digit. --ink-soft rather than --rule: --rule is a
+  // border colour and sets text at about 1.6:1 on the paper ground, which is
+  // legible as a hairline and not as a number.
+  &__count {
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-soft);
+    opacity: 0.75;
+  }
+}
+
+// The tag index sets the same labels larger, because there they are the page
+// rather than an annotation on it.
+.tag-list--index {
+  gap: 14px 26px;
+  margin-top: 2rem;
+
+  .tag {
+    font-size: 0.9rem;
+  }
+}
+
+// --- Article rows ------------------------------------------------------------
+// One article in a listing. Shared by the articles index and the tag pages.
+//
+// The date is a fixed track on the left, so the titles align down the page and
+// the dates read as a column rather than as the first word of each entry. It
+// collapses above the title on a narrow screen, where two tracks would leave
+// the title about nine characters wide.
+.article-row {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: 0 24px;
+  align-items: baseline;
+
+  &__date {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.45rem;
+    letter-spacing: -0.015em;
+
+    a {
+      color: var(--ink);
+      text-decoration: none;
+
+      &:hover {
+        color: var(--clay-deep);
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+    }
+  }
+
+  &__lead {
+    margin: 0.5rem 0 0;
+    color: var(--ink-soft);
+    font-size: 1rem;
+    line-height: 1.55;
+    max-width: var(--measure);
+    text-wrap: pretty;
+  }
+
+  // Tighter than a standalone tag list: inside a row the tags annotate the
+  // entry above them rather than closing a page.
+  .tag-list {
+    margin-top: 0.9rem;
+  }
+}
+
+@media (width <= 640px) {
+  .article-row {
+    grid-template-columns: 1fr;
+    gap: 6px 0;
+  }
+}
+
+// --- Article apparatus -------------------------------------------------------
+// The date, reading time and byline under an article's standfirst.
+.article-meta {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: -1.4rem 0 2.6rem;
+
+  &__sep {
+    margin: 0 0.5em;
+    color: var(--rule);
+  }
+}
+
+// Who wrote it, at the foot. The same construction as .person on the about
+// page -- a clay rule above and air around it -- because it is the same object
+// seen smaller. Adding a box here would make it the only one on the site.
+.article-author {
+  border-top: 2px solid var(--clay);
+  padding-top: 22px;
+  margin-top: 3.5rem;
+  max-width: var(--measure);
+
+  &__role {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  &__name {
+    margin: 0.5rem 0 0.7rem;
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    letter-spacing: -0.015em;
+  }
+
+  &__links {
+    margin: 0;
+    font-size: 0.9rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.4rem;
+  }
+}
+
+// Previous and next. Two columns with the next article pushed right, so the
+// pair reads as a spread rather than as a list of two more links; separated
+// from the article by a hairline, which is the only rule the system allows.
+.article-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 3.5rem;
+  padding-top: 24px;
+  border-top: 1px solid var(--rule);
+
+  &__link {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-decoration: none;
+
+    &:hover .article-nav__title {
+      color: var(--clay-deep);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+  }
+
+  // Grid column 2 explicitly, so a first article -- which has a next but no
+  // previous -- still puts it on the right where the reader expects it, rather
+  // than sliding it into the empty first track.
+  &__link--next {
+    grid-column: 2;
+    text-align: right;
+  }
+
+  &__label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--clay);
+  }
+
+  &__title {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+}
+
+@media (width <= 640px) {
+  .article-nav {
+    grid-template-columns: 1fr;
+
+    &__link--next {
+      grid-column: 1;
+      text-align: left;
+    }
+  }
+}
