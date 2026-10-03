@@ -14,11 +14,13 @@ layouts in `site/layouts/`, styles in `site/assets/scss/`, pages in
 `site/content/`. There is no `themes/` directory and no external theme. Every
 npm command below is run from `site/`.
 
-The Python package it documents sits at the repository root. The two files the
-site reads from there — `evaluation/ocr/benchmark.csv` and `LICENSING.md` — are
-mounted into Hugo's assets by `[module.mounts]` in
-`site/config/_default/hugo.toml`, because `os.ReadFile` cannot see above the
-project root. Anything else the site needs from the repository needs a mount
+The Python package it documents sits at the repository root. The files the
+site reads from there — `evaluation/ocr/benchmark.csv`,
+`evaluation/ocr/registers.csv` and `LICENSING.md` — are mounted into Hugo's
+assets by `[module.mounts]` in `site/config/_default/hugo.toml`, because
+`os.ReadFile` cannot see above the project root. (The band table's data is
+different: `tools/generate_tuning_data.py` writes `site/data/tuning.toml`
+during `prebuild`.) Anything else the site needs from the repository needs a mount
 too; that is deliberate, since it keeps the reach declared in one place.
 
 ## Provenance, and one thing not to undo
@@ -214,18 +216,9 @@ is the one part of the site that is dated and signed, but it is not a second
 design: it opens with the same kicker, `h1` and standfirst as every other page,
 and everything it adds is apparatus rather than decoration.
 
-Files live at `site/content/articles/<year>/<month>/<YYYY-MM-DD>-<slug>.md` and
-publish flat at `/articles/<year>/<month>/<slug>/`. **The date directories are
-not sections** — they hold no `_index.md`, so nothing renders at
-`/articles/2026/`, and giving one an `_index.md` would publish a second,
-unstyled index of the same articles.
-
-The URL is built from front matter, not from the path. **Year and month come
-from `date`**, so a file misfiled by a month still publishes correctly. **The
-last segment comes from `slug`, which falls through to the title when empty** —
-not to the filename, which is what it looks like it does when the file is named
-after its title. A sentence-length title becomes a sentence-length URL unless
-`slug` is set; the archetype carries an empty `slug` as the reminder.
+Where files go, how the URL is assembled, front matter, relref linking and the
+rule against transcribed numbers are content rules: load the `tetrak-articles`
+skill for those. What follows is the design side.
 
 Layouts are `layouts/articles/list.html` and `layouts/articles/single.html`;
 both listings — the index and the tag pages — render
@@ -269,25 +262,16 @@ instead — an empty tag index in place of the article list, with a green build.
 `_default/list.html` and `_default/single.html` still work where they are, which
 is what makes this easy to get wrong.
 
-### Linking from an article
-
-Use `{{< relref "/path" >}}`, not a relative or absolute path. An article sits
-four directories deep, so a relative link is unreadable, and an absolute one
-reopens [the baseURL trap](#linking-and-the-baseurl-trap) below. relref resolves
-through the page, so a moved target fails the build.
-
-Numbers stay in the research pages, which read them from
-`evaluation/ocr/benchmark.csv`. An article may point at a figure and argue about
-what it means; it must not carry a transcribed copy of one.
-
 ## Shortcodes
 
 | Shortcode | Usage |
 |---|---|
-| `{{< figure src="design/x.png" alt="…" caption="…" class="…" >}}` | Image through the asset pipeline. `src` is relative to `site/assets/images/` |
+| `{{< figure src="design/x.webp" alt="…" caption="…" class="…" >}}` | Image through the asset pipeline. `src` is relative to `site/assets/images/` |
 | `{{< figure-themed src="evaluation/benchmark-comparison" alt="…" >}}` | Light/dark pair, so a chart drawn on white does not glare on a dark page. `src` is the **base name**; it resolves `<src>-light.png` and `<src>-dark.png` |
 | `{{< lightbox src="corpus/name" alt="…" title="…" width="170" >}}` | Corpus thumbnail linking to its large rendition. Resolves `<src>.webp` and `<src>-large.webp` |
-| `{{< benchmark >}}` / `{{< benchmark metric="sec" >}}` | The results table, read from `evaluation/ocr/benchmark.csv` at build time |
+| `{{< benchmark >}}` / `{{< benchmark metric="sec" >}}` | The corpus results table, read from `evaluation/ocr/benchmark.csv` at build time |
+| `{{< registers >}}` / `{{< registers metric="chr" >}}` / `{{< registers view="summary" >}}` | The Armenian per-register table, read from `evaluation/ocr/registers.csv`. `bold-best="false"` drops the best-in-column marking |
+| `{{< bands >}}` / `{{< bands setting="psm" >}}` / `{{< bands provenance="true" >}}` | The Tesseract auto-configuration bands, read from `site/data/tuning.toml` |
 | `{{< note kind="warning" title="…" >}}…{{< /note >}}` | An admonition. `kind` is `note`, `warning` or `caution`; `title` optional |
 | `{{< tabs >}}{{< tab "macOS" >}}…{{< /tab >}}{{< /tabs >}}` | Tabbed content. The tab label is a **positional** argument |
 | `{{< include "LICENSING.md" >}}` | Inlines a file from the repo — positional, repo-root relative |
@@ -302,10 +286,10 @@ full URL passed as `linkedin` — the host is built in the template, because a
 URL in a shortcode attribute trips markdownlint's MD034 and switching that rule
 off would stop it catching bare URLs in the prose it is actually for.
 
-**Three of these are partials with a shortcode wrapper**, because a layout
+**Several of these are partials with a shortcode wrapper**, because a layout
 cannot call a shortcode and the walkthrough needs the same markup:
-`partials/benchmark.html`, `partials/lightbox.html` and
-`partials/figure-themed.html`. They take a dict rather than shortcode
+`partials/benchmark.html`, `partials/registers.html`, `partials/bands.html`,
+`partials/lightbox.html` and `partials/figure-themed.html`. They take a dict rather than shortcode
 arguments; the shortcode is a two-line wrapper that builds it. Change the
 partial, not the wrapper. `partials/walkthrough-scores.html` is the one that
 has no shortcode — it only ever had one caller.
@@ -379,9 +363,9 @@ defect is reintroduced.
 - Sentence case headings.
 - Write for a competent developer who has already hit the problem. Depth beats
   brevity; there are no word limits.
-- Claim nothing the benchmark does not show. Where a number is published, it is
-  derived from `evaluation/ocr/benchmark.csv`, not transcribed — the table shortcode
-  reads the CSV so the page cannot disagree with the data.
+- Claim nothing the data does not show. Where a number is published, it is
+  read from `benchmark.csv`, `registers.csv` or `tuning.toml` by a shortcode,
+  never transcribed, so the page cannot disagree with the data.
 - `claude` is a **ceiling reference**, not a competitor: it generated the ground
   truth everything else is scored against. Mark it as such and exclude it from
   "best local".

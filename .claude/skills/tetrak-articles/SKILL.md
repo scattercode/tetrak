@@ -11,6 +11,10 @@ EasyOCR model. Reference material belongs under `site/content/reference/` and
 research under `site/content/research/` — an article argues, it does not
 document.
 
+Drafts and proposals live in the private `tetrak-product` repository
+(`product/articles/`); publishing one is a copy into `site/content/articles/`
+here. Never link a published article back to a draft.
+
 ## Creating one
 
 ```bash
@@ -70,12 +74,17 @@ unreadable; an absolute one breaks the day the site is served from a
 subdirectory; and relref resolves through the page, so a moved target **fails
 the build** instead of publishing a 404.
 
-## Numbers stay in the research pages
+## Numbers stay in the data
 
-The research pages read their figures from `evaluation/ocr/benchmark.csv` at
-build time and so cannot disagree with the harness. An article may point at a
-figure and argue about what it means; it must **not** carry a transcribed copy
-of one.
+Figures come from the harness's own output, read at build time:
+`evaluation/ocr/benchmark.csv` for the corpus (`{{< benchmark >}}`) and
+`evaluation/ocr/registers.csv` for the Armenian registers
+(`{{< registers >}}`, `{{< registers metric="chr" >}}`). An article may embed
+those tables, point at a figure and argue about what it means; it must **not**
+carry a transcribed copy of one. That includes counts derived from the tables
+("leads on five of eight registers") and figures from a research note ("fixed
+465 words"): say "most registers" or "many times more than it broke", and let
+the table carry the number.
 
 This is not a style preference. The slide deck carried transcribed numbers and
 disagreed with the harness within a fortnight — nothing failed, and nobody
