@@ -37,7 +37,7 @@ def write_pyproject(tmp_path: Path, extras: dict[str, list[str]]) -> Path:
 
 class TestDerivation:
     def test_core_is_always_a_target(self, tmp_path: Path) -> None:
-        """`pip install tetrak-ocr` with no extras is what most people do."""
+        """`pip install tetrak` with no extras is what most people do."""
         found = targets(write_pyproject(tmp_path, {}))
         assert [t["target"] for t in found] == ["core"]
         assert found[0]["spec"] == "."

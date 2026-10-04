@@ -47,7 +47,7 @@ def pdf_renderer():
         raise ImportError(
             "pdf2image is needed to read PDFs and could not be imported. It is a "
             "core dependency, so this install is incomplete: reinstall with "
-            "`pip install -e .` from a checkout, or `pip install tetrak-ocr`.\n"
+            "`pip install -e .` from a checkout, or `pip install tetrak`.\n"
             "Rendering also needs poppler on the system -- `brew install poppler` "
             "on macOS, `apt install poppler-utils` on Debian."
         ) from None

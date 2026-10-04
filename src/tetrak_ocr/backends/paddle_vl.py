@@ -13,7 +13,7 @@ is separate: the harness scores backends, so the difference between the
 two becomes a measurement instead of a claim.
 
 Requires:
-    pip install "tetrak-ocr[paddle-vl]"
+    pip install "tetrak[paddle-vl]"
 
 Usage (standalone):
     tetrak-ocr ocr workspace/scans/my-postcard.jpg --backend paddle-vl
@@ -156,7 +156,7 @@ def ocr_image(path: Path) -> str:
 
     if not _IMPORT_OK:
         raise RuntimeError(
-            'paddle-vl is unavailable: install it with pip install "tetrak-ocr[paddle-vl]"'
+            'paddle-vl is unavailable: install it with pip install "tetrak[paddle-vl]"'
         )
 
     if not path.exists():

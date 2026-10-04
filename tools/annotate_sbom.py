@@ -22,7 +22,7 @@ the extension point the specification does sanction. `syft --source-name` and
 flags cannot.
 
 Run:
-    python3 tools/annotate_sbom.py sbom-vision.cdx.json --target 'tetrak-ocr[vision]'
+    python3 tools/annotate_sbom.py sbom-vision.cdx.json --target 'tetrak[vision]'
 """
 
 from __future__ import annotations
@@ -70,7 +70,7 @@ def annotate(document: dict, target: str, python_version: str | None = None) -> 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("sbom", type=Path, help="the CycloneDX JSON document to annotate")
-    parser.add_argument("--target", required=True, help="e.g. tetrak-ocr[vision]")
+    parser.add_argument("--target", required=True, help="e.g. tetrak[vision]")
     parser.add_argument("--python-version", help="defaults to the running interpreter")
     args = parser.parse_args(argv)
 

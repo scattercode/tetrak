@@ -144,7 +144,7 @@ retraining:
   encyclopedia, whose three columns are set closer together than EasyOCR
   pads its boxes, this step is most of the character similarity.
 
-Needs `pip install "tetrak-ocr[armenian]"`. The recogniser's weights (~15 MB)
+Needs `pip install "tetrak[armenian]"`. The recogniser's weights (~15 MB)
 download on first use, pinned to one immutable revision per release and
 checksum-verified; EasyOCR's detector weights come with them. No PDFs —
 convert pages to images first.
@@ -206,7 +206,7 @@ names the `native` path explicitly and passes neither, so a local backend
 cannot start sending archive images to a third party because a default
 changed. A test asserts it.
 
-Needs `pip install "tetrak-ocr[paddle-vl]"`, which pulls `paddlex[ocr]` —
+Needs `pip install "tetrak[paddle-vl]"`, which pulls `paddlex[ocr]` —
 not `paddleocr[doc-parser]`, however much that sounds like the one. Model
 weights (~1 GB) download on first use and cache under `~/.paddlex/`.
 
@@ -223,7 +223,7 @@ both route to it.
 
 ## Apple Vision
 
-macOS only. `pip install 'tetrak-ocr[vision]'` — the extra pulls a PyObjC
+macOS only. `pip install 'tetrak[vision]'` — the extra pulls a PyObjC
 wrapper and nothing else, because Vision ships with the operating system.
 No weights, no download on first run, no network. Apple states that all of
 Vision's processing happens on the device, so it sits inside the local-first

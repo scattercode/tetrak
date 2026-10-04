@@ -4,6 +4,8 @@
 # semantic version from the Conventional Commit history since the last tag,
 # git-cliff regenerates CHANGELOG.md for that version, the commit is tagged,
 # and a GitHub Release is published whose notes are that changelog section.
+# The sdist and wheel are then built from that tag and published to PyPI as
+# `tetrak` through a Trusted Publisher.
 #
 # The release commit is pushed by the `scattercode-release` App, the only
 # actor the main ruleset lets bypass it. That token is a real identity, so
@@ -175,6 +177,75 @@ jobs:
 
           gh release create "$VERSION" --title "$VERSION" --notes-file RELEASE_NOTES.md
 
+  # Build the sdist and wheel from the exact tag the release job just pushed.
+  # A fresh checkout at the tag is what makes hatch-vcs produce a clean X.Y.Z;
+  # a build from an untagged commit yields X.Y.Z.devN+gabcdef, which PyPI
+  # rejects.
+  build:
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    # The workflow grants contents: write for the release job. This job only
+    # reads the tag, and it runs third-party build tooling with the checkout
+    # credential persisted, so it gets no more than it needs.
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release.outputs.version }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+
+      - name: Build sdist and wheel
+        run: |
+          python -m pip install --upgrade build twine
+          python -m build
+
+      # Fails on a README that will not render on PyPI, or missing metadata.
+      - name: Check distribution metadata
+        run: twine check --strict dist/*
+
+      # Install the *wheel* into a clean interpreter and import every package
+      # it reserves. This catches files that work from `pip install -e .` but
+      # were left out of the wheel, and a __version__ that disagrees with the
+      # tag -- the 5.14.0 wheel reported 0.2.2 from a forgotten literal.
+      - name: Smoke-test the wheel
+        env:
+          VERSION: ${{ needs.release.outputs.version }}
+        run: |
+          python -m venv /tmp/smoke
+          /tmp/smoke/bin/pip install --quiet dist/*.whl
+          /tmp/smoke/bin/python -c "import os, tetrak_audio, tetrak_publish, tetrak_ocr as t; v = os.environ['VERSION'].removeprefix('v'); assert t.__version__ == v, (t.__version__, v); print(t.__version__)"
+          /tmp/smoke/bin/tetrak-ocr --help > /dev/null
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+
+  # Upload with a Trusted Publisher. No token is stored anywhere: the job
+  # proves its identity to PyPI with a short-lived OIDC token, which is why
+  # id-token: write is the only permission it needs. Attestations (PEP 740)
+  # are generated and uploaded by the action automatically.
+  publish:
+    needs: [release, build]
+    if: needs.release.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    environment: pypi          # must match the name registered on PyPI
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
   # Which install targets need an SBOM, read from pyproject.toml rather than
   # written down here. Adding an extra publishes its SBOM with no workflow
   # edit, which is the point: a hand-maintained list is one release away from
@@ -255,7 +326,7 @@ jobs:
       - name: Generate SBOM
         run: |
           syft scan dir:.sbomvenv \
-            --source-name "tetrak-ocr${{ matrix.extras }}" \
+            --source-name "tetrak${{ matrix.extras }}" \
             --source-version "${{ needs.release.outputs.version }}" \
             -o cyclonedx-json="sbom-${{ matrix.target }}.cdx.json"
 
@@ -272,7 +343,7 @@ jobs:
       - name: Record the install target and platform
         run: |
           python3 tools/annotate_sbom.py "sbom-${{ matrix.target }}.cdx.json" \
-            --target "tetrak-ocr${{ matrix.extras }}"
+            --target "tetrak${{ matrix.extras }}"
 
       - name: Check the SBOM actually describes something
         run: |

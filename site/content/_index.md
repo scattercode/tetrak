@@ -96,7 +96,7 @@ machine.
 ## Get it
 
 ```bash
-pip install "tetrak-ocr[all]"
+pip install "tetrak[all]"
 tetrak-ocr batch --backend auto-local
 ```
 

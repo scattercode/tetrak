@@ -41,7 +41,7 @@ class TestBackendList:
 
     def test_core_backends_need_no_extras(self) -> None:
         """Tesseract ships in the core install, so a bare
-        `pip install tetrak-ocr` must leave the tool usable."""
+        `pip install tetrak` must leave the tool usable."""
         assert is_available("tesseract")
         assert is_available("tesseract-auto")
 
@@ -134,7 +134,7 @@ class TestMissingExtras:
             get_backend("paddle")
 
         message = str(exc.value)
-        assert "tetrak-ocr[paddle]" in message, "must give the exact install command"
+        assert "tetrak[paddle]" in message, "must give the exact install command"
         assert "pip install" in message
 
     def test_is_available_reports_false_without_raising(

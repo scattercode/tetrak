@@ -3,8 +3,8 @@
 **Custodian of the forgotten.** A local-first OCR orchestrator for archival
 material — postcards, posters, playbills, programmes and trade papers.
 
-> Published as the `tetrak-ocr` package: every command below is unchanged.
-> Tetrak OCR is the product name; the distribution has not followed it yet.
+> Install it as `pip install tetrak`. The command it provides is still
+> `tetrak-ocr`, so every command below is unchanged.
 
 **📖 [Full documentation](https://tetrak.dev/)**
 
@@ -17,9 +17,9 @@ explicitly ask for the Claude backend.
 ## Install
 
 ```bash
-pip install tetrak-ocr              # core: Tesseract, images and PDFs
-pip install 'tetrak-ocr[qa]'        # enables auto-local — the recommended default
-pip install 'tetrak-ocr[all]'       # everything, several gigabytes
+pip install tetrak              # core: Tesseract, images and PDFs
+pip install 'tetrak[qa]'        # enables auto-local — the recommended default
+pip install 'tetrak[all]'       # everything, several gigabytes
 ```
 
 `[qa]` is what turns `auto-local` on, because scoring needs a spell checker and

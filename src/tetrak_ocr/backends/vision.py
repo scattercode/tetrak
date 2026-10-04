@@ -34,7 +34,7 @@ Apple example is printed matter. Do not read a good score on a typed page as
 evidence about a manuscript one.
 
 Requires macOS and:
-    pip install 'tetrak-ocr[vision]'
+    pip install 'tetrak[vision]'
 
 Usage:
     tetrak-ocr ocr workspace/scans/my-postcard.jpg --backend vision
