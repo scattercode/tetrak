@@ -17,9 +17,9 @@ explicitly ask for the Claude backend.
 ## Install
 
 ```bash
-pip install tetrak-ocr              # core: Tesseract, images and PDFs
-pip install 'tetrak-ocr[qa]'        # enables auto-local — the recommended default
-pip install 'tetrak-ocr[all]'       # everything, several gigabytes
+pip install tetrak              # core: Tesseract, images and PDFs
+pip install 'tetrak[qa]'        # enables auto-local — the recommended default
+pip install 'tetrak[all]'       # everything, several gigabytes
 ```
 
 `[qa]` is what turns `auto-local` on, because scoring needs a spell checker and

@@ -31,7 +31,7 @@ class MissingBackendError(OcrPipelineError):
         # relative clause that would have to agree in number with it.
         super().__init__(
             f"The '{backend}' backend needs {packages}, not installed here.\n"
-            f"Install with:  pip install 'tetrak-ocr[{extra}]'"
+            f"Install with:  pip install 'tetrak[{extra}]'"
         )
 
 

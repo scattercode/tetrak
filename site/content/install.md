@@ -13,19 +13,19 @@ Four steps from nothing to a transcribed batch.
 {{< tab "macOS" >}}
 ```bash
 brew install tesseract poppler
-pip install "tetrak-ocr[all]"
+pip install "tetrak[all]"
 ```
 {{< /tab >}}
 {{< tab "Debian / Ubuntu" >}}
 ```bash
 sudo apt-get install tesseract-ocr poppler-utils
-pip install "tetrak-ocr[all]"
+pip install "tetrak[all]"
 ```
 {{< /tab >}}
 {{< /tabs >}}
 
 `[all]` installs every optional backend. If you would rather start small, plain
-`pip install tetrak-ocr` gives you Tesseract, image handling and PDF
+`pip install tetrak` gives you Tesseract, image handling and PDF
 rasterisation — see [the extras](#optional-backends) below for what each
 addition buys.
 
@@ -62,7 +62,7 @@ checkout rather than just the package — the corpus ships with the repository.
 ## The package
 
 ```bash
-pip install tetrak-ocr
+pip install tetrak
 ```
 
 That gives you Tesseract, image handling and PDF rasterisation — enough to
@@ -73,13 +73,13 @@ process a folder of scans offline. Everything else is an optional extra.
 Each heavy backend is an extra, so you install only what you intend to use:
 
 ```bash
-pip install 'tetrak-ocr[claude]'     # Anthropic vision API
-pip install 'tetrak-ocr[easyocr]'    # EasyOCR (CRAFT + CRNN)
-pip install 'tetrak-ocr[paddle]'     # PaddleOCR
-pip install 'tetrak-ocr[paddle-vl]'  # PaddleOCR-VL (document vision-language model)
-pip install 'tetrak-ocr[marker]'     # Marker, layout-aware PDF/image conversion
-pip install 'tetrak-ocr[qa]'         # quality scoring used by auto-local
-pip install 'tetrak-ocr[all]'        # all of the above
+pip install 'tetrak[claude]'     # Anthropic vision API
+pip install 'tetrak[easyocr]'    # EasyOCR (CRAFT + CRNN)
+pip install 'tetrak[paddle]'     # PaddleOCR
+pip install 'tetrak[paddle-vl]'  # PaddleOCR-VL (document vision-language model)
+pip install 'tetrak[marker]'     # Marker, layout-aware PDF/image conversion
+pip install 'tetrak[qa]'         # quality scoring used by auto-local
+pip install 'tetrak[all]'        # all of the above
 ```
 
 They are separated because the difference is not marginal: the core install is
@@ -94,7 +94,7 @@ command rather than raising `ModuleNotFoundError`:
 $ tetrak-ocr ocr scan.jpg --backend paddle
 error: The 'paddle' backend needs the 'paddleocr' and 'paddlepaddle' packages,
 not installed here.
-Install with:  pip install 'tetrak-ocr[paddle]'
+Install with:  pip install 'tetrak[paddle]'
 ```
 
 {{< note kind="warning" title="The `marker` extra is copyleft" >}}

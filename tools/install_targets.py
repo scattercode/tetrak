@@ -2,7 +2,7 @@
 """Enumerate the install targets an SBOM should be published for.
 
 A consumer installs one of several different things -- `tetrak-ocr`,
-`tetrak-ocr[easyocr]`, `tetrak-ocr[all]` -- and each pulls a different
+`tetrak[easyocr]`, `tetrak[all]` -- and each pulls a different
 dependency closure. An SBOM for one of them says nothing useful about the
 others: core declares five dependencies, `[all]` resolves to nearly two
 hundred.
@@ -63,7 +63,7 @@ def targets(pyproject: Path) -> list[dict]:
             "extras": "",
             "spec": ".",
             "runner": "ubuntu-latest",
-            "note": "what `pip install tetrak-ocr` pulls",
+            "note": "what `pip install tetrak` pulls",
         }
     ]
 
@@ -80,7 +80,7 @@ def targets(pyproject: Path) -> list[dict]:
                 # macOS-only extras must be resolved on macOS or the SBOM is a
                 # mislabelled copy of core.
                 "runner": "macos-latest" if darwin_only else "ubuntu-latest",
-                "note": f"`pip install 'tetrak-ocr[{name}]'`",
+                "note": f"`pip install 'tetrak[{name}]'`",
             }
         )
 

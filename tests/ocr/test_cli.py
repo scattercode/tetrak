@@ -274,7 +274,7 @@ class TestArgumentHandling:
         img.touch()
 
         assert cli.main(["ocr", str(img), "--backend", "paddle"]) == 1
-        assert "tetrak-ocr[paddle]" in capsys.readouterr().err
+        assert "tetrak[paddle]" in capsys.readouterr().err
 
 
 class TestQualityGateFlag:

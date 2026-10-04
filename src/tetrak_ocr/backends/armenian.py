@@ -41,7 +41,7 @@ running headers, and measurably hurt two of the ten evaluation pages when
 it was tried.
 
 Requires:
-    pip install "tetrak-ocr[armenian]"
+    pip install "tetrak[armenian]"
 
 The recogniser's weights (~15 MB) download on first use from the Hugging
 Face model repository, pinned to one immutable revision per release and

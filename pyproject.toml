@@ -3,7 +3,7 @@ requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
-# Not "tetrak-ocr": the distribution carries the audio pipeline and the
+# Not "tetrak": the distribution carries the audio pipeline and the
 # publisher as well, and nobody reading `pip install tetrak-ocr` expects audio
 # transcription inside it. Renamed while nothing is published -- afterwards it
 # would mean a deprecated shim and a migration note. The console script stays
@@ -46,7 +46,7 @@ dependencies = [
     "python-dotenv>=1.0",
     # Writes the searchable PDF. Core rather than an extra because the roadmap
     # treats that as the flagship catalogue-ready output, and it should work on
-    # a plain `pip install tetrak-ocr`. BSD-3, pure Python, no system
+    # a plain `pip install tetrak`. BSD-3, pure Python, no system
     # dependencies -- see the dependency licence audit (product compliance).
     "reportlab>=4.0",
 ]
@@ -73,7 +73,7 @@ paddle-vl = ["paddleocr>=3.4", "paddlex[ocr]>=3.4", "paddlepaddle>=3.2"]
 # the backend measures. The committed benchmark was produced with 1.x.
 marker = ["marker-pdf>=1.0,<2.0"]
 # Apple's Vision framework, via a thin PyObjC wrapper. macOS only, hence the
-# marker: without it `pip install "tetrak-ocr[all]"` would fail on Linux.
+# marker: without it `pip install "tetrak[all]"` would fail on Linux.
 # Vision itself ships with the OS, so this extra downloads a wrapper and
 # nothing else -- no weights, no torch.
 vision = ["ocrmac>=1.0; sys_platform == 'darwin'"]
@@ -102,7 +102,7 @@ docs = [
 dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.5"]
 # Composed from the other extras rather than restating them. The hand-written
 # copy had drifted: it listed pyspellchecker and transformers but not torch, so
-# `pip install "tetrak-ocr[all]"` -- the command the docs lead with -- left
+# `pip install "tetrak[all]"` -- the command the docs lead with -- left
 # auto-local unavailable, which is the one backend the docs recommend.
 # Per-pipeline umbrellas. The individual extras keep their own names --
 # `easyocr` and a future `whisper` do not collide, so namespacing them would

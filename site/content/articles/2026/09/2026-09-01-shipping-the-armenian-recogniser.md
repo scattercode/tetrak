@@ -47,7 +47,7 @@ Three ways to use it, all Apache 2.0:
 - `pip install tetrak-easyocr-armenian` — two lines of Python and an
   [EasyOCR](https://github.com/JaidedAI/EasyOCR) reader that speaks
   Armenian, weights fetched and checksum-verified on first use.
-- `pip install "tetrak-ocr[armenian]"` — the `easyocr-hy` backend, which
+- `pip install "tetrak[armenian]"` — the `easyocr-hy` backend, which
   adds the two output-path steps described below and is what produced the
   numbers here. See [the engines page]({{< relref "/reference/engines.md" >}}).
 - [`tetrak/easyocr-armenian`](https://huggingface.co/tetrak/easyocr-armenian)

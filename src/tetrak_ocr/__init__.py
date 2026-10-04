@@ -11,7 +11,13 @@ missing optional dependency reports which extra to install.
 
 from .errors import MissingBackendError, OcrPipelineError, UnknownBackendError
 
-__version__ = "0.2.2"
+try:
+    # Written by hatch-vcs at build time from the git tag, and gitignored. A
+    # literal here went stale -- it read 0.2.2 in the 5.14.0 wheel -- because
+    # nothing updates it. Absent only when running from an unbuilt checkout.
+    from ._version import __version__
+except ImportError:
+    __version__ = "0+unknown"
 
 __all__ = [
     "MissingBackendError",
