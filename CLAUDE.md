@@ -448,6 +448,12 @@ Releases are automated — do not perform them by hand.
   with `GITHUB_TOKEN` never triggers the required checks, so it could never
   merge either. Issuing CI an admin token was the alternative and was
   declined. Tags are unaffected: a tag is not a branch.
+- After tagging, `release.yml` builds the sdist and wheel from the tag and
+  publishes them to PyPI as **`tetrak`** through a Trusted Publisher (the
+  `pypi` GitHub environment; no token is stored). The distribution is
+  `tetrak`, the import package `tetrak_ocr` and the command `tetrak-ocr` —
+  install instructions and error messages say `pip install tetrak`, never
+  `tetrak-ocr`, which is a name we do not own.
 - Never edit `CHANGELOG.md` by hand — change the commit messages or the
   `commit_parsers` in `cliff.toml` instead.
 - Never create tags or Releases manually.
