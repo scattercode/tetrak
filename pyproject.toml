@@ -3,7 +3,7 @@ requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
-# Not "tetrak": the distribution carries the audio pipeline and the
+# Not "tetrak-ocr": the distribution carries the audio pipeline and the
 # publisher as well, and nobody reading `pip install tetrak-ocr` expects audio
 # transcription inside it. Renamed while nothing is published -- afterwards it
 # would mean a deprecated shim and a migration note. The console script stays

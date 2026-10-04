@@ -3,8 +3,8 @@
 **Custodian of the forgotten.** A local-first OCR orchestrator for archival
 material — postcards, posters, playbills, programmes and trade papers.
 
-> Published as the `tetrak-ocr` package: every command below is unchanged.
-> Tetrak OCR is the product name; the distribution has not followed it yet.
+> Install it as `pip install tetrak`. The command it provides is still
+> `tetrak-ocr`, so every command below is unchanged.
 
 **📖 [Full documentation](https://tetrak.dev/)**
 

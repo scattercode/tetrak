@@ -185,6 +185,11 @@ jobs:
     needs: release
     if: needs.release.outputs.released == 'true'
     runs-on: ubuntu-latest
+    # The workflow grants contents: write for the release job. This job only
+    # reads the tag, and it runs third-party build tooling with the checkout
+    # credential persisted, so it gets no more than it needs.
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v7
         with:

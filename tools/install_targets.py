@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Enumerate the install targets an SBOM should be published for.
 
-A consumer installs one of several different things -- `tetrak-ocr`,
+A consumer installs one of several different things -- `tetrak`,
 `tetrak[easyocr]`, `tetrak[all]` -- and each pulls a different
 dependency closure. An SBOM for one of them says nothing useful about the
 others: core declares five dependencies, `[all]` resolves to nearly two
