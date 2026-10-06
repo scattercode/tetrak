@@ -48,17 +48,6 @@ collateral/
 # and is not ours.
 .tmp.driveupload/
 
-# cntx workspace artefacts. Per-machine and regenerated on demand, so the
-# whole directory is ignored rather than the three subpaths cntx adds for
-# itself -- it writes workspace.json and conventions.json alongside them, and
-# none of it belongs to this repository.
-.cntx/
-
-# cntx (S18) -- volatile per-machine artefacts
-.cntx/index/
-.cntx/docs/
-.cntx/workspace_index.json
-
 # Hugo build output, asset cache and per-build artefacts. The site lives in
 # site/, so these are scoped to it rather than matching anything at the root.
 /site/public/
