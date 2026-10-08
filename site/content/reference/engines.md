@@ -11,11 +11,11 @@ name through the [registry](api/#registry) rather than importing it directly.
 | Backend | Extra needed | PDFs | Best at |
 |---|---|:--:|---|
 | `tesseract` | core | ✓ | Baseline. Fast, offline, predictable |
-| `tesseract-auto` | core | ✓ | Same engine, per-image tuning. Best local average bar auto-local |
-| `vision` | `[vision]` | ✗ | macOS on-device engine. Strongest local result here, and the cheapest to run |
+| `tesseract-auto` | core | ✓ | Same engine, per-image tuning. Never below plain Tesseract on this corpus |
+| `vision` | `[vision]` | ✗ | macOS on-device engine. Best local word recall, and the cheapest to run |
 | `easyocr` | `[easyocr]` | ✗ | Varied contrast and awkward grounds |
 | `paddle` | `[paddle]` | ✗ | Dense small text — but weak on this corpus |
-| `paddle-vl` | `[paddle-vl]` | ✓ | Document vision-language model. Strong, and slow enough to be batch-only |
+| `paddle-vl` | `[paddle-vl]` | ✓ | Document vision-language model. Best local average, and slow enough to be batch-only |
 | `marker` | `[marker]` | ✓ | Layout-aware conversion; multi-column and PDFs |
 | `claude` | `[claude]` | ✓ | Anything the others cannot read |
 | `auto-local` | core | ✓ | Unattended mixed material; runs several and keeps the best |
@@ -382,8 +382,9 @@ nothing, are in design research note 001 (Marker throughput and multi-page PDFs)
 Not an engine — a strategy. It runs every viable local backend (Marker where a
 GPU makes it practical, then Vision on macOS, EasyOCR, PaddleOCR and auto-tuned
 Tesseract for images; Marker plus Tesseract for PDFs), scores each transcript
-with a reference-free quality score, and keeps the best. Best local result on this
-corpus at 0.57/0.76, and the slowest, since it runs several engines per file.
+with a reference-free quality score, and keeps the best. It averages 0.66/0.65
+on this corpus, behind PaddleOCR-VL and Vision, and it is among the slowest,
+since it runs several engines per file.
 
 It needs the `qa` extra: scoring uses a spell checker and GPT-2 perplexity.
 See [auto-local routing](routing/).
