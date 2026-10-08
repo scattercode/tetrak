@@ -334,7 +334,8 @@ here, and the brief's status in `tetrak-product`.
   Cloudflare Pages builds the site itself on every push to `main`, so nothing here
   deploys.
 - `sphinx-docs.yml` — builds the `docs/` Sphinx site on every push and PR as a
-  check; deploys to GitHub Pages only on push to `main`. See Deployment below.
+  check. It deploys to GitHub Pages only when called by `release.yml` with a
+  tag, after the wheel is on PyPI. See Deployment below.
 - `pr-title.yml` — the pull request title must be a Conventional Commit, since
   squash-merging makes it the commit on `main` that the release reads.
 - `release.yml` — see below.
@@ -352,7 +353,18 @@ every push to `main`. No manual step is required.
 
 The Sphinx CLI/API reference in `docs/` publishes separately, to GitHub Pages
 at `https://scattercode.github.io/tetrak/`, via
-`.github/workflows/sphinx-docs.yml` on every push to `main`. It is scoped
+`.github/workflows/sphinx-docs.yml`. Every push to `main` builds it as a
+check, but nothing deploys from that path: `release.yml` calls the workflow
+with the new tag as the last step of a release, after the publish job, so the
+published reference matches the version that is on PyPI. Deploying from the
+push itself used to publish an honest but unreleased `X.Y.Z.devN` title after
+any merge that cut no release (`chore`, `ci`, `docs`, `test`), which is what
+the page showed after the first post-split chore merge. So a change under
+`docs/` reaches the published reference with the next release, not before.
+To redeploy by hand, dispatch from `main` with the tag as an input
+(`gh workflow run sphinx-docs.yml --ref main -f tag=5.14.1`): the
+`github-pages` environment admits deployments from `main` only, so a dispatch
+against the tag ref builds correctly and is then refused. It is scoped
 strictly to the CLI and Python API reference; narrative content stays on the
 Hugo site.
 
@@ -456,6 +468,9 @@ Releases are automated — do not perform them by hand.
   `tetrak`, the import package `tetrak_ocr` and the command `tetrak-ocr` —
   install instructions and error messages say `pip install tetrak`, never
   `tetrak-ocr`, which is a name we do not own.
+- Once the wheel is published, `release.yml` calls `sphinx-docs.yml` with the
+  tag to deploy the API reference at that version. The reference never
+  deploys from a plain push to `main`.
 - Never edit `CHANGELOG.md` by hand — change the commit messages or the
   `commit_parsers` in `cliff.toml` instead.
 - Never create tags or Releases manually.
