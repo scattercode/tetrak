@@ -147,12 +147,12 @@ jobs:
           # would have dropped the older release from the file for good.
           #
           # Pushing it directly fixes that, but ordering matters. Tag first
-          # and main ends one commit ahead of the tag, which quietly breaks
-          # the docs: sphinx-docs.yml only deploys after a release when
-          # `git describe --exact-match` succeeds, and it no longer would.
-          # Committing first keeps main and the tag on the same commit, and
-          # has the tagged tree contain its own changelog, which is what a
-          # reader of the tag expects anyway.
+          # and main ends one commit ahead of the tag. Committing first
+          # keeps main and the tag on the same commit, and has the tagged
+          # tree contain its own changelog, which is what a reader of the
+          # tag expects anyway. (The API reference used to depend on this
+          # too, deploying only when main's tip was exactly a tag; it now
+          # builds from the tag by name, in the docs job below.)
           git add CHANGELOG.md
           git commit -m "chore(release): ${VERSION#v}"
           git tag -a "$VERSION" -m "$VERSION"
@@ -245,6 +245,29 @@ jobs:
           path: dist/
 
       - uses: pypa/gh-action-pypi-publish@release/v1
+
+  # Publish the API reference at the released version, and only once the
+  # wheel is on PyPI. The Sphinx workflow used to deploy on its own, from the
+  # push of the release commit, which runs in parallel with the build and
+  # publish jobs above: a failed publish left the reference one version ahead
+  # of what `pip install tetrak` gave. Needing `publish` makes that order
+  # explicit. The called workflow runs under this push's ref, so the
+  # github-pages environment's main-only branch policy admits the deploy
+  # while the build itself checks out the tag.
+  #
+  # The permissions are the called workflow's: a reusable workflow cannot
+  # hold more than its caller grants.
+  docs:
+    name: Publish the API reference
+    needs: [release, publish]
+    if: needs.release.outputs.released == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/sphinx-docs.yml
+    with:
+      tag: ${{ needs.release.outputs.version }}
 
   # Which install targets need an SBOM, read from pyproject.toml rather than
   # written down here. Adding an extra publishes its SBOM with no workflow
