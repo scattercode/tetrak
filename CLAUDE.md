@@ -265,9 +265,10 @@ Two more steps once it reaches the benchmark, neither obvious from the code:
 
 - Add an `[[engine]]` entry to [`site/data/walkthrough.toml`](site/data/walkthrough.toml)
   with `key` matching the CSV column stem, an `accent` token, and its prose.
-  The walkthrough draws its bars from `benchmark.csv` but takes their names
-  and colours from there, so a column with no entry renders one bar short
-  and fails the browser suite rather than the build.
+  The walkthrough reads its figures from `benchmark.csv` but takes the
+  engines' names and colours from there, so a column with no entry leaves
+  every document plate one row short and fails the browser suite rather than
+  the build.
 - Run `tetrak-ocr evaluate --backend <name> --save --merge` to put its column
   into `benchmark.{csv,md}`. `--all` re-runs every engine, which costs hours
   and paid API calls for figures that have not changed.
