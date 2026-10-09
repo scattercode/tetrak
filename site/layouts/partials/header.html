@@ -16,7 +16,7 @@
     <nav class="masthead__nav" aria-label="Main">
       {{- range .Site.Menus.main }}
         {{- /* .URL, not .PageRef: PageRef is the raw string from the menu
-               config ("/install"), not a resolved link. Hugo resolves pageRef
+               config ("/tutorial"), not a resolved link. Hugo resolves pageRef
                into .URL for us, with the baseURL path already on it. */ -}}
         {{- if not .URL }}{{ errorf "menu entry %q has no URL -- check its pageRef in config/_default/menus/" .Name }}{{ end }}
         <a href="{{ .URL }}"{{ if $.IsMenuCurrent "main" . }} aria-current="page"{{ end }}>{{ .Name }}</a>
