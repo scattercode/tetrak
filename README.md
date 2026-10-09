@@ -6,7 +6,7 @@ material — postcards, posters, playbills, programmes and trade papers.
 > Install it as `pip install tetrak`. The command it provides is still
 > `tetrak-ocr`, so every command below is unchanged.
 
-**📖 [Full documentation](https://tetrak.dev/)**
+**📖 [User guide and reference](https://scattercode.github.io/tetrak/)** · **[Research and benchmark](https://tetrak.dev/)**
 
 No single OCR engine wins across document types. Tetrak's answer is not to make
 you choose: point it at a folder and it runs several engines per file, scores

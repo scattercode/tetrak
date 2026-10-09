@@ -12,6 +12,6 @@ engine does and does not do, how routing decides, and the command line.
   and honest failure cases, including multi-page TIFF handling.
 - **[Routing](routing/)** — the fan-out decision table, the auto-configuration
   bands, the quality score and the triage gate.
-- **[Command line](cli/)** — every command and flag.
-- **[Python API](api/)** — generated from the package's own docstrings.
+- **[Command line and Python API](cli/)** — the essentials, and where the
+  user guide and the generated reference live.
 - **[Licensing](licensing/)** — the MIT/CC-BY split covering the code and the corpus.

@@ -1,8 +1,11 @@
-"""Sphinx configuration for the tetrak CLI/API reference.
+"""Sphinx configuration for the tetrak user guide and reference.
 
-Published to GitHub Pages by .github/workflows/sphinx-docs.yml. Scoped to
-CLI + Python API reference only -- narrative content (corpus, engines,
-routing, licensing) lives on the Hugo site at https://tetrak.dev/.
+Published to GitHub Pages by .github/workflows/sphinx-docs.yml, at each
+release. This site is how to use the package: installation, the command
+line and Python API guides, tutorials, and the CLI and API reference
+generated from the code. The research -- the corpus, what each engine was
+measured to do, the routing evidence, the articles -- lives on the Hugo site
+at https://tetrak.dev/, which links here for everything operational.
 """
 
 from __future__ import annotations
@@ -44,6 +47,10 @@ napoleon_google_docstring = True
 napoleon_numpy_docstring = True
 
 source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
+# The guide links to headings on other pages (`command-line.md#the-run-log`).
+# MyST only resolves those when it generates anchors for headings; three
+# levels covers every heading the guide links to.
+myst_heading_anchors = 3
 root_doc = "index"
 
 html_theme = "furo"

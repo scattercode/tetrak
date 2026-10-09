@@ -2,13 +2,16 @@
 
 Guidance for Claude Code when working in this repository.
 
-This file is orientation and conventions. The reference material — backend
-behaviour, routing, benchmark results, method and its caveats — lives in
-`site/content/` and is published to Cloudflare Pages at https://tetrak.dev/. When you
-need the detail, read the
-site page rather than expecting to find it here, and when you change behaviour,
-update that page rather than restating it here. Anything documented in two
-places will drift.
+This file is orientation and conventions. The documentation lives in two
+places, split by what each can keep honest. How to install and use the
+package — the user guide, tutorials, and the CLI and API reference generated
+from the code — is `docs/`, a Sphinx site published to GitHub Pages at each
+release. The research — the corpus, what each engine was measured to do,
+routing, benchmark results, method and its caveats — is `site/content/`, the
+Hugo site at https://tetrak.dev/. When you need the detail, read the page
+rather than expecting to find it here, and when you change behaviour, update
+the page rather than restating it here. Anything documented in two places
+will drift.
 
 ## What this repository is
 
@@ -69,7 +72,7 @@ EasyOCR, PaddleOCR and Marker download model weights on first use (~100 MB,
 ## Commands
 
 Everything runs through the `tetrak-ocr` console script. See
-[`site/content/reference/cli.md`](site/content/reference/cli.md) for the full surface.
+[`docs/guide/command-line.md`](docs/guide/command-line.md) for the full surface.
 
 ```bash
 tetrak-ocr backends                          # what is installed, and what each needs
@@ -84,7 +87,7 @@ ruff format src tests evaluation tools
 
 cd site && npm run start                       # the site at :1313
 cd site && npm run lint                        # eslint, stylelint, markdownlint; covers functions/ too
-cd site && npm run build                       # regenerates the API reference, then Hugo
+cd site && npm run build                       # regenerates the band table, then Hugo
 cd site && npx playwright test                 # browser checks; starts its own server
 python tools/generate_presentation.py          # → collateral/*.pptx (gitignored), Tetrak-themed, from the benchmark
 python tools/generate_expected.py              # regenerate ground truth; needs an API key
@@ -279,7 +282,7 @@ help text and validation from that table. A writer takes
 `(source, transcript, destination, **options)` and must tolerate options meant
 for another format, because one dict is passed to all of them. Add an alias to
 `_ALIASES` only for a spelling people will actually type. Document it in
-[`site/content/reference/cli.md`](site/content/reference/cli.md).
+[`docs/guide/command-line.md`](docs/guide/command-line.md).
 
 **A telemetry event** — call `telemetry.record("<event>", **fields)` from
 wherever the fact is known. The sink is process-global and a no-op when no run
@@ -364,9 +367,18 @@ the page showed after the first post-split chore merge. So a change under
 To redeploy by hand, dispatch from `main` with the tag as an input
 (`gh workflow run sphinx-docs.yml --ref main -f tag=5.14.1`): the
 `github-pages` environment admits deployments from `main` only, so a dispatch
-against the tag ref builds correctly and is then refused. It is scoped
-strictly to the CLI and Python API reference; narrative content stays on the
-Hugo site.
+against the tag ref builds correctly and is then refused.
+
+What goes where: `docs/` is everything about *using* the package —
+installation, the command line and Python API guides, the tutorials, and the
+reference generated from the parser and the docstrings. The Hugo site is the
+research: the corpus, the engines as measured, routing, results and method,
+and the articles. The site's `/reference/cli/` page is a stub that links to
+the guide; the generated API page it used to carry (`tools/generate_api_docs.py`)
+was retired in favour of Sphinx's, so the two could not drift. Build the
+Sphinx site locally with `pip install -e '.[apidocs]'` and
+`sphinx-build -W -b html docs docs/_build/html`; `-W` is what CI runs, so a
+warning is a failure.
 
 The Cloudflare Pages project:
 
@@ -381,11 +393,12 @@ The Cloudflare Pages project:
 
 Two things make that build command work, and both are load-bearing:
 
-- **`pip install -e .` comes first.** `prebuild` regenerates
-  `site/content/reference/api.md` by importing the installed package. The file
-  is gitignored, so without the install the build fails rather than shipping a
-  page of placeholders. Only the core dependencies are installed — the heavy OCR
-  backends are extras and a docs build does not need them.
+- **`pip install -e .` comes first.** `prebuild` runs
+  `tools/generate_tuning_data.py`, which imports `tetrak_ocr.backends.tuning`
+  to publish the auto-configuration bands into `site/data/tuning.toml`.
+  Without the install the generator exits 1 rather than shipping a page with
+  no bands. Only the core dependencies are installed — the heavy OCR backends
+  are extras and a docs build does not need them.
 - **The mermaid SVGs are committed.** `prebuild` also runs
   `scripts/render-mermaid.mjs`, which now exits early when every diagram already
   has its rendered SVG. Cloudflare's build image has no browser and no way to

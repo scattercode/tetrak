@@ -126,7 +126,8 @@ a four-step quick start.
 
 -   **[Reference](reference/cli/)**
 
-    The command line and the [Python API](reference/api/): the backend
-    registry, accuracy scoring, and custom routing.
+    The corpus, the engines as measured, routing and licensing, and where
+    the [user guide](https://scattercode.github.io/tetrak/) documents the
+    command line and the Python API.
 
 </div>
