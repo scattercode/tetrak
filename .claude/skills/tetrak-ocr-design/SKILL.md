@@ -181,10 +181,10 @@ reason it still looks like the same site:
 - No cards, no boxed callouts, no second accent. Scale comes from the corpus
   imagery, from display-size Playfair numerals, and from air.
 - The only marks are `--rule` hairlines and 2px `--clay` rules above a block.
-- The average bars are drawn in CSS from the CSV, coloured with the `--engine-*`
-  tokens — the same tokens the matplotlib chart below them uses. Word recall is
-  the accent at 42% opacity rather than a second hue, because a second colour
-  there reads as a second engine.
+- The per-document score rows and the matplotlib chart colour engines with
+  the `--engine-*` tokens and nothing else. There used to be a set of
+  CSS-drawn average bars above the results table as well; they showed what the
+  chart below the table already shows, and were removed in October 2026.
 
 If a section here seems to want a border to hold it together, it wants more
 space instead.

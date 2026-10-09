@@ -67,23 +67,9 @@ test("the walkthrough renders its figures from the CSV, not from prose", async (
 
   const csv = readFileSync(join(__dirname, "..", "..", "evaluation", "ocr", "benchmark.csv"), "utf8");
   const header = csv.split("\n")[0].split(",");
-  const average = csv.split("\n").find(line => line.startsWith("Average"))!.split(",");
-  const chrOf = (backend: string) =>
-    Number(average[header.indexOf(`${backend}_chr`)]).toFixed(2);
-
-  // Every local engine gets a bar, and the ceiling reference does not: its bar
-  // would measure self-consistency rather than accuracy. Derived from the CSV
-  // header (all engines minus the ceiling), like every other count here — a
+  // Five document plates, each with a full set of per-engine figures. The
+  // count is derived from the CSV header, like every other count here — a
   // hardcoded 6 broke the day Vision became the eighth backend.
-  const bars = page.locator(".wt-bar");
-  await expect(bars).toHaveCount(header.filter(c => c.endsWith("_chr")).length - 1);
-  await expect(page.locator(".wt-bars")).not.toContainText("claude*");
-
-  // The routing engine's average, straight off the CSV.
-  await expect(page.locator(".wt-bar", { hasText: "auto-local" }).locator(".wt-bar__figs"))
-    .toContainText(chrOf("auto-local"));
-
-  // Five document plates, each with a full set of per-engine figures.
   await expect(page.locator(".wt-plate")).toHaveCount(5);
   const firstScores = page.locator(".wt-scores").first();
   await expect(firstScores.locator(".wt-scores__row")).toHaveCount(header.filter(c => c.endsWith("_chr")).length);
