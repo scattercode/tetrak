@@ -8,17 +8,17 @@ One strategy over the whole set of local engines, for when you would rather not
 choose a backend per document.
 
 `auto-local` runs every viable local engine on a file, scores each transcript
-with a reference-free quality score, and keeps the best. It is the best local
-option on this corpus (0.57/0.76), and the most expensive, since it runs
-several engines per file.
+with a reference-free quality score, and keeps the best. It averages 0.66/0.65
+on the seventeen-fixture corpus, behind PaddleOCR-VL (0.72/0.66) and Vision
+(0.67/0.68), and it is among the most expensive, since it runs several engines
+per file.
 
-{{< note kind="warning" title="It captures most, but not all, of what fan-out makes available" >}}
-An oracle picking the best engine for each file would average 0.61;
-`auto-local` reaches 0.57 — about 94% of the ceiling. Almost all of the
-remaining gap is one fixture, where the reference-free quality score itself
-ranks a 0.76 transcript fractionally above the 0.89 one actually available,
-independent of word count. See
-[results](../research/in-depth/#fan-out-wins-by-less-than-it-should).
+{{< note kind="warning" title="It captures less of what fan-out makes available than it did" >}}
+An oracle picking the best local engine for each file would average 0.79;
+`auto-local` reaches 0.66 — about 83% of the ceiling. Most of the gap is
+PaddleOCR-VL, which is not in the default pool and joins only with
+`--with-paddle-vl`. See
+[results](../research/in-depth/#fan-out-no-longer-wins).
 {{< /note >}}
 {{< note kind="caution" title="Fan-out is sequential, deliberately" >}}
 The engines run one after another, not in parallel. Each is individually
@@ -155,7 +155,7 @@ The old auto-local picked one backend per file type before processing began. The
 
 Pure `combined_score` was insufficient on sparse-text images — a conservative backend emitting 8 perfectly clean words can outscore a backend that recovers 23 slightly noisier words, because dict_coverage is trivially 1.00 and perplexity is low for a short well-formed sentence. The `0.8 + 0.2 × words/max_words` multiplier ensures coverage is weighted alongside quality. The floor of 0.8 means even a zero-word backend retains most of its raw quality score, and `max_words` is relative so the formula is scale-invariant across different document sizes.
 
-The weight was 0.5 until 28 August 2026. At that value a noisy 77-word `tesseract-auto` transcript on `carthay-circle-premiere.jpg` beat 11-word transcripts from three other engines on word count alone, despite scoring lowest of the four on raw quality — see [the results](../research/in-depth/#fan-out-wins-by-less-than-it-should). `evaluation/ocr/calibration/router_sweep.py` re-fitted the weight by minimising mean regret against ground truth; `LENGTH_WEIGHT`'s provenance comment in `auto_local.py` has the full result.
+The weight was 0.5 until 28 August 2026. At that value a noisy 77-word `tesseract-auto` transcript on `carthay-circle-premiere.jpg` beat 11-word transcripts from three other engines on word count alone, despite scoring lowest of the four on raw quality — see [the results](../research/in-depth/#fan-out-no-longer-wins). `evaluation/ocr/calibration/router_sweep.py` re-fitted the weight by minimising mean regret against ground truth; `LENGTH_WEIGHT`'s provenance comment in `auto_local.py` has the full result.
 
 ### Quality gate threshold
 

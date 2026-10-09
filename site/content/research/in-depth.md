@@ -28,8 +28,8 @@ to start if you have not read either.
 
 ## Why run a benchmark at all
 
-A real archive is not a stack of uniform pages. The nine items in this corpus
-include a linen postcard, a chromolithograph poster, two pages of 1930
+A real archive is not a stack of uniform pages. The seventeen items in this
+corpus include linen postcards, lithographed theatre posters, two pages of 1930
 newsprint, a bilevel TIFF of a theatre playbill and a twenty-one-page souvenir
 programme. They differ in typography, contrast, layout and physical condition,
 and they were digitised by different people at different times.
@@ -103,8 +103,10 @@ generalisation beyond archival print of this era and condition.
 
 ## The results
 
-Character similarity / word recall, nine fixtures, run on an Apple MPS machine
-so `auto-local` had Marker available. Bold marks the best **local** engine per
+Character similarity / word recall, seventeen fixtures, run on an Apple MPS
+machine so `auto-local` had Marker available. Re-scored on 3 October 2026 under
+the corrected character-similarity metric (see the note on `autojunk` in
+[Beating the baselines](../../articles/2026/10/beating-the-baselines/)). Bold marks the best **local** engine per
 fixture; `N/A` means the engine cannot read PDFs.
 
 {{< benchmark >}}
@@ -121,18 +123,27 @@ build time, so neither can drift from the data.
 ### No engine wins across the board
 
 This is the headline, and it is why the average column is the least useful part
-of the table. Five different engines win across the nine fixtures:
+of the table. Six different engines take the best local character similarity on
+at least one of the seventeen fixtures:
 
-- **Marker** takes the newsprint cover (0.39), the Kinema ad (0.75) and the PDF (0.66)
-- **Retuned Tesseract** takes the postcard reverse (0.91) and Grauman's (0.86)
-- **PaddleOCR** takes the playbill (0.39) and the poster (0.13)
-- **EasyOCR** takes the Carthay Circle front (0.87)
-- **Plain Tesseract** takes the interior newsprint page (0.45)
+- **PaddleOCR-VL** takes seven: the Chinese Theatre triptych (0.83), the Greek
+  Theatre postcard (0.99), the playbill (0.88), both *Inside Facts* pages (0.98
+  and 0.96), the Kar-Mi poster (0.29) and the Parlor Match poster (0.88)
+- **Retuned Tesseract** takes three: the Carthay Circle postcard reverse (0.93),
+  Grauman's (0.79) and the PDF (0.91)
+- **PaddleOCR** takes three: Hollywood Boulevard west (0.58), the Over the Fence
+  poster (0.64) and the Thurston poster (0.74)
+- **Vision** takes two: the Bancroft poster (0.57) and the Carthay Circle front (0.89)
+- **EasyOCR** takes Hollywood Boulevard east (0.72)
+- **Marker** takes the Kinema ad (0.93)
 
-An earlier version of this page added "and none wins more than twice". That is
-no longer true — Marker takes three, both TIFFs having landed in territory it
-handles well. The claim that matters is unchanged: no engine wins most of them,
-and the winner is not predictable from the average.
+Earlier versions of this page, written over nine fixtures, said five engines won
+and none more than twice. Over seventeen that is no longer true: PaddleOCR-VL
+wins seven and has the best local average, 0.72 against Vision's 0.67. It is
+also the slowest engine in the table, at about 146 seconds a fixture against
+Vision's one. The claim that matters is weaker than it was but still holds: no
+engine wins a majority, ten of the seventeen go to something else, and the
+winner is not predictable from the average.
 
 Route by document, not by average.
 
@@ -263,32 +274,44 @@ picking Marker at 0.75. The quality score caught what the heuristic got wrong �
 which is the argument for measuring transcripts rather than predicting from
 pixels.
 
-### Fan-out wins, by less than it should
+### Fan-out no longer wins
 
-`auto-local` averaged 0.53/0.74 before 28 August 2026, the best local result on
-both metrics, and its margin over `tesseract-auto` widened from 0.05 to 0.12 as
-the corpus grew, because fan-out measures each transcript instead of predicting
-from pixels. It now averages **0.57/0.76** — Vision joined the candidate pool
-that day too, alongside the fix below, so the margin over `tesseract-auto` is
-now 0.16.
+`auto-local` averaged 0.53/0.74 over the nine-fixture corpus, the best local
+result on both metrics, and its margin over `tesseract-auto` widened as that
+corpus grew, because fan-out measures each transcript instead of predicting
+from pixels. Over seventeen fixtures, re-scored on 3 October 2026 under the
+corrected metric, it averages **0.66/0.65** and is no longer the best local
+result. PaddleOCR-VL averages 0.72/0.66 and Vision 0.67/0.68. `auto-local`
+still beats `tesseract-auto` (0.56/0.47) by more than it did.
 
-The ceiling is higher, though closer than it was. An oracle taking the best
-local engine on every fixture averages **0.61**; `auto-local` reaches 0.57,
-about 94% of it. Four fixtures accounted for the gap before the fix below; two
-of them were a scoring problem, not an engine one, and are fixed:
+The two engines that pass it do so for different reasons. PaddleOCR-VL is not
+in the default candidate pool: at about 146 seconds a fixture it joins only with
+`--with-paddle-vl`, so `auto-local` never saw its transcripts in this run.
+Vision is in the pool on macOS and did run; on the fixtures where Vision was
+best, the quality score preferred another engine's transcript.
 
-| Fixture | Best local | Chose before | Chose after | Cost before → after |
-|---|---|---|---|---|
-| `carthay-circle-premiere.jpg` | vision 0.89 | tesseract-auto 0.49 | marker 0.76 | 0.40 → **0.14** |
-| `graumans-chinese-theatre.jpg` | tesseract-auto 0.86 | paddle 0.78 | vision 0.83 | 0.08 → **0.03** |
-| `hollywood-music-box-playbill-1926.tif` | paddle 0.39 | marker 0.28 | marker 0.28 | 0.11 (held out; not fit to) |
-| `inside-facts-1930-page-six.jpg` | tesseract 0.45 | marker 0.40 | marker 0.40 | 0.05 (plain `tesseract` is not a candidate) |
+The ceiling has moved further away. An oracle taking the best local engine on
+every fixture averages **0.79**; `auto-local` reaches 0.66, about 83% of it,
+against 94% on the nine-fixture corpus. Six fixtures lose 0.20 or more:
 
-The last row does not move, and cannot: `auto-local` never runs plain
-`tesseract`, only `tesseract-auto`, so no scoring change closes a gap against
-a backend the router does not have. The third is held out from fitting on the
-same principle as the Tesseract auto-configuration bands above — "…but the
-tuning does not generalise".
+| Fixture | Best local | `auto-local` | Cost |
+|---|---|---|---|
+| `hollywood-music-box-playbill-1926.tif` | paddle-vl 0.88 | 0.47 | 0.40 |
+| `carthay-circle-premiere.jpg` | vision 0.89 | 0.51 | 0.38 |
+| `chinese-theatre-triptych-postcard.jpg` | paddle-vl 0.83 | 0.45 | 0.38 |
+| `greek-theatre-night.jpg` | paddle-vl 0.99 | 0.74 | 0.25 |
+| `inside-facts-1930-cover.jpg` | paddle-vl 0.98 | 0.75 | 0.23 |
+| `inside-facts-1930-page-six.jpg` | paddle-vl 0.96 | 0.74 | 0.22 |
+
+Five of the six are PaddleOCR-VL's, and no scoring change closes a gap against
+a backend the strategy does not run. Only the Carthay Circle premiere is a
+ranking error among candidates `auto-local` did run. Whether the strategy
+should stay the recommended default, or PaddleOCR-VL should join its pool
+despite the cost, is a routing decision this page records and does not take.
+
+The paragraphs below describe the ranking fix of 28 August 2026 and the
+nine-fixture figures it was measured on; they are kept as the record of that
+change.
 
 The Carthay Circle case repays reading closely, because it shows the raw
 quality score getting a candidate genuinely wrong, not just outranked by

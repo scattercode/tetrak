@@ -117,8 +117,9 @@ highest-scoring transcript, judged without a reference. It routes on file type
 and available hardware — see [auto-local routing](reference/routing/) for the
 decision table.
 
-It is the best local option on this corpus (0.57/0.76, better than any single
-backend) and also the slowest, because it runs several engines per file.
+It averages 0.66/0.65 on this corpus, behind PaddleOCR-VL and Vision but ahead
+of every other single backend, and it is among the slowest, because it runs
+several engines per file.
 
 ## 5. Measure it yourself
 
