@@ -100,22 +100,23 @@ pip install "tetrak[all]"
 tetrak-ocr batch --backend auto-local
 ```
 
-[Installation](install/) covers the optional extras, system dependencies and
-a four-step quick start.
+The [tutorial](tutorial/) is the three-minute version; the
+[user guide](https://scattercode.github.io/tetrak/) covers installation, the
+optional extras, the command line and the Python API in full.
 
 ## Where to go next
 
 <div class="grid cards">
 
--   **[Get it running](install/)**
-
-    The quick start, optional backend extras, system dependencies and
-    environment configuration.
-
 -   **[Follow the tutorial](tutorial/)**
 
-    Transcribe real archive images, batch a folder, and see exactly where
-    OCR breaks — on the material that breaks it.
+    Install it, transcribe one image and batch a small folder, in three
+    steps.
+
+-   **[Read the user guide](https://scattercode.github.io/tetrak/)**
+
+    Installation and the optional extras, every command and flag, the Python
+    API, and tutorials that go further.
 
 -   **[See the research](research/)**
 
