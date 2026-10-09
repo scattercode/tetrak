@@ -173,13 +173,6 @@ test("copy buttons attach to code blocks", async ({ page }) => {
   await expect(page.locator(".copy-btn").first()).toBeVisible();
 });
 
-test("the API reference is generated from docstrings", async ({ page }) => {
-  await page.goto("reference/api/");
-  await expect(page.locator(".generated-note")).toBeVisible();
-  // A signature can only be here if the generator introspected the package.
-  await expect(page.locator("h3").first()).toContainText("get_backend");
-});
-
 /**
  * Every page on the site, read from the sitemap Hugo generates, so a page added
  * later is covered without anyone remembering to list it here.

@@ -1,6 +1,7 @@
-# Command line
+# Command line reference
 
-Installing the package provides a `tetrak-ocr` command.
+Every subcommand and flag, generated from the parser. For what the flags
+are for, see [using the command line](guide/command-line.md).
 
 ```{argparse}
 :module: tetrak_ocr.cli

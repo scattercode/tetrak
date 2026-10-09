@@ -1,8 +1,9 @@
 # Matches scattercode.dev, with two additions for this repo.
 ignores:
   - ../CLAUDE.md
-  # Generated from docstrings before every build, and gitignored.
-  - content/reference/api.md
+  # Sphinx output and the autosummary stubs it generates; both gitignored.
+  - ../docs/_build/**
+  - ../docs/generated/**
 
 config:
   MD013: false

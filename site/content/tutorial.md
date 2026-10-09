@@ -167,4 +167,4 @@ Provenance and rights for each are on [the corpus page](reference/corpus/).
 - [Choosing a tool](research/in-depth/#choosing-a-tool-for-your-own-material) — which backend for which document, with the evidence
 - [Results](research/in-depth/#the-results) — the full benchmark, including a retracted finding
 - [Method](research/in-depth/#the-weakness-at-the-centre-of-the-method) — what the numbers do and do not establish
-- [Python API](reference/api/) — driving the backends from code
+- [Python API](https://scattercode.github.io/tetrak/guide/python-api.html) — driving the backends from code, in the user guide

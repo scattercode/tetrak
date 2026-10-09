@@ -6,7 +6,8 @@ aliases: ["/backends/", "/research/backends/"]
 
 Seven engines behind one interface, plus two strategies built on them. Every one
 exposes `ocr_image(path) -> str`, so they are interchangeable; resolve one by
-name through the [registry](api/#registry) rather than importing it directly.
+name through the [registry](https://scattercode.github.io/tetrak/guide/python-api.html#resolve-a-backend)
+rather than importing it directly.
 
 | Backend | Extra needed | PDFs | Best at |
 |---|---|:--:|---|
@@ -371,7 +372,8 @@ in the engine rather than removable overhead — reusing one Marker converter
 across the pages was measured and changed nothing.
 
 The cost is only paid when the `pdf` format is asked for on a document with
-more than one page. See [the CLI reference](cli/#multi-page-documents).
+more than one page. See [multi-page documents](https://scattercode.github.io/tetrak/guide/command-line.html#multi-page-documents)
+in the user guide.
 {{< /note >}}
 
 The measurements behind all of this, including the experiments that came to

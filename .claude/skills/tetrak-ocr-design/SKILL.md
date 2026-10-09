@@ -276,7 +276,6 @@ is what makes this easy to get wrong.
 | `{{< tabs >}}{{< tab "macOS" >}}…{{< /tab >}}{{< /tabs >}}` | Tabbed content. The tab label is a **positional** argument |
 | `{{< include "LICENSING.md" >}}` | Inlines a file from the repo — positional, repo-root relative |
 | `{{< people >}}{{< person name="…" role="…" linkedin="handle" >}}…{{< /person >}}{{< /people >}}` | The about page's bios. `linkedin` is the **profile handle**, not the URL |
-| `{{% generated %}}` | Marks a page as machine-written — used by the API reference |
 
 Both `figure` and `lightbox` call `errorf` when the asset is missing, so a bad
 path fails the build rather than shipping a broken image.
@@ -373,7 +372,7 @@ defect is reintroduced.
 ## Build-time over runtime
 
 The site's priority is a fast page for the reader; a longer build is an
-acceptable trade. The benchmark table, the search index, the API reference and
+acceptable trade. The benchmark table, the search index, the band table and
 every image are built. JavaScript is reserved for what genuinely needs the
 browser: the search modal, the theme toggle, copy buttons, the lightbox.
 
@@ -384,6 +383,6 @@ All run from `site/`:
 ```bash
 cd site
 npm run lint          # ESLint, Stylelint, markdownlint
-npm run build         # Hugo, after regenerating the API reference
+npm run build         # Hugo, after regenerating the diagrams and the band table
 npx playwright test   # starts its own server
 ```
