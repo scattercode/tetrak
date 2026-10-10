@@ -1,6 +1,7 @@
 # Matches scattercode.dev, with two additions for this repo.
 ignores:
   - ../CLAUDE.md
+  - ../AGENTS.md
   # Sphinx output and the autosummary stubs it generates; both gitignored.
   - ../docs/_build/**
   - ../docs/generated/**

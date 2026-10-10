@@ -118,7 +118,7 @@ for the same reason: a number is only as good as what produced it.
 **Most of these were written by Claude, and Claude is scored against them.**
 `tools/generate_expected.py` sends each image to the Anthropic vision API and
 commits the result. That makes the `claude` column of the benchmark a measure
-of self-consistency rather than accuracy, and it is why `CLAUDE.md` says not to
+of self-consistency rather than accuracy, and it is why `AGENTS.md` says not to
 quote Claude's average as a measurement of Claude. It also means every *other*
 engine is scored against a reference that may itself be wrong.
 

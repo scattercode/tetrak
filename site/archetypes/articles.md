@@ -48,7 +48,7 @@ tags: []
   research pages, which read them from the benchmark CSV; an article may point
   at a figure and argue about it, but must not carry a copy of one.
 
-  CLAUDE.md, under "Adding things", has the rest. Delete this comment.
+  AGENTS.md, under "Adding things", has the rest. Delete this comment.
 -->
 
 Opening paragraph.

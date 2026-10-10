@@ -106,7 +106,7 @@ dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.5"]
 # auto-local unavailable, which is the one backend the docs recommend.
 # Per-pipeline umbrellas. The individual extras keep their own names --
 # `easyocr` and a future `whisper` do not collide, so namespacing them would
-# churn CI, CLAUDE.md and the devcontainer for nothing.
+# churn CI, AGENTS.md and the devcontainer for nothing.
 ocr = ["tetrak[claude,easyocr,paddle,paddle-vl,marker,vision,qa]"]
 all = ["tetrak[ocr]"]
 

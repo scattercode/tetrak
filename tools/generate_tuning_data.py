@@ -2,7 +2,7 @@
 """Publish the auto-configuration bands from the module that uses them.
 
 The Tesseract band edges were written out by hand in five places -- two
-docstrings, `CLAUDE.md`, and two site pages -- with nothing checking any of
+docstrings, `AGENTS.md`, and two site pages -- with nothing checking any of
 them against the code. That was survivable while the numbers were hand-fitted
 and never moved. They are fitted from a measured sweep now, and they move, so
 the published copies have to be generated or they become wrong quietly.
