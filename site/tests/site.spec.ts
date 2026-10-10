@@ -155,7 +155,7 @@ test("the theme toggle flips and persists", async ({ page }) => {
 });
 
 test("copy buttons attach to code blocks", async ({ page }) => {
-  await page.goto("install/");
+  await page.goto("tutorial/");
   await expect(page.locator(".copy-btn").first()).toBeVisible();
 });
 

@@ -1,5 +1,7 @@
-# Top navigation: the product page, the two "using it" pages, the consolidated
-# research section, the reference, and the page saying who is behind the tool.
+# Top navigation: the product page, the tutorial, the consolidated research
+# section, the reference, and the page saying who is behind the tool. There was
+# an Install entry until October 2026; installation now lives in the user guide
+# on GitHub Pages, and /install/ is an alias of the tutorial, which opens with it.
 # Restructured August 2026 -- the previous eight-entry nav spread the research
 # story across four tabs (Engines, Results, Method, Why) while leaving the
 # corpus, the tool comparison and auto-local routing out of the nav entirely.
@@ -11,11 +13,6 @@
   name = "What it is"
   pageRef = "/"
   weight = 10
-
-[[main]]
-  name = "Install"
-  pageRef = "/install"
-  weight = 20
 
 [[main]]
   name = "Tutorial"
