@@ -4,9 +4,13 @@ Thanks for your interest in Tetrak. This document covers how we work in this
 repository: the checks, the commit style, and the automation they feed. It
 applies to us as much as to anyone sending a pull request.
 
-`CLAUDE.md` is the fuller orientation (the layout, the conventions and the
+`AGENTS.md` is the fuller orientation (the layout, the conventions and the
 things that will catch you out), and [tetrak.dev](https://tetrak.dev/) is the
 reference for how the backends behave and how they are measured.
+
+If you work with a coding agent — Claude Code, Codex, Cursor, Gemini CLI or
+another — point it at `AGENTS.md` and at the guides under `.claude/skills/`,
+which are plain Markdown any tool or person can open.
 
 ## Getting set up
 

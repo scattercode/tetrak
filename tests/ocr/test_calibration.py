@@ -3,7 +3,7 @@
 Unmarked, so they run in the fast loop: this is TOML parsing and set algebra,
 with no OCR anywhere near it.
 
-These exist to make a documented rule mechanical. `CLAUDE.md` says the held-out
+These exist to make a documented rule mechanical. `AGENTS.md` says the held-out
 fixtures must not be folded into a re-fit without saying so, and until now that
 was advice. A new scan now fails CI until it is classified, and promoting a
 held-out fixture costs a visible diff in `splits.toml`.
