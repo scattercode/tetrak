@@ -9,12 +9,47 @@ author: stephen-masters
 tags: [armenian, orthography, unicode, training, project-notes]
 ---
 
-Our next Armenian model has to read the books the current one has never
-seen: everything printed before the Soviet spelling reform of the 1920s,
-and everything most of the diaspora has printed since. To train and test on
-that material we first had to find it, among several hundred Armenian works
-on Wikisource. The obvious approach was to read the index titles. The
-titles turned out to be no help.
+For most of its history Armenian had one spelling. The alphabet Mesrop
+Mashtots devised at the start of the fifth century was made for the
+classical language, Grabar, and its spelling stayed put while the spoken
+language moved on. By the nineteenth century there were two modern
+literary standards, both a long way from Grabar: Eastern Armenian, centred
+on Tiflis in the Russian Empire and spoken across Persia, and Western
+Armenian, centred on Constantinople in the Ottoman Empire. They differed in
+grammar and pronunciation, but both were written in the same classical
+spelling, including letters that had stopped being pronounced.
+
+Soviet Armenia changed that. A reform drafted largely by the linguist Manuk
+Abeghyan and adopted in 1922, then partly revised in 1940, respelled the
+language closer to how Eastern Armenian was spoken. It was part of the
+literacy campaign: fewer silent letters, fewer spellings to memorise. It
+applied wherever Soviet power did, and independent Armenia kept it after
+1991.
+
+Most of the Armenian world was outside Soviet power, and most of it never
+adopted the reform. The Western Armenian communities scattered by the
+genocide of 1915 rebuilt their schools and presses in Beirut, Aleppo,
+Paris and the Americas, in classical spelling. Iran's Armenians speak
+Eastern Armenian, and they kept the classical spelling too. So did the
+Eastern Armenian politicians and writers of the short-lived First Republic
+who went into exile after 1920. For many of these communities, keeping the
+old spelling was also a way of not accepting a Soviet decision about their
+language. The newer diaspora, people who left Soviet and post-Soviet
+Armenia, mostly brought the reformed spelling with them.
+
+The result is that dialect and spelling don't line up. Eastern Armenian is
+printed in both orthographies, depending on where and when. Western
+Armenian is almost always classical, except where Soviet publishers reset
+Western authors in reformed spelling. A collection like the Armenian
+Institute's, gathered from across the diaspora over a century, holds all
+of these on the same shelves.
+
+A goal of the next version of our Armenian model is to read the books the
+current one has never seen: everything printed in classical spelling,
+before the reform and outside Soviet Armenia since, in either dialect. To
+train and test on that material we first had to find it, among several
+hundred Armenian works on Wikisource. The obvious approach was to read the
+index titles. The titles turned out to be no help.
 
 They mislead in both directions. Kajaznuni's *Ազգ և հայրենիք* is in
 classical spelling throughout, but its title carries the reformed ligature
@@ -131,7 +166,7 @@ proofread pages of verse back into every harvest.
 The verdicts also explained themselves in the places they were awkward.
 
 **The mixed band is reformed print with something old inside it.** Soviet
-editions that quote Grabar, the classical literary language, at length.
+editions that quote Grabar at length.
 Collected works whose apparatus is in classical spelling. A few pages of
 facsimile. Nothing in the mixed band turned out to be a classical source,
 which is the outcome you want from a band labelled "don't use this for
@@ -145,11 +180,12 @@ they're left out of the harvest. The classifier answers the question it
 was asked, about spelling, not the one we sometimes meant, about the
 language.
 
-**The Western authors' Soviet editions are reformed**, as feared. Western
-Armenian in classical spelling, on Wikisource, means diaspora printing:
-Toranian's books from Aleppo, Khatisian's memoirs from Paris, Kajaznuni,
-Aghbalyan, Yesayan, Shushanian, and Baronian's *Ազգային Ջոջեր* in its
-original spelling.
+**The Western authors' Soviet editions are reformed**, as feared. Classical
+spelling on Wikisource means diaspora and émigré printing, in both
+dialects. On the Western side there are Toranian's books from Aleppo,
+Yesayan, Shushanian, and Baronian's *Ազգային Ջոջեր* in its original
+spelling. On the Eastern side there are Khatisian, Kajaznuni and Aghbalyan,
+First Republic figures who went on writing in classical spelling in exile.
 
 **A handful of works sit just over the classical line.** Each is probably a
 reformed edition quoting classical text at length, or a collection
