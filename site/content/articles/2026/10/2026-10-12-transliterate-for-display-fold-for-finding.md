@@ -1,28 +1,63 @@
 ---
 title: "Transliterate for display, fold for finding"
-date: 2026-10-11
+date: 2026-10-12
 draft: false
 slug: "transliterate-for-display-fold-for-finding"
 kicker: "Method"
-standfirst: "A fold maps many spellings onto one key, so that things that differ in ways that don't matter compare as equal. Tetrak already folds in three places, and the fourth, search across scripts, explains why a transliteration is for the reader and never for the index"
+standfirst: "Armenia's national poet appears on book covers as Tumanyan, Tumanean, Toumanyan and Tumanian, and all four are correct. A fold is how one search finds them all, and explaining it shows why a transliteration is for the reader and never for the index"
 author: stephen-masters
 tags: [armenian, search, transliteration, unicode, project-notes]
 ---
 
-The word *fold* turns up all over Tetrak. The recogniser's output goes
+Hovhannes Tumanyan is about as famous as an Armenian writer gets. He is
+Armenia's national poet, and his fairy tales and verse for children are
+read to almost every Armenian child, in Armenia and across the diaspora.
+His name is on a great many book covers. Look through the Armenian
+Institute's catalogue and you find it spelled at least four ways:
+
+- **Tumanyan**
+- **Tumanean**
+- **Toumanyan**
+- **Tumanian**
+
+None of these is a mistake. Each is an honest romanisation of one of the
+two ways Armenian spells the name: `Թումանյան` in the reformed spelling
+used in Armenia, and `Թումանեան` in the classical spelling the diaspora
+kept.
+
+- *Tumanyan* is the reformed spelling, written the way most of Armenia
+  and most English-language maps and newspapers would write it.
+- *Tumanean* is the classical spelling in the Library of Congress
+  romanisation, which writes it *Tʻumanean*, but without the small mark
+  for the aspirated `Թ`, which a cover rarely carries.
+- *Toumanyan* follows French spelling, where *ou* is the *u* sound.
+  Paris has one of the largest Armenian communities in Europe, with its
+  own publishers, and a book printed in France is often romanised the
+  French way.
+- *Tumanian* is the classical `-եան` written the way the diaspora writes
+  its surnames, the *-ian* of *Boghosian* and *Khachadourian*.
+
+Four readerships, four right answers. But anything that matches spellings
+exactly, whether a catalogue search or a reader scanning a shelf list,
+finds only the books catalogued under the spelling it was given. The
+problem isn't that the name was romanised wrongly. It's that it was
+romanised correctly, several times.
+
+Finding all four with one search is what a *fold* is for. And the word
+*fold* turns up all over Tetrak. The recogniser's output goes
 through a script fold. The accuracy metric folds before it compares. The
 trainer folds transcribers' habits out of its ground truth. And
 [tetrak-translit](https://scattercode.github.io/tetrak-translit/), our
 transliteration library, has a function called `fold()` that most of the
-library exists to support. These are the same idea four times. It's worth
-explaining once, slowly, because the fourth use only makes sense once the
-first three do. It also answers a question that comes up as soon as you look at the
-library: if you have five perfectly good romanisation schemes, why do you
-need anything else to search with?
+library exists to support. These are all the same idea, so it's worth
+explaining, because the transliteration use only makes sense once the
+first three do. It also answers a question that comes up as soon as you
+look at the library: if you have five perfectly good romanisation
+schemes, why do you need anything else to search with?
 
 ## What a fold is
 
-A fold is a function that maps many inputs onto one output, on purpose,
+A fold is a function that maps multiple inputs to a single output,
 so that things which differ in ways you don't care about compare as
 equal.
 
@@ -39,16 +74,16 @@ Three properties make something a fold rather than just a transformation:
 
 - **It throws information away, deliberately.** *Café* and *cafe* go in,
   one key comes out, and nothing can tell you afterwards which one it
-  was. That's the point.
-- **You compare folded forms. You don't show them.** The folded key is a
-  tool for matching. The text a reader sees is the original.
+  was.
+- **You compare folded forms. You don't display them.** The folded key is
+  a tool for matching. The text a reader sees is the original.
 - **Every fold is a claim about what doesn't matter.** Folding case
   claims that case doesn't matter *for this purpose*. The same two
   strings might be equal for one purpose and different for another, so a
-  fold always belongs to a job, never to the text.
+  fold always belongs to a specific task, never to the text.
 
-The third property is the one that causes the trouble, and it runs
-through everything below.
+That third property is the one that causes trouble, and below, you will
+see how it caught us out in our tests and what we learned.
 
 ## Three folds Tetrak already runs
 
@@ -116,17 +151,18 @@ the same fold**, or the comparison is measuring the folds.
 
 ## Transliteration is for display
 
-Now the fourth fold, which needs a detour first.
+Now the fourth fold, which needs a quick detour first.
 
 A transliteration renders a script in another script for a reader. For
 Armenian there are several standards, and they disagree, because each
 serves a different reader. Here is what tetrak-translit's five Armenian
-schemes make of three names:
+schemes make of three names, one of them in both spellings:
 
 | Armenian | ALA-LC | ISO 9985 | BGN/PCGN | Hübschmann-Meillet | Western |
 |---|---|---|---|---|---|
 | Երևան | Erevan | Erewan | Yerevan | Erewan | Yerevan |
-| Պողոսյան | Poghosyan | Poġosyan | Poghosyan | Połosyan | Boghosyan |
+| Պողոսյան (reformed) | Poghosyan | Poġosyan | Poghosyan | Połosyan | Boghosyan |
+| Պօղոսեան (classical) | Pōghosean | Pòġosean | Poghosean | Pōłosean | Boghosian |
 | Հակոբ | Hakob | Hakob | Hakob | Hakob | Hagop |
 
 None of these is wrong:
@@ -138,13 +174,19 @@ None of these is wrong:
   form, using diacritics where plain letters run out, so they can be read
   back into Armenian without loss. That matters for data exchange and for
   linguists.
-- **BGN/PCGN** is the system behind English place names, which is why the
-  map says *Yerevan*.
+- **BGN/PCGN** is the system behind English place names, which is why an
+  English language map of Armenia shows *Yerevan*.
 - **The Western pronunciation spelling** isn't a standard at all. It's
   how most of the diaspora writes its own names: *Hagop*, *Boghosian*,
   *Kevork*. Western Armenian pronounces the classical letters with the
   voiced and voiceless consonants swapped relative to Eastern, so the
-  same letters that give Eastern *Hakob* give Western *Hagop*.
+  same letters that give Eastern *Hakob* give Western *Hagop*. The
+  *-ian* in *Boghosian* comes from the classical `-եան` that the
+  diaspora kept, which is why someone from the diaspora will usually
+  write *Boghosian*. Someone born in Armenia, whose name is spelled
+  `Պողոսյան`, will more often write *Boghosyan*, with the *-yan* of the
+  reformed spelling. The table shows both, because the scheme follows
+  the Armenian it's given.
 
 A transliteration should therefore be faithful to its standard and keep
 every distinction its reader expects. A catalogue record romanised under
@@ -213,10 +255,26 @@ import tetrak_translit as tt
 ```
 
 Look at the keys: *poghosian*, *hakop*. Nobody spells the names that way,
-and nobody is meant to read them. They're the coarse middle point that
-every spelling folds down to, and the merges that get there would be
-errors in a transliteration. Merging *b* with *p* would be wrong in a
-catalogue record. In a search key, it's how *Bedros* finds *Petros*.
+but that's okay because nobody is meant to read them. They're the
+coarse middle point that every spelling folds down to, and the merges
+that get there would be errors in a transliteration. Merging *b* with
+*p* would be wrong in a catalogue record. In a search key, it's how
+*Bedros* finds *Petros*.
+
+And Tumanyan's four covers:
+
+```python
+{tt.fold(s, script="hy") for s in
+ ["Թումանյան", "Թումանեան", "Tumanyan", "Tumanean", "Toumanyan", "Tumanian"]}
+# {'tumanian'}
+```
+
+Two spellings of the Armenian and four of the Latin, one key. The fold
+doesn't catch everything about the name yet. A French *Thoumanian*, which
+uses *th* for the aspirated `Թ`, folds to a different key. So do the
+shortened forms of his first name, *Hovannes* and *Ovanes*, which drop
+letters that *Hovhannes* keeps. Those are exactly the cases to add to the
+fold's tests before changing its rules.
 
 ### Index time and query time
 
