@@ -208,8 +208,8 @@ and converting everything into it, doesn't work either:
 - **The reader's spelling isn't in any scheme.** *Boghosian*, with its
   *-ian*, is a popular spelling. No table produces it, so no table can
   read it back.
-- **Most schemes can't be reversed.** ALA-LC's *ts* could be `ծ`, or `տ`
-  followed by `ս`. Converting *into* Armenian means guessing.
+- **Most schemes can't be reversed.** ALA-LC's *zh* could be `ժ`, or `զ`
+  followed by `հ`. Converting *into* Armenian means guessing.
 - **Schemes disagree on purpose.** The whole point of the table above is
   that the same name has several right answers. Converting them all to
   one would erase the distinctions each reader relies on.
@@ -428,7 +428,8 @@ Four folds, one idea. Put together, the lessons are short:
 
 - Library of Congress,
   [ALA-LC Romanization Tables: Armenian](https://www.loc.gov/catdir/cpso/romanization/armenian.pdf).
-  The catalogue standard, including its rules for the classical letters.
+  The catalogue standard, in its 2022 version, including its rules for the
+  classical letters and for punctuation.
 - International Organization for Standardization, *ISO 9985:2026,
   Information and documentation — Transliteration of Armenian characters
   into Latin characters*, second edition.
