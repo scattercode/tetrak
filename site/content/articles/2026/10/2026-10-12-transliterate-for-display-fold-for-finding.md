@@ -162,7 +162,7 @@ schemes make of three names, one of them in both spellings:
 |---|---|---|---|---|---|
 | Երևան | Erevan | Erewan | Yerevan | Erewan | Yerevan |
 | Պողոսյան (reformed) | Poghosyan | Poġosyan | Poghosyan | Połosyan | Boghosyan |
-| Պօղոսեան (classical) | Pōghosean | Pòġosean | Poghosean | Pōłosean | Boghosian |
+| Պօղոսեան (classical) | Pōghosean | Pōġosean | Poghosean | Pōłosean | Boghosian |
 | Հակոբ | Hakob | Hakob | Hakob | Hakob | Hagop |
 
 None of these is wrong:
@@ -393,3 +393,87 @@ Four folds, one idea. Put together, the lessons are short:
   reading, harvest and evaluation set, index and query.
 - **Never show a fold key to a reader.** Transliterate for display, fold
   for finding.
+
+## Further reading
+
+### Folding and normalisation
+
+- Christopher D. Manning, Prabhakar Raghavan and Hinrich Schütze,
+  *Introduction to Information Retrieval*, Cambridge University Press,
+  2008, section 2.2.3,
+  ["Normalization (equivalence classing of terms)"](https://nlp.stanford.edu/IR-book/html/htmledition/normalization-equivalence-classing-of-terms-1.html).
+  The textbook account of folding for search: equivalence classes, why
+  index and query must be normalised the same way, and what goes wrong
+  when they are not.
+- Justin Zobel and Philip Dart, "Phonetic string matching: lessons from
+  information retrieval", *Proceedings of the 19th Annual International
+  ACM SIGIR Conference*, 1996, pp. 166–172.
+  [doi:10.1145/243199.243258](https://doi.org/10.1145/243199.243258).
+  Matching names by how they sound rather than how they are spelled,
+  measured against Soundex and edit distance. The closest academic
+  relative of what the Armenian fold does with *Bedros* and *Petros*.
+- Unicode Consortium, [Draft Unicode Technical Report #30: Character
+  Foldings](https://www.unicode.org/reports/tr30/tr30-4.html). A catalogue
+  of foldings (case, accents, dashes, letterforms) with the warning that
+  each one suits some tasks and not others. It was withdrawn before
+  publication, but Lucene's ICU folding filter still implements it.
+- Unicode Consortium,
+  [CaseFolding.txt](https://www.unicode.org/Public/UCD/latest/ucd/CaseFolding.txt),
+  the table behind `str.casefold()`, and Elasticsearch's
+  [ASCII folding token filter](https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-asciifolding-tokenfilter.html),
+  the accent fold in the analysis chain that `fold()` is designed to sit
+  in.
+
+### The romanisation standards
+
+- Library of Congress,
+  [ALA-LC Romanization Tables: Armenian](https://www.loc.gov/catdir/cpso/romanization/armenian.pdf).
+  The catalogue standard, including its rules for the classical letters.
+- International Organization for Standardization, *ISO 9985:2026,
+  Information and documentation — Transliteration of Armenian characters
+  into Latin characters*, second edition.
+  [iso.org](https://www.iso.org/standard/87132.html). It replaced ISO
+  9985:1996 in January 2026, and the ISO 9985 column above follows it.
+  tetrak-translit follows it from version 2.0.0, and keeps the first
+  edition as a separate scheme for records romanised under it.
+- BGN/PCGN,
+  [Romanization of Armenian (BGN/PCGN 1981 System)](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/810208/ROMANIZATION_OF_ARMENIAN.pdf).
+  The system for geographical names, based on Eastern pronunciation.
+- Antoine Meillet, *Altarmenisches Elementarbuch*, Heidelberg: Carl
+  Winter, 1913.
+  [Internet Archive](https://archive.org/details/altarmenischesel00meil).
+  The grammar that fixed the Hübschmann-Meillet
+  transliteration still used in Classical Armenian scholarship and in the
+  *Revue des études arméniennes*.
+
+### The spelling reform and the two standards
+
+- Irina Marchesini, "Russian (1917–1918) and Armenian (1922) orthographic
+  reforms: assessing the Russian influence on Modern Armenian language",
+  *Studi Slavistici* XIV, 2017.
+  [doi:10.13128/Studi_Slavis-21944](https://doi.org/10.13128/Studi_Slavis-21944).
+  Open access. The reform's phases from 1922 to the 1940 revision, Manuk
+  Abeghyan's part in it, and its relationship to the Russian reform that
+  preceded it.
+- Wikipedia,
+  [Armenian orthography reform](https://en.wikipedia.org/wiki/Armenian_orthography_reform).
+  A readable summary of what changed letter by letter, and of why the
+  diaspora and the Armenians of Iran kept the classical spelling.
+- Scott Seyfarth, Hossep Dolatian et al., "Armenian (Yerevan Eastern
+  Armenian and Beirut Western Armenian)", *Journal of the International
+  Phonetic Association* 54(1), 2024, pp. 445–478.
+  [doi:10.1017/S0025100323000130](https://doi.org/10.1017/S0025100323000130).
+  The two standard varieties described side by side, including the stop
+  consonants that give Eastern *Hakob* and Western *Hagop*.
+- Talar Chahinian, *Stateless: The Politics of the Armenian Language in
+  Exile*, [Syracuse University Press](https://press.syr.edu/supressbooks/5578/stateless/),
+  2023. [doi:10.2307/jj.1895813](https://doi.org/10.2307/jj.1895813). How Western Armenian sustained
+  itself without a state after 1915, in interwar Paris and post-war
+  Beirut, and how its institutions turned back to the pre-1915 tradition.
+- Talar Chahinian and Anny Bakalian, "Language in Armenian American
+  communities: Western Armenian and efforts for preservation",
+  *International Journal of the Sociology of Language* 237, 2016,
+  pp. 37–57.
+  [doi:10.1515/ijsl-2015-0034](https://doi.org/10.1515/ijsl-2015-0034).
+  Western Armenian today, as a diaspora language UNESCO lists as
+  endangered.
