@@ -261,20 +261,30 @@ that get there would be errors in a transliteration. Merging *b* with
 *p* would be wrong in a catalogue record. In a search key, it's how
 *Bedros* finds *Petros*.
 
-And Tumanyan's four covers:
+And Tumanyan's four covers, plus a fifth:
 
 ```python
 {tt.fold(s, script="hy") for s in
- ["Թումանյան", "Թումանեան", "Tumanyan", "Tumanean", "Toumanyan", "Tumanian"]}
+ ["Թումանյան", "Թումանեան", "Tumanyan", "Tumanean",
+  "Toumanyan", "Tumanian", "Thoumanian"]}
 # {'tumanian'}
+
+{tt.fold(s, script="hy") for s in
+ ["Հովհաննես Թումանյան", "Յովհաննէս Թումանեան", "Hovhannes Tumanyan",
+  "Hovannes Toumanian", "Ovanes Tumanyan"]}
+# {'ovanes tumanian'}
 ```
 
-Two spellings of the Armenian and four of the Latin, one key. The fold
-doesn't catch everything about the name yet. A French *Thoumanian*, which
-uses *th* for the aspirated `Թ`, folds to a different key. So do the
-shortened forms of his first name, *Hovannes* and *Ovanes*, which drop
-letters that *Hovhannes* keeps. Those are exactly the cases to add to the
-fold's tests before changing its rules.
+Two spellings of the Armenian and five of the Latin, one key. The full
+name works too, including the shortened forms of his first name:
+*Hovannes*, which drops the *h* after the *v*, and the Russian *Ovanes*,
+which drops the initial *h* because Russian has none.
+
+Those last three didn't work when we first drafted this article. The
+French *Thoumanian* uses *th* for the aspirated `Թ`, and the fold didn't
+know that convention. *Hovannes* and *Ovanes* each lost a letter the fold
+was holding on to. How we fixed them is told under "What a fold should
+not do", below.
 
 ### Index time and query time
 
@@ -323,6 +333,34 @@ both orthographies and every scheme. A second test checks that different
 names stay different. If a proposed rule would merge two names that a
 reader would want kept apart, the second test is where we find out.
 
+### Fixing Tumanyan's spellings
+
+The three spellings that missed Tumanyan's key show how that works in
+practice. We added them to the test file first, as a new group and two
+new forms in an old one, and watched the tests fail. Then we looked for
+the smallest rule that would pass each one.
+
+*Thoumanian* was easy. Older English and French spellings mark an
+aspirate with an *h*: *th* for `Թ`, *ph* for `Փ`. The schemes use an
+apostrophe or nothing. So `th` folds to `t` and `ph` to `p`, and no
+existing key changed.
+
+*Ovanes* was harder, and it's the best example of the trade-off in this
+article. Russian has no *h*, so Russian-mediated spellings drop
+Armenian's initial `Հ`: *Ovanes*, *Ovsep*, but also *Akop* for *Hakob*
+and *Arutyunyan* for *Harutyunyan*. The obvious rule drops every initial
+*h*, and it catches all of them. It also changes the key of almost every
+name beginning with *h*, and the over-merge check turned up a real
+collision: the classical `իւր` (*his*) would fold onto `ուր` (*where*).
+So the rule we shipped is narrower. It drops an initial *h* only before
+an *o*, which catches *Ovanes* and *Ovsep* and nothing else.
+
+Even the narrow rule changed one existing key, Hovhannes's, which means
+any index that stored the old key has to be rebuilt. A fold's keys are
+data that other systems keep. So that change was released as
+tetrak-translit 1.0.0, a breaking change, with the old and new keys in the
+release notes.
+
 The fold also doesn't claim to be complete, and its gaps are tests too,
 asserted as failing:
 
@@ -331,6 +369,8 @@ asserted as failing:
   together.
 - *Khachaturian* came to English through Russian, which gave it a *u*
   that `Խաչատրյան` doesn't have.
+- *Akop* and *Arutyunyan* still don't find *Hakob* and *Harutyunyan*,
+  for the reason above.
 - Classical `աւր` and reformed `օր` (*day*) are the same word, but the
   fold reads `ւ` as *v* and can't know this one changed differently.
 
