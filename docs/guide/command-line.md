@@ -158,6 +158,59 @@ jq -rs 'map(select(.event=="backend_finish"))
 A logging failure never fails a run: the log disables itself, warns once,
 and the batch carries on.
 
+### The CSV manifest (beta)
+
+`--manifest` appends a row per file to `workspace/manifest.csv`: what was
+read, by which engine, what the quality gate made of it, and where the files
+are now. The run log is for watching a run and measuring it; the manifest is
+for the people who receive its output, to open in a spreadsheet or to import
+into a collections system that takes a CSV, such as Omeka S's CSV Import.
+
+It is not the triage manifest above: that is one report per triaged file;
+this is one table for the whole workspace.
+
+```bash
+tetrak-ocr batch --backend auto-local --pdf --manifest
+```
+
+Two of its rows, with the transcript shortened:
+
+```text
+file,status,backend,engine,quality,quality_gate,transcript,outputs,location,note,run,finished_at,tetrak_version
+graumans-chinese-theatre.jpg,processed,auto-local,vision,0.2356,passed,"THE CHINESE THEATRE. HOLLYWOOD. …",processed/graumans-chinese-theatre.md;processed/graumans-chinese-theatre.pdf,processed/graumans-chinese-theatre.jpg,,20261016T135228Z-5c09,2026-10-16T13:52:37+00:00,5.14.1
+inside-facts-1930-cover-ruined.jpg,triage,auto-local,vision,0.0724,failed,,triage/inside-facts-1930-cover-ruined.md,triage/inside-facts-1930-cover-ruined.jpg,"Best transcript (vision, score=0.0724) is below threshold 0.1000",20261016T135228Z-5c09,2026-10-16T13:52:48+00:00,5.14.1
+```
+
+| Column | What it holds |
+|---|---|
+| `file` | The scan's file name, as it was in `scans/` |
+| `status` | `processed`, `triage` or `error` |
+| `backend` | The backend the run asked for |
+| `engine` | The engine whose transcript was kept or rejected: under `auto-local`, the one that won |
+| `quality` | The transcript's quality score, when it was scored |
+| `quality_gate` | `passed`, `failed`, `skipped` (not in the Latin script, so not scoreable) or `off` |
+| `transcript` | The full transcript. Empty for a file in triage, so importing the manifest never imports a rejected reading |
+| `outputs` | The files written for it, relative to `workspace/`, separated by `;` |
+| `location` | Where the scan is now, relative to `workspace/` |
+| `note` | Why a file went to triage, or what went wrong |
+| `run` | The run's id in the run log, when there is one |
+| `finished_at` | When the file finished, in UTC |
+| `tetrak_version` | The Tetrak release that read it |
+
+It is appended to across runs, as `workspace/processed/` grows, and every
+file gets a row whatever became of it, so the manifest is also the list of
+what still needs a person. `--manifest PATH` writes it elsewhere.
+
+**It is a beta.** The columns may change before it is declared stable, so
+read them by the header, not by position. A manifest whose header differs
+from this version's is refused before any scan is touched; move it aside, or
+name a new file. Comments on what the columns should be are welcome.
+
+The file is UTF-8 without a byte-order mark, which is what import tools
+expect. Excel guesses the encoding of a CSV opened by double-clicking it and
+can get non-Latin transcripts wrong; open it with *Data > From Text/CSV*
+instead.
+
 ### Dry runs
 
 ```bash

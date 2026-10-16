@@ -122,6 +122,10 @@ def _cmd_batch(args: argparse.Namespace) -> int:
         forwarded += ["--telemetry", args.telemetry]
     if args.no_telemetry:
         forwarded.append("--no-telemetry")
+    if args.manifest is True:
+        forwarded.append("--manifest")
+    elif args.manifest:
+        forwarded += ["--manifest", args.manifest]
     for name in args.formats or []:
         forwarded += ["--format", name]
     if args.pdf or args.pdf_full_size or args.pdf_font:
@@ -282,6 +286,17 @@ def build_parser() -> argparse.ArgumentParser:
         "one JSON object per line, tail it to watch a long batch",
     )
     p.add_argument("--no-telemetry", action="store_true", help="do not write the run log")
+    p.add_argument(
+        "--manifest",
+        nargs="?",
+        const=True,
+        default=None,
+        metavar="PATH",
+        help="beta: append a row per file to a CSV manifest (default: "
+        "workspace/manifest.csv) with its transcript, the engine that read it, "
+        "the quality gate's verdict and where its files are, for a spreadsheet "
+        "or a collections system's CSV import",
+    )
     add_tuning_flags(p)
     add_format_flags(p)
     add_pdf_flags(p)

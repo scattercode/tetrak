@@ -167,6 +167,15 @@ if _EASYOCR_AVAILABLE:
 # constant's reach.
 LENGTH_WEIGHT = 0.8
 
+# The engine the last call chose and its raw quality score, as
+# {"engine": name, "quality": score}, or None before the first call or when
+# every backend failed. Set on a triaged file too, since the choice was made
+# before the gate rejected it. The batch manifest reads it: `ocr_image` returns
+# a transcript alone, by the fixed backend contract, so the choice has no other
+# way out. Process-global like the telemetry sink, and for the same reason;
+# the fan-out is sequential, so there is no concurrent caller to confuse.
+last_choice: dict | None = None
+
 
 def _effective_score(score: float, word_count: int, max_words: int) -> float:
     """Return `score` adjusted for `word_count` relative to `max_words`.
@@ -287,6 +296,8 @@ def ocr_image(path: "Path | str", with_paddle_vl: bool = False) -> str:
             MIN_QUALITY_THRESHOLD.  The exception carries .scores and
             .transcripts dicts for triage queue reporting.
     """
+    global last_choice
+    last_choice = None
     path = Path(path)
     candidates = _build_candidates(path, with_paddle_vl=with_paddle_vl)
 
@@ -347,6 +358,7 @@ def ocr_image(path: "Path | str", with_paddle_vl: bool = False) -> str:
     # Use the raw combined_score for the quality threshold — the triage gate
     # should reflect output quality, not quality × length.
     best_raw_score = scores[best_name]
+    last_choice = {"engine": best_name, "quality": best_raw_score}
 
     if best_raw_score < MIN_QUALITY_THRESHOLD:
         raise LowQualityError(

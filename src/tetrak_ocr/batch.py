@@ -15,6 +15,7 @@ Usage (run from the repository root):
     tetrak-ocr batch --backend auto-local
     tetrak-ocr batch --backend claude
     tetrak-ocr batch --backend tesseract --contrast 3.0
+    tetrak-ocr batch --backend auto-local --manifest   # and workspace/manifest.csv
 """
 
 import argparse
@@ -30,6 +31,8 @@ if TYPE_CHECKING:  # pragma: no cover
 
 from . import outputs, telemetry
 from .imaging import page_documents
+from .manifest import DEFAULT_NAME as MANIFEST_NAME
+from .manifest import Manifest, ManifestError
 from .registry import BACKENDS, get_backend
 from .registry import supported_extensions as _registry_extensions
 
@@ -172,6 +175,25 @@ def _send_to_triage(image_path: Path, error: "LowQualityError") -> None:
     print(f"    → TRIAGE: {manifest_path.name}")
 
 
+def _relative(path: Path) -> str:
+    """*path* relative to the workspace, for the manifest; as given if outside it."""
+    try:
+        return str(path.relative_to(SCANS_DIR.parent))
+    except ValueError:
+        return str(path)
+
+
+def _auto_local_choice() -> dict:
+    """The engine auto-local chose for the file just read, and its score.
+
+    Read from the module only if something already imported it, which
+    running auto-local does: importing it here would pull in the scorer for
+    runs that never use it.
+    """
+    module = sys.modules.get(f"{__package__}.auto_local")
+    return dict(getattr(module, "last_choice", None) or {})
+
+
 def transcribe_per_page(image_path: Path, ocr_fn: Callable[[Path], str]) -> list[str]:
     """Transcribe *image_path* one page at a time, returning a text per page.
 
@@ -201,6 +223,7 @@ def process_file(
     formats: list[str] | None = None,
     pdf_full_size: bool = False,
     pdf_font: str | None = None,
+    manifest: Manifest | None = None,
 ) -> None:
     """OCR a single file, write Markdown output, and move it to workspace/processed/.
 
@@ -230,6 +253,7 @@ def process_file(
                       Every requested format is written for the same
                       transcript -- the OCR runs once regardless of how many
                       are asked for.
+        manifest:     Where to append this file's row, if anywhere.
     """
     from .qa_score import LowQualityError
 
@@ -241,10 +265,33 @@ def process_file(
     def _elapsed() -> float:
         return round(time.perf_counter() - started, 3)
 
+    # What the manifest row says about the reading, filled in as it is known.
+    # auto-local scores and gates every file itself; a single backend is
+    # scored only under --quality-gate.
+    auto_local = backend == "auto-local"
+    reading: dict = {
+        "engine": backend or "",
+        "quality": None,
+        "quality_gate": "" if auto_local else "off",
+    }
+
+    def _record(status: str, **fields) -> None:
+        if manifest is not None:
+            manifest.write(
+                file=image_path.name, status=status, backend=backend or "", **reading, **fields
+            )
+
     def _triage(exc: "LowQualityError") -> None:
         _send_to_triage(image_path, exc)
         if triaged is not None:
             triaged.append(image_path.name)
+        reading["quality_gate"] = "failed"
+        _record(
+            "triage",
+            outputs=[_relative(TRIAGE_DIR / f"{image_path.stem}.md")],
+            location=_relative(TRIAGE_DIR / image_path.name),
+            note=str(exc),
+        )
         telemetry.record(
             "file_finish",
             backend=backend,
@@ -270,6 +317,8 @@ def process_file(
         else:
             text = ocr_fn(image_path)
     except LowQualityError as exc:
+        if auto_local:
+            reading.update(_auto_local_choice())
         _triage(exc)
         return
     except Exception as exc:
@@ -282,7 +331,11 @@ def process_file(
             reason=str(exc),
             **file_info,
         )
+        _record("error", location=_relative(image_path), note=f"{type(exc).__name__}: {exc}")
         raise
+
+    if auto_local:
+        reading.update(_auto_local_choice(), quality_gate="passed")
 
     if quality_gate:
         from .qa_score import MIN_QUALITY_THRESHOLD, combined_score, scores_english_text
@@ -294,6 +347,7 @@ def process_file(
         # mean anything.
         quality_gate = scores_english_text(text)
         if not quality_gate:
+            reading["quality_gate"] = "skipped"
             print(
                 "    quality gate skipped: this transcript is not in the Latin script, "
                 "and the score would be 0.0 whatever its quality",
@@ -303,6 +357,8 @@ def process_file(
     if quality_gate:
         score = combined_score(text)
         print(f"    quality={score:.4f}")
+        reading["quality"] = score
+        reading["quality_gate"] = "passed"
         if score < MIN_QUALITY_THRESHOLD:
             label = backend or "backend"
             _triage(
@@ -341,6 +397,7 @@ def process_file(
             reason=str(exc),
             **file_info,
         )
+        _record("error", location=_relative(image_path), note=f"{type(exc).__name__}: {exc}")
         raise
 
     dest = PROCESSED_DIR / image_path.name
@@ -349,6 +406,13 @@ def process_file(
     print(f"    → {dest.name}")
     for path in written:
         print(f"    → {path.name}")
+
+    _record(
+        "processed",
+        transcript=text,
+        outputs=[_relative(path) for path in written],
+        location=_relative(dest),
+    )
 
     telemetry.record(
         "file_finish",
@@ -460,6 +524,16 @@ def main(args=None) -> int:
         "it is skipped for a transcript in another script rather than failing it.",
     )
     parser.add_argument(
+        "--manifest",
+        nargs="?",
+        const=True,
+        default=None,
+        metavar="PATH",
+        help=f"Beta. Append a row per file to a CSV manifest (default: workspace/{MANIFEST_NAME}): "
+        "the transcript, the engine that read it, the quality gate's verdict and where the "
+        "files are now, for a spreadsheet or a collections system's CSV import.",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="List what would be processed, then stop without running OCR or moving anything.",
@@ -506,6 +580,18 @@ def main(args=None) -> int:
     if not SCANS_DIR.exists():
         print(f"Error: scans directory not found at {SCANS_DIR}", file=sys.stderr)
         return 1
+
+    # Checked before anything moves, like the qa extra: a manifest that cannot
+    # take this version's rows should stop the run, not half of it.
+    manifest = None
+    if args.manifest:
+        path = SCANS_DIR.parent / MANIFEST_NAME if args.manifest is True else Path(args.manifest)
+        manifest = Manifest(path)
+        try:
+            manifest.check()
+        except ManifestError as exc:
+            print(f"Error: {exc}", file=sys.stderr)
+            return 1
 
     extensions = supported_extensions(args.backend)
     files = sorted(f for f in SCANS_DIR.iterdir() if f.is_file() and f.suffix.lower() in extensions)
@@ -558,6 +644,10 @@ def main(args=None) -> int:
         )
         if log is not None:
             print(f"Run log: {log.path}  (run {log.run_id})\n")
+            if manifest is not None:
+                manifest.run = log.run_id
+    if manifest is not None:
+        print(f"Manifest: {manifest.path}  (beta)\n")
 
     run_started = time.perf_counter()
 
@@ -578,6 +668,7 @@ def main(args=None) -> int:
                 formats=formats,
                 pdf_full_size=args.pdf_full_size,
                 pdf_font=args.pdf_font,
+                manifest=manifest,
             )
         except Exception as exc:
             print(f"  ERROR processing {f.name}: {exc}", file=sys.stderr)
