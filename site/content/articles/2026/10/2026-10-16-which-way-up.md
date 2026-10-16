@@ -400,7 +400,7 @@ seen one, but the measurement is there if a collection needs it.
 And it is a rule, not a model, with everything that implies. It will not
 get better with more data. It knows nothing about the shapes of letters.
 What it knows is where the ink is, which is enough for this question, and
-it will give the same answer tomorrow, and say so when it has none.
+it will give the same answer tomorrow.
 
 ## Further reading
 
