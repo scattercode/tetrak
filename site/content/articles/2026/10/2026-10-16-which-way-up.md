@@ -80,11 +80,28 @@ Document analysis has used this since Postl's 1986 paper on skew, where
 the projection profile's variance is greatest at the angle of the text
 lines. We only need two angles.
 
+Everything that follows is written with
+[Pillow](https://pillow.readthedocs.io/), the Python imaging library the
+ingest already used to make the site's images, and the standard
+library's `statistics` and `math`. There is no NumPy, OpenCV or
+scikit-image in it, which is deliberate: the whole method fits in one
+small module with no new dependency to explain. In these snippets `ink`
+is a Pillow image in greyscale mode, the same size as the frame being
+analysed, in which each pixel's value says how much ink is there, 0 for
+bare paper up to 255 for a solid stroke. How we make it is described
+below, under what fooled the first version.
+
 Pillow gives us the profiles for nothing. Resizing an image to one pixel
 wide with a box filter averages every row; resizing to one pixel tall
 averages every column.
 
 ```python
+import math
+import statistics
+
+from PIL import Image
+
+
 def profile(ink, axis):
     """Mean ink per row (axis 0) or per column (axis 1), 0 to 1."""
     w, h = ink.size
@@ -249,6 +266,9 @@ profile.
 
 ```python
 def share_above(ink, strips=8):
+    # find_lines() is the line finder described above: given a row
+    # profile, it returns each line as (upper valley, peak, lower valley)
+    # and the lightly smoothed profile it found them in.
     """Across all lines found, the median share of outer ink (beyond half
     the line's peak height) that lies above the line rather than below."""
     w, h = ink.size
