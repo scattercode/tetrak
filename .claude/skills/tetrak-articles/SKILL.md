@@ -1,6 +1,6 @@
 ---
 name: tetrak-articles
-description: Write, edit or publish an article on the Tetrak documentation site (site/content/articles/). Covers the archetype and front matter, how the URL is actually assembled, the author key, the standfirst's three jobs, tags, relref linking, and the rule that benchmark numbers never get transcribed into prose. Use this whenever writing or editing anything under site/content/articles/, adding a byline or an author, creating a tag, or asking where an article's URL comes from.
+description: Write, edit or publish an article on the Tetrak documentation site (site/content/articles/). Covers the archetype and front matter, how the URL is actually assembled, the author key, the standfirst's three jobs, tags, relref linking, the real-world opening example, the Further reading section and its citation standard, and the rule that benchmark numbers never get transcribed into prose. Use this whenever writing or editing anything under site/content/articles/, adding a byline or an author, creating a tag, or asking where an article's URL comes from.
 ---
 
 # Writing an article for tetrak.dev
@@ -102,6 +102,54 @@ noticed until the two were read side by side. Cite and link; do not retype.
 - `##` for top-level headings, `###` for sub-headings. Never `#` — that level
   is the page title, rendered by the template.
 - Assume a competent reader. Long-form is fine; depth beats brevity.
+
+## Open with a real-world example
+
+Introduce the problem with a concrete case that lets the reader feel it
+before the technical explanation starts. Put it in the opening where
+possible. Models:
+
+- The fold article opens with Hovhannes Tumanyan's name, spelled four
+  correct ways on book covers (*Tumanyan*, *Tumanean*, *Toumanyan*,
+  *Tumanian*), and only then explains folding.
+- The classical-or-reformed article opens with the 1922 Soviet spelling
+  reform and the diaspora that never adopted it, so the reader knows why one
+  library's shelves hold both spellings before meeting the letter that
+  tells them apart.
+
+The best examples come from the author's own experience. When drafting,
+propose one if a good one comes to mind, but flag it as a suggestion so the
+author can check it or replace it. It must be factually right: a wrong
+example undermines everything after it.
+
+## Further reading
+
+End an article with a `## Further reading` section. Many of Tetrak's readers
+and potential users come from academic and library backgrounds, and strong
+referencing earns their trust. Prefer, in order:
+
+1. Scholarly writing: peer-reviewed papers, textbooks, academic monographs.
+2. Established standards: ISO, Unicode (UAX/UTS and the UCD), IETF RFCs,
+   W3C, ALA-LC and other national library standards.
+3. Primary documentation from the maintainers of a tool or system.
+
+Avoid relying on blog posts and vendor pages unless nothing better exists.
+
+Format, following the fold article
+(`2026-10-12-transliterate-for-display-fold-for-finding.md`):
+
+- Group entries under `###` sub-headings when there are more than five or
+  six.
+- Give the full citation for each entry: authors, title (italic for books
+  and standards, quoted for chapters and papers), publisher or venue, year,
+  and section or pages where relevant. Name the edition of a standard
+  (*ISO 9985:2026*, second edition), and link a DOI as `doi:10.…` where one
+  exists.
+- Follow each citation with one or two sentences on what it covers and how
+  it relates to the article. A bare list of links is not enough.
+- Every reference must be real and checked. Never invent or reconstruct a
+  citation from memory: verify the title, authors, year and DOI or URL. If
+  a source cannot be verified, leave it out.
 
 ## Before it ships
 
