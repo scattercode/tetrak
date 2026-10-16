@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.16.0] - 2026-10-16
+
+### Added
+
+- Add further reading to the fold article
+
+### Changed
+
+- Drop the average bars from the research walkthrough
+- Fold installation into a three-step tutorial
+- Move the house rules to AGENTS.md for any coding agent
+- Telling classical from reformed Armenian by one letter
+- Open the orthography article with the reform's history
+- Transliterate for display, fold for finding
+- Open the fold article with Tumanyan's four spellings
+- Show the fold catching Thoumanian, Hovannes and Ovanes
+- Use an ALA-LC ambiguity the 2022 table still has
+- Describe what changed in ISO 9984 and ISO 9985 in 2026
+- Open articles with a real-world example and end with further reading
+- Write a CSV manifest of each file, as a beta
+
 ## [5.15.0] - 2026-10-09
 
 ### Changed
