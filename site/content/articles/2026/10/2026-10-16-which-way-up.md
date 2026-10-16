@@ -53,18 +53,31 @@ every one of those is landscape and correct. The sideways reel had
 spreads too, filmed sideways. Aspect ratio tells you the shape of the
 frame and nothing about the writing on it.
 
-The other obvious route is to ask an OCR engine. Tesseract has an
-orientation and script detection mode, `--psm 0`, that returns a rotation
-and a confidence without reading a word. PaddleOCR ships a text line
-orientation classifier. We use both engines in Tetrak and think well of
-them. But both are trained classifiers: Tesseract's was trained on
-synthetic renderings of printed scripts, and these pages are
+In 2026 the next obvious route is to ask a model. Send each frame to
+Claude, or any of the vision models that can now read a page, with the
+question "which way up is this?", and it would very likely answer
+correctly; Tetrak uses Claude as one of its OCR engines and we know what
+it can do. We decided against it for this job, for two reasons that are
+really one. A call per frame costs money and takes seconds, which is
+fine for four hundred frames and not fine for a collection of forty
+thousand, and this is the kind of tool that will be pointed at the next
+collection. And a model's answer is not reproducible: the same frame can
+come back differently on a different day, which means the step cannot be
+tested, only sampled. We wanted something fast and cheap enough to run on
+every frame on every ingest, and deterministic enough that a test could
+assert what it does.
+
+The nearer alternative is a classifier built for the job. Tesseract has
+an orientation and script detection mode, `--psm 0`, that returns a
+rotation and a confidence without reading a word. PaddleOCR ships a text
+line orientation classifier. We use both engines in Tetrak and think
+well of them. But both are trained models too: Tesseract's was trained
+on synthetic renderings of printed scripts, and these pages are
 eighteenth-century law hand on microfilm, grey on grey. We would have
 been trusting a model on material it had never seen, with no way to say
-why it answered as it did, and no way to promise the team that next
-month's run would agree with this one. What we wanted was a measurement:
-something we could explain in a paragraph, that reads the ink and nothing
-else, and that fails loudly rather than guessing.
+why it answered as it did. What we wanted was a measurement: something
+we could explain in a paragraph, that reads the ink and nothing else,
+and that fails loudly rather than guessing.
 
 That is two questions. Which way do the lines of text run? And, once we
 know the lines run down the image, which way is up?
