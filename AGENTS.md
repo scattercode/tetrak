@@ -99,7 +99,7 @@ python tools/generate_corpus_thumbnails.py     # → site/assets/images/corpus/ 
 ```
 
 Backend names: `tesseract`, `tesseract-auto`, `easyocr`, `easyocr-hy`, `paddle`,
-`paddle-vl`, `claude`, `marker`, `vision`, `auto-local`. `easyocr-hy` is stock EasyOCR with
+`paddle-vl`, `claude`, `claude-haiku`, `marker`, `vision`, `auto-local`. `easyocr-hy` is stock EasyOCR with
 the project's own Armenian recogniser swapped in — its own name, like
 `tesseract-auto`, so the harness scores the difference rather than asserting it. `vision` is macOS-only — Apple's Vision
 framework via `ocrmac`, declared with a `sys_platform` marker so `[all]` still
@@ -116,7 +116,8 @@ needs the `qa` extra, checked up front rather than on the first file.
 
 **The backend interface is fixed.** Every backend exposes
 `SUPPORTED_EXTENSIONS: set[str]` and `ocr_image(path: Path, ...) -> str`.
-Tesseract adds optional `contrast`, `psm`, `auto` and `lang`. Nothing else varies. That
+Tesseract adds optional `contrast`, `psm`, `auto` and `lang`, and Claude an
+optional `model`, which is how `claude-haiku` differs from `claude`. Nothing else varies. That
 uniformity is what lets `registry.py`, the batch pipeline and the harness treat
 backends interchangeably; a backend that needs a different signature needs an
 adapter, not a special case in the callers.

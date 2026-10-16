@@ -80,6 +80,9 @@ body = "Transcribing a collection by hand is not a plan. Whatever runs has to ru
 ## exists only to tell engines apart in charts and diagrams -- it is never used
 ## for interface state. tesseract and tesseract-auto share a hue because they
 ## are one engine, configured two ways.
+##
+## `ceiling = true` marks the backend that generated the ground truth, and
+## `cloud = true` any other API backend. Neither is ever counted as best local.
 
 [[engine]]
 key = "tesseract"
@@ -171,6 +174,16 @@ ceiling = true
 body = "A vision model, and the source of the reference transcripts every other engine is scored against — including its own. Its column is self-consistency, not accuracy, and it is excluded from every ‘best local’ comparison on this page."
 best_for = "Material nothing local reads: ornamental type, multi-column"
 limits = "Per-page cost, an internet connection, material leaving site"
+
+[[engine]]
+key = "claude-haiku"
+label = "claude-haiku"
+availability = "API · paid · smaller model"
+accent = "ink-soft"
+cloud = true
+body = "The same backend asking Anthropic's smallest current model, at a fraction of the price. Measured to answer whether it is good enough for escalation, and it is not: on the posters local engines cannot read it drops small print and substitutes plausible wording. Not local, so it is never counted as best local."
+best_for = "Clean print, where a cheaper read is enough"
+limits = "Drops imprints and small lines, and invents in their place"
 
 ## --- The corpus --------------------------------------------------------------
 ## `file` matches the `fixture` column in evaluation/ocr/benchmark.csv.

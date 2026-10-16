@@ -30,6 +30,7 @@ class TestBackendList:
             "tesseract",
             "tesseract-auto",
             "claude",
+            "claude-haiku",
             "easyocr",
             "easyocr-hy",
             "paddle",
@@ -105,6 +106,33 @@ class TestResolution:
 
         get_backend("tesseract")("image.png")
         assert seen.get("auto") is not True
+
+    def test_claude_haiku_asks_the_small_model(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """`claude-haiku` is the Claude backend asking its smaller model.
+
+        The extra is faked as installed, since CI does not install
+        `anthropic`, and nothing reaches the API.
+        """
+        from tetrak_ocr.backends import claude
+
+        seen: dict[str, object] = {}
+
+        def fake_ocr(path, **kwargs):
+            seen.update(kwargs)
+            return "text"
+
+        monkeypatch.setattr(claude, "_IMPORT_OK", True)
+        monkeypatch.setattr(claude, "ocr_image", fake_ocr)
+
+        get_backend("claude-haiku")("image.png")
+        assert seen.get("model") == claude.SMALL_MODEL
+        assert claude.SMALL_MODEL != claude.MODEL
+
+    def test_plain_claude_keeps_its_default_model(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        from tetrak_ocr.backends import claude
+
+        monkeypatch.setattr(claude, "_IMPORT_OK", True)
+        assert get_backend("claude") is claude.ocr_image
 
 
 class TestMissingExtras:

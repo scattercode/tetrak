@@ -25,7 +25,7 @@
 {{- /* Best local score on this row. */ -}}
 {{- $best := -1.0 }}
 {{- range $engines }}
-  {{- if not .ceiling }}
+  {{- if not (or .ceiling .cloud) }}
     {{- $v := index $row (index $col (printf "%s_chr" .key)) }}
     {{- if ne $v "N/A" }}{{ if gt (float $v) $best }}{{ $best = float $v }}{{ end }}{{ end }}
   {{- end }}
@@ -37,7 +37,7 @@
     {{- range $engines }}
       {{- $chr := index $row (index $col (printf "%s_chr" .key)) }}
       {{- $wrd := index $row (index $col (printf "%s_wrd" .key)) }}
-      {{- $isBest := and (not .ceiling) (ne $chr "N/A") (eq (float $chr) $best) }}
+      {{- $isBest := and (not (or .ceiling .cloud)) (ne $chr "N/A") (eq (float $chr) $best) }}
       <div class="wt-scores__row{{ if $isBest }} is-best{{ end }}{{ if .ceiling }} is-ceiling{{ end }}">
         <dt><code>{{ .label }}</code>{{ if .ceiling }}<span class="wt-scores__ref" title="Ceiling reference, not a measurement">*</span>{{ end }}</dt>
         <dd>

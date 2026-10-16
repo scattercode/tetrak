@@ -105,6 +105,10 @@ CONTENT_W = SLIDE_W - 2 * MARGIN
 # "best local" comparison, exactly as the site's benchmark table does it.
 CEILING = "claude"
 
+# Every backend that is not local, the ceiling included. None of them can be
+# "best local"; the site reads the same list from walkthrough.toml's `cloud`.
+NOT_LOCAL = {CEILING, "claude-haiku"}
+
 # ---------------------------------------------------------------------------
 # Anthropic API pricing, $ per million tokens.
 # SOURCE: https://platform.claude.com/docs/en/about-claude/pricing
@@ -344,8 +348,8 @@ def score(row, backend) -> tuple[float, float] | None:
 
 
 def best_local_score(row, backends) -> float | None:
-    """The highest character similarity among the non-ceiling backends."""
-    values = [pair[0] for b in backends if b != CEILING for pair in [score(row, b)] if pair]
+    """The highest character similarity among the local backends."""
+    values = [pair[0] for b in backends if b not in NOT_LOCAL for pair in [score(row, b)] if pair]
     return max(values) if values else None
 
 
@@ -359,7 +363,7 @@ def is_best_local(row, backend, best) -> bool:
     them would make routing look like it had lost a race it had just won -- and
     the site's benchmark table marks every match, so the two would disagree.
     """
-    if backend == CEILING or best is None:
+    if backend in NOT_LOCAL or best is None:
         return False
     pair = score(row, backend)
     return pair is not None and pair[0] == best

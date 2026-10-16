@@ -221,6 +221,7 @@ top of them.
 | `paddle-vl` | `[paddle-vl]` | ✓ | Document vision-language model. Reads PDFs and multi-page TIFFs; strongest local engine measured, but minutes per page. Join it to auto-local with `--with-paddle-vl` |
 | `marker` | `[marker]` | ✓ | Layout-aware document conversion — the only local backend that models reading order |
 | `claude` | `[claude]` | ✓ | The Anthropic vision API. Reads material no local tool can |
+| `claude-haiku` | `[claude]` | ✓ | The same API with Anthropic's smallest current model. Cheaper, and measurably worse on the material `claude` is for |
 | `auto-local` | `[qa]` | ✓ | **The recommended default.** Runs the viable local engines, scores each, keeps the best |
 
 A few things worth knowing before you pick one:
@@ -231,6 +232,9 @@ A few things worth knowing before you pick one:
 - **`marker` is slow and GPU-gated inside `auto-local`.** It is the only local
   engine that gets multi-column newsprint into the right reading order, and it
   takes roughly 18 minutes of a 70-minute benchmark run to do it.
+- **`claude-haiku` is not a cheaper `claude`.** On the posters local engines
+  cannot read, it leaves out imprints and small lines and sometimes puts
+  plausible wording in their place. Use `claude` for escalation.
 - **`claude` sends your images to an API** and needs `ANTHROPIC_API_KEY`, which
   rules it out for confidential material. It also does not reproduce between
   runs — it recovers the same words and orders them differently. It is the
@@ -340,7 +344,7 @@ tetrak-ocr batch --backend tesseract-auto --quality-gate
 ### Supported files
 
 JPEG, PNG and TIFF everywhere; PDF on `tesseract`, `tesseract-auto`, `marker`,
-`claude` and `auto-local`. Multi-page TIFF is read in full — Pillow opens such
+`claude`, `claude-haiku` and `auto-local`. Multi-page TIFF is read in full — Pillow opens such
 a file at frame 0 and says nothing about the rest, so backends that cannot page
 through one refuse it by name rather than returning the cover as though it were
 the whole document.

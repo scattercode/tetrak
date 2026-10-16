@@ -25,6 +25,7 @@ $ tetrak-ocr backends
  ✓ tesseract
  ✓ tesseract-auto
  · claude  (extra not installed)
+ · claude-haiku  (extra not installed)
  ✓ auto-local
 ```
 

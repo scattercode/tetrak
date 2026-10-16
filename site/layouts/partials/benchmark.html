@@ -64,6 +64,13 @@
        "best local", exactly as the mkdocs table did. */ -}}
 {{- $ceiling := "claude" }}
 
+{{- /* Nor is any other API backend local, so none of them can be "best
+       local" either. The walkthrough's engine table says which they are. */ -}}
+{{- $notLocal := slice $ceiling }}
+{{- range hugo.Data.walkthrough.engine }}
+  {{- if .cloud }}{{ $notLocal = $notLocal | append .key }}{{ end }}
+{{- end }}
+
 <div class="table-scroll">
 <table class="benchmark">
   <thead>
@@ -86,7 +93,7 @@
       {{- $best := -1.0 }}
       {{- if and $boldBest (not $isSummary) }}
         {{- range $backends }}
-          {{- if ne . $ceiling }}
+          {{- if not (in $notLocal .) }}
             {{- $v := index $row (index $col (printf "%s_chr" .)) }}
             {{- if ne $v "N/A" }}
               {{- if gt (float $v) $best }}{{ $best = (float $v) }}{{ end }}
@@ -108,7 +115,7 @@
           {{- $chr := index $row (index $col (printf "%s_chr" $backend)) }}
           {{- $wrd := index $row (index $col (printf "%s_wrd" $backend)) }}
           {{- $sec := index $row (index $col (printf "%s_sec" $backend)) }}
-          {{- $isBest := and $boldBest (not $isSummary) (ne $backend $ceiling) (ne $chr "N/A") (eq (float $chr) $best) }}
+          {{- $isBest := and $boldBest (not $isSummary) (not (in $notLocal $backend)) (ne $chr "N/A") (eq (float $chr) $best) }}
 
           <td class="benchmark__num{{ if $isBest }} is-best{{ end }}{{ if eq $backend $ceiling }} is-ceiling{{ end }}">
             {{- if eq $metric "sec" -}}
