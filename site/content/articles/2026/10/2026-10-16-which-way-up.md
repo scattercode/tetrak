@@ -9,7 +9,7 @@ author: stephen-masters
 tags: [archives, ocr, digitisation, project-notes]
 ---
 
-The Armenian Institute's
+The [Armenian Institute](https://www.armenianinstitute.org.uk/)'s
 [Empire on Trial](https://www.armenianinstitute.org.uk/empire-on-trial-rafael-x-verelest)
 project is transcribing the papers of *Rafael v. Verelst*, the suits that
 Armenian merchants of Bengal brought in London against Harry Verelst, the
