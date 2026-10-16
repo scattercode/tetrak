@@ -25,6 +25,8 @@ from .errors import MissingBackendError, UnknownBackendError
 #
 #   tesseract / tesseract-auto  — the same backend with per-image contrast and
 #                                 page-segmentation detection turned on
+#   claude / claude-haiku       — the same backend asking the smallest current
+#                                 model instead of the largest
 #
 # They are separate names rather than flags so the evaluation harness scores
 # them as distinct backends -- which is the only way the difference between
@@ -38,6 +40,7 @@ _BACKENDS: dict[str, tuple[str, str | None, str]] = {
     "tesseract": ("tetrak_ocr.backends.tesseract", None, "pytesseract (core)"),
     "tesseract-auto": ("tetrak_ocr.backends.tesseract", None, "pytesseract (core)"),
     "claude": ("tetrak_ocr.backends.claude", "claude", "the 'anthropic' package"),
+    "claude-haiku": ("tetrak_ocr.backends.claude", "claude", "the 'anthropic' package"),
     "easyocr": ("tetrak_ocr.backends.easyocr", "easyocr", "the 'easyocr' package"),
     # Stock EasyOCR with the project's own Armenian recogniser swapped in.
     # Its own name, like tesseract-auto: the harness then scores it against
@@ -111,6 +114,13 @@ def get_backend(name: str) -> Callable[..., str]:
             return module.ocr_image(path, **kwargs)
 
         return _auto
+    if name == "claude-haiku":
+        # Same function, smaller model.
+        def _haiku(path: Path, **kwargs) -> str:
+            kwargs.setdefault("model", module.SMALL_MODEL)
+            return module.ocr_image(path, **kwargs)
+
+        return _haiku
 
     return module.ocr_image
 

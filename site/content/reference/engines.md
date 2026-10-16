@@ -19,6 +19,7 @@ rather than importing it directly.
 | `paddle-vl` | `[paddle-vl]` | ✓ | Document vision-language model. Best local average, and slow enough to be batch-only |
 | `marker` | `[marker]` | ✓ | Layout-aware conversion; multi-column and PDFs |
 | `claude` | `[claude]` | ✓ | Anything the others cannot read |
+| `claude-haiku` | `[claude]` | ✓ | Not escalation: the smaller model, measured and found short |
 | `auto-local` | core | ✓ | Unattended mixed material; runs several and keeps the best |
 
 See [choosing a tool](../research/in-depth/#choosing-a-tool-for-your-own-material) for which to use when, with the
@@ -284,6 +285,22 @@ similarity has scored 0.73, 0.24 and 0.26 across three runs while word recall
 held at 0.96–0.98. It recovers the same words and orders them differently, which
 is what an order-sensitive metric does to a document with no single reading
 order.
+
+### The smaller model, `claude-haiku`
+
+The same backend asking Anthropic's smallest current model, at a fraction of
+the price. It is its own name, as `tesseract-auto` is, so the harness scores it
+beside `claude` rather than its quality being assumed from the price list.
+
+It is not good enough for the job `claude` does. On the fixtures where no local
+engine gets close, it scores below `claude` on most of them, and the gap held
+across three runs of each model, so it is not run-to-run noise. Its errors are
+the costly kind for a catalogue. It leaves out the small print, such as a
+lithographer's imprint or a copyright line, and sometimes puts plausible
+wording in its place: a different lithographer's name, the wrong count of
+swords in a sideshow act. On clean print the two models are close. Where
+`claude-haiku` appears to beat `claude`, the difference is reading order, not
+reading. The [benchmark](../research/in-depth/) has its column.
 
 ## Multi-page TIFF
 

@@ -62,7 +62,7 @@ well over a gigabyte before any model downloads at first run.
 | `paddle-vl` | `paddle-vl` | PaddleOCR-VL, the document vision-language model in the same package |
 | `marker` | `marker` | marker-pdf 1.x |
 | `vision` | `vision` | `ocrmac`, a wrapper over Apple's Vision framework. macOS only |
-| `claude` | `claude` | the Anthropic SDK |
+| `claude` | `claude`, `claude-haiku` | the Anthropic SDK |
 | `ocr` | everything above except `armenian` | |
 | `all` | the same as `ocr` | |
 
@@ -116,6 +116,7 @@ $ tetrak-ocr backends
  ✓ tesseract
  ✓ tesseract-auto
  · claude  (extra not installed)
+ · claude-haiku  (extra not installed)
  · easyocr  (extra not installed)
  ✓ easyocr-hy
  · paddle  (extra not installed)

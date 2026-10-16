@@ -59,6 +59,13 @@ SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".pdf"}
 # The Claude model used for transcription.
 MODEL = "claude-opus-4-8"
 
+# The smallest current model, behind its own backend name, `claude-haiku`.
+# It is a separate name rather than a setting for the same reason
+# `tesseract-auto` is: the harness then scores it beside `claude`, so whether
+# it is good enough for escalation is a measurement (brief 002) rather than an
+# assumption from the price list.
+SMALL_MODEL = "claude-haiku-5-5"
+
 # Maximum output tokens for one transcription.  A 21-page souvenir programme
 # transcribes to roughly 7,000 tokens, so this leaves substantial headroom.
 # Anything above ~16,000 must stream — see the call site.
@@ -109,11 +116,13 @@ def _to_base64(path: Path) -> tuple[str, str]:
         raise ValueError(f"Unsupported file type for Claude backend: {suffix}")
 
 
-def ocr_image(path: Path) -> str:
+def ocr_image(path: Path, model: str = MODEL) -> str:
     """Extract text from an image file using the Claude vision API.
 
     Args:
         path: Path to the image file.
+        model: The Claude model to ask. ``claude-haiku`` passes
+            :data:`SMALL_MODEL`; everything else uses :data:`MODEL`.
 
     Returns:
         The transcribed text as a string.
@@ -154,7 +163,7 @@ def ocr_image(path: Path) -> str:
     # Stream: at this max_tokens a non-streaming request risks the SDK's HTTP
     # timeout on long documents.
     with client.messages.stream(
-        model=MODEL,
+        model=model,
         max_tokens=MAX_OUTPUT_TOKENS,
         messages=[
             {

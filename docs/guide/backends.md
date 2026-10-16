@@ -15,6 +15,7 @@ strategy built on top of them.
 | `paddle-vl` | `[paddle-vl]` | ✓ | Document vision-language model. Reads PDFs and multi-page TIFFs; strongest local engine measured, but minutes per page |
 | `marker` | `[marker]` | ✓ | Layout-aware document conversion, the only local backend that models reading order |
 | `claude` | `[claude]` | ✓ | The Anthropic vision API. Reads material no local tool can |
+| `claude-haiku` | `[claude]` | ✓ | The same API with Anthropic's smallest current model. Cheaper, and measurably worse on the material `claude` is for |
 | `auto-local` | `[qa]` | ✓ | **The recommended default.** Runs the viable local engines, scores each, keeps the best |
 
 The measurements behind every claim on this page are on
@@ -44,6 +45,9 @@ deliberately not repeated here, where nothing would keep them current.
   between runs: it recovers the same words and orders them differently. It
   is the thing to reach for on decorative and hand-lettered type, where
   local engines collapse.
+- **`claude-haiku` is not a cheaper `claude`.** On the posters local
+  engines cannot read, it leaves out imprints and small lines and sometimes
+  puts plausible wording in their place. Use `claude` for escalation.
 - **The deep-learning backends download weights on first run** and hold them
   in memory afterwards, so the first call is slow and later ones are not.
   That is fine for batch work and poor for one-shot interactive use.
@@ -91,7 +95,7 @@ instead.
 ## Supported files
 
 JPEG, PNG and TIFF everywhere; PDF on `tesseract`, `tesseract-auto`,
-`paddle-vl`, `marker`, `claude` and `auto-local`. The batch pipeline filters
+`paddle-vl`, `marker`, `claude`, `claude-haiku` and `auto-local`. The batch pipeline filters
 `workspace/scans/` by the chosen backend's supported extensions, so a PDF is
 silently skipped under `easyocr`, `easyocr-hy`, `paddle` or `vision`;
 `--dry-run` makes that visible.
