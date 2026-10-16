@@ -4,7 +4,7 @@ date: 2026-10-16
 draft: false
 slug: "which-way-up"
 kicker: "Method"
-standfirst: "A reel of eighteenth-century court papers came off the scanner with most of its pages on their side, and nothing in the files said so. Two measurements of the ink, with no model and no training data, told us which way the lines ran and which way was up, and said so when they could not tell"
+standfirst: "A reel of eighteenth-century court papers came off the scanner with many of its pages on their side. We developed an algorithm to work out which were sideways and to rotate them to their correct orientation"
 author: stephen-masters
 tags: [archives, ocr, digitisation, project-notes]
 ---
@@ -365,10 +365,25 @@ the three sizes of that one page and nothing else.
 
 ## What it does not do
 
-It assumes Latin script. The line-direction measure does not care what
-the writing is, but the up-share leans on ascenders outnumbering
-descenders, which is a fact about Latin letterforms and the
-eighteenth-century English hand in particular. Armenian has ascenders
+It assumes the writing runs across the page. The obvious counterexample
+is Chinese or Japanese set the traditional way, in columns read from top
+to bottom and ordered right to left, and Mongolian script, which is
+vertical too. On such a page the first measurement would report, quite
+correctly, that the lines run down the image, and the rule as written
+would then turn an upright page on its side. The measurement is not
+wrong, the rule that acts on it is, and for a vertically written
+collection the rule simply inverts: *down* is upright. What the method
+cannot do is tell the two cases apart on its own, so a collection that
+mixes vertical and horizontal setting, as modern Japanese print does,
+would need the writing direction known per document before the
+orientation could be read from it.
+
+It also assumes Latin script for the second measurement. The
+line-direction measure does not care what the writing is, but the
+up-share leans on ascenders outnumbering descenders, which is a fact
+about Latin letterforms and the eighteenth-century English hand in
+particular. Chinese characters sit in a square and have no ascenders at
+all, so the up-share would have nothing to measure. Armenian has ascenders
 and descenders of its own, and we have not measured whether the
 asymmetry holds, so for the archives Tetrak was built for this half of
 the method is a thing to test before trusting. Aradhye's 2005 paper, which
