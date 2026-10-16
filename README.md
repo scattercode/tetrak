@@ -153,6 +153,19 @@ document costs about twice as much** under this format, because it has to be
 transcribed page by page to put each page's words on the right page — see
 [below](#multi-page-documents-cost-about-twice-as-much).
 
+### The CSV manifest (beta)
+
+`--manifest` appends a row per file to `workspace/manifest.csv`: the
+transcript, the engine that read it, the quality gate's verdict, and where its
+files are now, triaged files included. It is for a spreadsheet, or a
+collections system's CSV import. The columns may still change; the
+[command-line guide](https://scattercode.github.io/tetrak/guide/command-line.html#the-csv-manifest-beta)
+lists them.
+
+```bash
+tetrak-ocr batch --backend auto-local --pdf --manifest
+```
+
 ### The run log
 
 Every batch appends to `workspace/telemetry.jsonl` — one JSON object per line,
