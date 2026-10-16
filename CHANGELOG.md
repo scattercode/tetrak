@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.17.0] - 2026-10-16
+
+### Added
+
+- Add claude-haiku, the smaller model, as its own backend (#71)
+
+### Changed
+
+- Article on reading a page's orientation from its ink (#70)
+
 ## [5.16.0] - 2026-10-16
 
 ### Added
