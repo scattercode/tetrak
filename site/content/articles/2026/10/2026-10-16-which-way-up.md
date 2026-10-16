@@ -80,12 +80,17 @@ Document analysis has used this since Postl's 1986 paper on skew, where
 the projection profile's variance is greatest at the angle of the text
 lines. We only need two angles.
 
-Everything that follows is written with
-[Pillow](https://pillow.readthedocs.io/), the Python imaging library the
-ingest already used to make the site's images, and the standard
-library's `statistics` and `math`. There is no NumPy, OpenCV or
-scikit-image in it, which is deliberate: the whole method fits in one
-small module with no new dependency to explain. In these snippets `ink`
+A word on tools before the code. The ingest is a Python program, and
+for its images it uses [Pillow](https://pillow.readthedocs.io/), the
+standard Python library for working with image files: it opens a JPEG,
+converts it to greyscale, resizes, crops, blurs and filters it, and hands
+the pixel values back as plain numbers. It is the maintained successor
+of the original Python Imaging Library, which is why its import is still
+`PIL`, and it was already in the ingest to make the site's three image
+sizes. Everything that follows is written with Pillow and the standard
+library's `statistics` and `math`, and nothing else. There is no NumPy,
+OpenCV or scikit-image in it, which is deliberate: the whole method fits
+in one small module with no new dependency to explain. In these snippets `ink`
 is a Pillow image in greyscale mode, the same size as the frame being
 analysed, in which each pixel's value says how much ink is there, 0 for
 bare paper up to 255 for a solid stroke. How we make it is described
