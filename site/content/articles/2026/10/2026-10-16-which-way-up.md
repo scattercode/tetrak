@@ -130,14 +130,26 @@ So before measuring anything we find the regions that are dark over a
 large area, which no handwriting is, and paint them the colour of the
 paper. The frame edge then has nothing to contrast with.
 
-**Vote by block, and let the median decide.** Rather than one profile
-pair for the page, we cut the image into a twelve by twelve grid and
-take a profile pair for each block that holds a reasonable amount of ink.
-A block whose ink is one spike, a page edge crossing it, is skipped: text
-is texture, and texture has no single row or column many times darker
-than the mean. The page's verdict is the median of the blocks that
-remain. A gutter can still fool the blocks it passes through, but it
-passes through a dozen, and a page has well over a hundred.
+**Measure many small pieces of the page, not the page.** So far the
+whole image has produced one pair of profiles and one number, and one
+straight edge anywhere on the page can swing that number. The fix is to
+stop asking the page and ask its parts. We cut the image into a twelve
+by twelve grid and compute the same number, the log of the row variance
+over the column variance, for each block on its own. A block of
+handwriting gives a positive number if its lines run across and a
+negative one if they run down, and it does so regardless of what is
+happening elsewhere on the page. That is the sense in which each block
+votes: it answers the question for its own patch of paper.
+
+Two kinds of block are not asked. A block with almost no ink is bare
+paper and has nothing to say. A block whose ink is a single spike, one
+row or one column many times darker than the block's mean, holds an
+edge rather than writing, because text is texture and texture has no
+such spike. The page's answer is the median of the votes that remain:
+sort them and take the middle one. A median cannot be dragged by a
+minority, however loud. A gutter can still fool the blocks it passes
+through, but it passes through a dozen, a page has well over a hundred,
+and the middle vote belongs to a block of handwriting.
 
 ```python
 def line_direction(ink, grid=12):
