@@ -110,8 +110,8 @@ a gutter down the middle and a page edge on either side, so the column
 profile of an upright spread was peakier than its row profile, and the
 whole document voted the wrong way.
 
-Three changes fixed it, and each is a way of refusing to let a straight
-edge vote.
+Three changes fixed it. What they have in common is that each stops a
+straight edge, which is not writing, from being counted as if it were.
 
 **Measure ink against the local background, not the page.** Our first
 ink image was simply darkness below the page's median brightness. That
