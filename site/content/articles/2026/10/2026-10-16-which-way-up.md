@@ -384,12 +384,12 @@ up-share leans on ascenders outnumbering descenders, which is a fact
 about Latin letterforms and the eighteenth-century English hand in
 particular. Chinese characters sit in a square and have no ascenders at
 all, so the up-share would have nothing to measure. Armenian has ascenders
-and descenders of its own, and we have not measured whether the
-asymmetry holds, so for the archives Tetrak was built for this half of
-the method is a thing to test before trusting. Aradhye's 2005 paper, which
-takes a different route through the open sides of letter shapes and
-learns the useful direction for a script from samples, is where we would
-start.
+and descenders of its own, and when this article was first published we
+had not measured whether the asymmetry holds. We have since, on the
+Armenian pages Tetrak is evaluated on, and it does not: the share sits
+close to a half whichever way up the page is. What does work for Armenian,
+and what we found about this method on typeset pages along the way, is in
+[the follow-up]({{< relref "/articles/2026/10/2026-10-23-which-way-up-armenian.md" >}}).
 
 It does not look for pages that are upside down. A half turn leaves the
 lines running across, so the first measurement passes it, and we never
