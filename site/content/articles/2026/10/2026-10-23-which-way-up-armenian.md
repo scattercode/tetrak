@@ -1,5 +1,5 @@
 ---
-title: "Which way up is the page, when the page is Armenian?"
+title: "Which way up is Armenian?"
 date: 2026-10-23
 draft: false
 slug: "which-way-up-armenian"
@@ -9,17 +9,17 @@ author: stephen-masters
 tags: [archives, ocr, digitisation, armenian, project-notes]
 ---
 
-The transcription notes for *Mshak*, the Tiflis Armenian newspaper whose
-pages are in Tetrak's evaluation set, carry a rule about turned sorts. In
-hand-set type a compositor now and then puts a letter into the stick
-upside down, and on one page the second կ of կտակի prints rotated through
-a half turn. The rule says to transcribe the letter the compositor meant,
-because a reader does: the eye takes the intended letter and moves on
-without pausing. That is worth dwelling on. If a turned Armenian letter
-barely registers with a reader, then whatever tells a reader that a whole
-Armenian page is upside down is not something the individual letters
-shout. It is a statistic over the page, and the statistic a Latin reader
-relies on may not be the one an Armenian reader does.
+You can raed this, even thuogh hlaf the wrods are wnorg. The trick went round by email in 2003 under the mock-medical name typoglycemia, and the claim that travelled with it, that only a word's first and last letters matter, was overstated. But what it shows off is real, and psychologists have a drier name for it: the word superiority effect. A reader does not take in letters one at a time and assemble a word from them. The word arrives first, and the letters are checked against it afterwards, if at all.
+
+Armenian readers do it too. When I was transcribing a page of the Tiflis Armenian newspaper Մշակ, I came across this oddity that is so easy to scan past as you read.
+
+{{< figure src="articles/mshak-ktaki-turned-ka.jpg" width="726" alt="The word կտակի cut from a page of Mshak. The second կ, the fourth of its five letters, is printed upside down." caption="The word on the *Mshak* page, enlarged. The second կ was put into the stick upside down and printed that way. Most readers take the intended word and move on." >}}
+
+Take a look at the fourth letter ... there's something not quite right. What is that letter? If you think about it for a moment, you will realise that it's the same as the first letter, but rotated 180 degrees.
+
+This is something known as a *turned sort* and if you think about how printing used to be done, for each letter, the printer would take a piece of metal with a letter on one face (a *sort*) and insert it next to other letters to build up a page. And when a letter like կ is symmetrical, it's quite easy to accidentally put it in rotated.
+
+That's a slightly long-winded way of introducing today's topic. If one turned letter barely registers, then what is it that tells a reader that a whole page is upside down? If I show you a page of text that is upside down, I suspect it would take barely a moment for you to recognise that it is upside down. It certainly wouldn't take much thought. Your eyes and brain are rapidly analysing statistical patterns across the page. But the statistical patterns a reader of English (well Latin really) text relies on may not be the ones that an Armenian reader sees.
 
 [Last week]({{< relref "/articles/2026/10/2026-10-16-which-way-up.md" >}})
 we described how the Empire on Trial ingest works out which pages of a
@@ -28,11 +28,11 @@ them. Two measurements, no training data: which way the lines of text
 run, and, for a page whose lines run down the image, which way is up. The
 second leant on a fact about Latin script, that ascenders, capitals, dots
 and bars put more ink above the body of a line than descenders put below
-it. We said plainly that we had not measured whether Armenian behaves the
+it. We commented that we had not measured whether Armenian behaves the
 same way, and that for the archives Tetrak was built for this half of the
-method was a thing to test before trusting. We have now tested it. This
-is what we found, including two things about the method itself that the
-Latin pages had hidden.
+method was something to test before applying the same rule everywhere.
+We have now tested it. This is what we found, including some problems
+with our original method that the Latin pages had hidden.
 
 ## What we measured, and on what
 
@@ -62,8 +62,9 @@ turned ones, and ask whether a line can be drawn between them.
 
 ## The up-share on Armenian
 
-It cannot. On Armenian print the share of a line's outer ink lying above
-the line sits close to a half whichever way up the page is. Upright pages
+It cannot. Armenian print is remarkably symmetrical vertically.
+The share of a line's outer ink lying above the line sits close to
+a half whichever way up the page is. Upright pages
 lean a little above a half and half-turned pages a little below, but the
 lean is a few hundredths where the Latin pages lean by a quarter, and the
 two distributions overlap broadly: a good many upright pages score below
@@ -106,7 +107,7 @@ finder accepted two. What survived was the handful of lines that happened
 to read as one hump, which is to say short lines, headings and folios,
 and the up-share was being computed on those.
 
-The uncomfortable part is that the article's safeguard did not catch it.
+Unfortunately, the article's safeguard did not catch it.
 We had written that the upright and half-turned readings must mirror, and
 on these pages they did, closely. The finder was not biased towards one
 side of the line. It was biased towards a subset of the lines, and a
@@ -155,11 +156,11 @@ is in the script it reports, which is Latin, Arabic or Cyrillic and never
 Armenian, because Armenian is not among the scripts the detector was
 trained on. It is judging Armenian letters by how well they resemble the
 letters of other scripts in each of four orientations, and an Armenian
-page, it turns out, resembles Latin or Arabic print rather better on its
-head. The one register it read perfectly was the bilingual dictionary,
-from the English half of each page. On the Empire on Trial manuscripts,
-which the earlier article had declined to trust it on, it was wrong on
-almost every frame and reported the hand as Japanese.
+page, it turns out, resembles Latin or Arabic print rather better when
+upside down. The one register it read perfectly was the bilingual
+dictionary, from the English half of each page. On the Empire on Trial
+manuscripts, which the earlier article had declined to trust it on, it
+was wrong on almost every frame and reported the hand as Japanese.
 
 One could invert its Armenian answer and be right about four times in
 five. That would be leaning on an accident of a model trained for other
@@ -205,7 +206,8 @@ bilingual page.
 So the picture is the mirror image of where we started. The up-share
 reads Latin, in manuscript and in print, and reads nothing in Armenian.
 The concavity share reads Armenian print and reads nothing reliable in
-Latin. Neither is a measure of writing; each is a measure of a script.
+Latin. Neither is a measure of writing in a general sense;
+each is a measure of a specific script.
 The useful direction has to be learned per script, as Aradhye said, and
 so, it turns out, does the useful measure.
 
