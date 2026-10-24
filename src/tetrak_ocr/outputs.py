@@ -165,11 +165,20 @@ def write(name: str, source: Path, transcript: str, destination_dir: Path, **opt
     source whose own extension is also an output format can hit this, which
     today means PDF alone.
     """
-    key = canonical(name)
-    ext, writer, _ = _FORMATS[key]
+    ext = extension(name)
     stem = source.stem
     if ext == source.suffix.lower():
         stem = f"{stem}.searchable"
-    destination = destination_dir / f"{stem}{ext}"
+    return write_to(name, source, transcript, destination_dir / f"{stem}{ext}", **options)
+
+
+def write_to(name: str, source: Path, transcript: str, destination: Path, **options) -> Path:
+    """Write *transcript* in format *name* to exactly *destination*.
+
+    For a caller that has named the file -- `ocr --output` with one format.
+    No stem rule and no collision guard apply: the name was chosen, and a
+    chosen name is honoured whatever its extension says.
+    """
+    _, writer, _ = _FORMATS[canonical(name)]
     writer(source, transcript, destination, **options)
     return destination

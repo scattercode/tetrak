@@ -340,3 +340,97 @@ class TestOcrSubcommandSpans:
         assert seen["page_spans"] is None
         assert (tmp_path / "scan.txt").read_text() == "hello\n"
         assert "hello" in capsys.readouterr().out
+
+
+class TestOutputWithFormat:
+    """`--output` with `--format` names the one file, or is refused.
+
+    It used to write every format beside the source and then the bare
+    transcript to the named path whatever its extension -- `--format pdf
+    --output out.pdf` produced a text file called out.pdf that looked like
+    it had worked.
+    """
+
+    @staticmethod
+    def scan(tmp_path):
+        from PIL import Image
+
+        img = tmp_path / "scan.png"
+        Image.new("RGB", (120, 40), "white").save(img)
+        return img
+
+    @staticmethod
+    def backend(monkeypatch: pytest.MonkeyPatch, text: str = "hello") -> dict:
+        calls = {"n": 0}
+
+        def ocr(path):
+            calls["n"] += 1
+            return text
+
+        monkeypatch.setattr(batch, "build_ocr_fn", lambda *a, **k: ocr)
+        return calls
+
+    def test_one_format_goes_to_the_named_file(
+        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture, tmp_path
+    ) -> None:
+        img = self.scan(tmp_path)
+        self.backend(monkeypatch)
+        out = tmp_path / "elsewhere" / "catalogue.pdf"
+        out.parent.mkdir()
+
+        assert cli.main(["ocr", str(img), "--format", "pdf", "--output", str(out)]) == 0
+
+        assert out.read_bytes().startswith(b"%PDF"), "a PDF, not the transcript as text"
+        assert not (tmp_path / "scan.pdf").exists(), "nothing written beside the source"
+        assert capsys.readouterr().out == "", "--output keeps stdout quiet"
+
+    def test_the_text_format_is_the_text_writer_not_the_bare_transcript(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path
+    ) -> None:
+        img = self.scan(tmp_path)
+        self.backend(monkeypatch)
+        out = tmp_path / "transcript.txt"
+
+        assert cli.main(["ocr", str(img), "--format", "text", "--output", str(out)]) == 0
+
+        assert out.read_text(encoding="utf-8") == "hello\n"
+        assert not (tmp_path / "scan.txt").exists()
+
+    def test_the_bare_pdf_flag_counts_as_the_one_format(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path
+    ) -> None:
+        img = self.scan(tmp_path)
+        self.backend(monkeypatch)
+        out = tmp_path / "named.pdf"
+
+        assert cli.main(["ocr", str(img), "--pdf", "--output", str(out)]) == 0
+
+        assert out.read_bytes().startswith(b"%PDF")
+        assert not (tmp_path / "scan.pdf").exists()
+
+    def test_several_formats_are_refused_before_the_ocr_runs(
+        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture, tmp_path
+    ) -> None:
+        img = self.scan(tmp_path)
+        calls = self.backend(monkeypatch)
+        out = tmp_path / "out"
+
+        assert cli.main(["ocr", str(img), "--format", "text,pdf", "--output", str(out)]) == 2
+
+        err = capsys.readouterr().err
+        assert "--output" in err and "text, pdf" in err
+        assert calls["n"] == 0, "refused before paying for the OCR"
+        assert not out.exists()
+        assert not (tmp_path / "scan.txt").exists() and not (tmp_path / "scan.pdf").exists()
+
+    def test_output_alone_still_writes_the_bare_transcript(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path
+    ) -> None:
+        """The pre-existing contract, unchanged: no format, no formatting."""
+        img = self.scan(tmp_path)
+        self.backend(monkeypatch)
+        out = tmp_path / "anything.pdf"
+
+        assert cli.main(["ocr", str(img), "--output", str(out)]) == 0
+
+        assert out.read_text(encoding="utf-8") == "hello"
