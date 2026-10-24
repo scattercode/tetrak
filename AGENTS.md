@@ -83,6 +83,7 @@ tetrak-ocr backends                          # what is installed, and what each 
 tetrak-ocr ocr <path> --backend tesseract-auto
 tetrak-ocr batch --backend auto-local        # workspace/: scans/ → processed/, failures to triage/
 tetrak-ocr evaluate --all --save             # → evaluation/ocr/benchmark.{csv,md} + runs/
+python -m evaluation.ocr.reading_order --save  # → evaluation/ocr/reading_order.{csv,md}: column-aware order vs a positioned layer's
 
 pytest -m "not slow"                           # the fast loop; what CI gates on
 pytest                                         # adds the corpus-backed threshold tests

@@ -743,3 +743,41 @@ test("the summary view carries both metrics and derives its register count", asy
     `${registerCount} evaluation registers`,
   );
 });
+
+test("the reading-order table agrees with the CSV it is generated from", async ({ page }) => {
+  // Same discipline as the register tables: the research page argues from
+  // these cells, so the rendered numbers must be the harness's, not a copy.
+  const csv = readFileSync(join("..", "evaluation", "ocr", "reading_order.csv"), "utf8")
+    .trim()
+    .split(/\r?\n/)
+    .map((line) => line.split(","));
+  const header = csv[0];
+  const means = csv.slice(1).filter((row) => row[0] === "mean" && row[2] === "multi-column");
+  const strategies = ["engine", "linesort", "column", "transcript"];
+  expect(means.length).toBeGreaterThan(0);
+
+  await page.goto("research/in-depth/");
+  const table = page.locator("table.benchmark--reading-order").first();
+  await expect(table).toBeVisible();
+  await expect(table.locator("thead th")).toHaveCount(strategies.length + 1);
+  await expect(table.locator("tbody tr")).toHaveCount(means.length);
+
+  for (const [index, row] of means.entries()) {
+    const tr = table.locator("tbody tr").nth(index);
+    await expect(tr.locator("th")).toHaveText(row[1]);
+    for (const [column, strategy] of strategies.entries()) {
+      const expected = Number(row[header.indexOf(`${strategy}_chr`)]).toFixed(3);
+      await expect(tr.locator("td").nth(column)).toHaveText(expected);
+    }
+    // Every cell marked best carries the row's maximum. Ties are real here:
+    // easyocr and paddle ship engine order as their transcript, so those two
+    // columns are the same text and the same score.
+    const values = strategies.map((strategy) => Number(row[header.indexOf(`${strategy}_chr`)]));
+    const best = Math.max(...values).toFixed(3);
+    const marked = tr.locator(".is-best");
+    await expect(marked.first()).toHaveText(best);
+    for (let n = 0; n < (await marked.count()); n++) {
+      await expect(marked.nth(n)).toHaveText(best);
+    }
+  }
+});

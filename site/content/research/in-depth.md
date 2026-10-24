@@ -160,6 +160,73 @@ full-text search it is adequate. Which number matters depends on whether you are
 building a reading edition or a search index, and that is your question rather
 than ours — which is why we never collapse the two into one score.
 
+### Column-aware ordering closes most of that gap
+
+Brief 008 measured the obvious construction for a positioned text layer —
+each word's text laid invisibly over the word — and dropped it from the
+searchable PDF. A layer like that reads back top to bottom across the page,
+so on the two *Inside Facts* pages it scored a fraction of the plain
+transcript. ALTO and hOCR are positioned by definition, which made the next
+question whether the column-aware pass in `tetrak_ocr.layout`, built for
+two-column Armenian pages, undoes that interleaving on this corpus.
+
+It was measured on the same boxes rather than by re-running anything. The
+engines that compute a box per region — Vision, EasyOCR, PaddleOCR and the
+Armenian recogniser — now carry those boxes out with the transcript, and
+[`evaluation/ocr/reading_order.py`](https://github.com/scattercode/tetrak/blob/main/evaluation/ocr/reading_order.py)
+serialises one set of spans four ways: as the engine reported them, sorted
+into lines with no column awareness (what a positioned layer reads back as),
+through the column-aware pass, and the plain transcript the backend ships.
+Each is scored against the ground truth. Word recall is identical across
+the first three by construction, which is the check that the pass reorders
+text rather than losing any; it is in the CSV beside every score.
+
+{{< reading-order >}}
+
+On the three multi-column fixtures the column-aware order lifts EasyOCR and
+PaddleOCR from the line sort's interleaving to the best local reading order
+measured on those pages. The `easyocr` and `paddle` columns of the benchmark
+above do not show it, because both backends still ship engine order as
+their transcript — the gain is available to a positioned writer now, and to
+the transcripts as a separate, measured change.
+
+Vision is the exception, and an instructive one. It groups text before it
+returns it, so its engine order is already well ahead of the line sort, and
+on the *Inside Facts* cover the pass makes it worse: the cut finds a column
+boundary in a masthead that reads straight across. Its transcript column
+also trails the column-aware one, because the backend passes its own,
+coarser line tolerance rather than the layout module's adaptive default;
+that is a second measured change waiting to be made.
+
+{{< tabs >}}
+{{< tab "PaddleOCR" >}}
+{{< reading-order view="full" backend="paddle" >}}
+{{< /tab >}}
+{{< tab "EasyOCR" >}}
+{{< reading-order view="full" backend="easyocr" >}}
+{{< /tab >}}
+{{< tab "Vision" >}}
+{{< reading-order view="full" backend="vision" >}}
+{{< /tab >}}
+{{< /tabs >}}
+
+The control matters as much as the result. On the single-column fixtures
+the pass is close to neutral on average and a little behind the plain line
+sort, and on a few pages it costs more than a little: the postcard reverse,
+whose message and address sides it reads as columns, and the triptych
+postcard, whose three captions it reads down rather than across. Those are
+pages with side-by-side regions that are not columns, and a cut that cannot
+tell the difference is what would have to change before the pass is applied
+to every transcript unconditionally.
+
+For positioned output the verdict is that the ordering is good enough to
+ship. ALTO and hOCR are consumed by coordinate, so the order governs only
+the text stream a reader or an indexer extracts, and on the pages where that
+order matters the pass gains far more than it loses on the pages where it
+does not. A positioned writer should apply it. What the cut needs next is a
+guard for pages without columns, measured on the control set here, and that
+is the prerequisite for the plain transcripts to take the same route.
+
 ### Tuning beat switching
 
 `tesseract-auto` averages 0.41/0.63, ahead of EasyOCR at 0.35/0.60 — a
@@ -553,6 +620,10 @@ little else.
 - **Nothing here generalises beyond archival print** of this era, condition and
   script. Whether the pipeline works on other scripts is untested — an open
   Armenian Tesseract model exists and would make the cheapest first experiment.
+- **The column-aware pass is measured but not applied to the EasyOCR and
+  PaddleOCR transcripts.** It would lift both on newsprint and cost a little on
+  pages with side-by-side regions that are not columns; a guard for those,
+  scored on the single-column control, is the prerequisite.
 
 ## Reproducing all of this
 

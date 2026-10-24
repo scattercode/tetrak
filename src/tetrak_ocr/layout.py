@@ -19,7 +19,10 @@ reading order than the plain transcript, badly so on multi-column pages, and
 that is what a screen reader announces. See brief 008 (searchable PDF). The
 boxes become load-bearing at ALTO/hOCR, where coordinates are the whole
 point, which is why the spans now travel with the transcript rather than
-being thrown away at the backend's boundary.
+being thrown away at the backend's boundary. Whether :func:`reading_order`
+is good enough to carry a positioned output is a measured question:
+``evaluation/ocr/reading_order.py`` scores it against the line order a
+positioned layer reads back as, per backend and fixture.
 
 Standard library only, so the fast tests can use it with no OCR stack
 installed.

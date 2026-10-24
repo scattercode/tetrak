@@ -1,0 +1,15 @@
+{{- /*
+  The reading-order table, read from evaluation/ocr/reading_order.csv at
+  build time. The markup is in partials/reading-order.html.
+
+  Usage:
+    {{< reading-order >}}                          mean per backend over the multi-column fixtures
+    {{< reading-order view="full" backend="paddle" >}}   every raster fixture for one backend
+    {{< reading-order metric="wrd" >}}             word recall instead of character similarity
+    {{< reading-order bold-best="false" >}}        without the best-in-row marking
+*/ -}}
+{{- partial "reading-order.html" (dict
+      "view" (.Get "view")
+      "backend" (.Get "backend")
+      "metric" (.Get "metric")
+      "boldBest" (ne (.Get "bold-best") "false")) -}}

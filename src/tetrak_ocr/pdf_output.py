@@ -29,6 +29,11 @@ transcript wins. Per-word boxes become load-bearing at ALTO/hOCR, where
 coordinates are the point rather than a side effect. See
 brief 008 (searchable PDF).
 
+Whether the column-aware pass in :mod:`tetrak_ocr.layout` closes that gap
+is measured by ``evaluation/ocr/reading_order.py``, per backend and per
+fixture, beside the figures above: the same spans scored in line order and
+in column-aware order, against the plain transcript.
+
 The consequence worth knowing: the text layer is byte-identical to the sidecar,
 and selecting text in a viewer will not align with the words on the page.
 """
