@@ -41,15 +41,41 @@ def _cmd_ocr(args: argparse.Namespace) -> int:
     ocr = build_ocr_fn(args.backend, args.contrast, args.psm, args.auto, args.with_paddle_vl)
     path = Path(args.path)
 
+    # `--pdf PATH` names its own destination, so it stays on the direct route
+    # rather than going through the format table, which writes beside the
+    # source under the source's stem.
+    explicit_pdf_path = args.pdf if isinstance(args.pdf, str) else None
+
+    # Unlike `batch`, this subcommand writes nothing unless asked: its default
+    # output is stdout. So formats are only those explicitly requested, rather
+    # than outputs.parse's default of Markdown.
+    requested = outputs.parse(args.formats) if args.formats else []
+    if explicit_pdf_path is None and (args.pdf or args.pdf_full_size or args.pdf_font):
+        if "pdf" not in requested:
+            requested = [*requested, "pdf"]
+
+    # `--output` names one file. With one format asked for, it names that
+    # format's file; with several there is no honest reading of it, so the
+    # combination is refused -- here, before the OCR runs. It used to write
+    # every format beside the source and then the bare transcript to the
+    # named path, whatever its extension: a text file called out.pdf, which
+    # looked like it had worked.
+    if args.output and len(requested) > 1:
+        print(
+            f"error: --output names one file, but --format asks for {len(requested)}: "
+            f"{', '.join(requested)}. Name one format, or drop --output and the files "
+            f"are written beside {path.name}.",
+            file=sys.stderr,
+        )
+        return 2
+
     # Same rule as `batch`: a multi-page searchable PDF needs a transcript per
     # page, and nothing else does, so only that case pays for the per-page
     # pass. `--output`/stdout get the pages joined.
     from .batch import transcribe_per_page
     from .imaging import page_count
 
-    wants_pdf = bool(args.formats and "pdf" in outputs.parse(args.formats)) or bool(
-        args.pdf or args.pdf_full_size or args.pdf_font
-    )
+    wants_pdf = explicit_pdf_path is not None or "pdf" in requested
     # Spans come off the transcript before anything strips or joins it, as
     # in `batch.process_file`: a string operation returns a plain str.
     page_transcripts = None
@@ -63,10 +89,6 @@ def _cmd_ocr(args: argparse.Namespace) -> int:
         text = ocr(path)
         spans = spans_of(text)
 
-    # `--pdf PATH` names its own destination, so it stays on the direct route
-    # rather than going through the format table, which writes beside the
-    # source under the source's stem.
-    explicit_pdf_path = args.pdf if isinstance(args.pdf, str) else None
     if explicit_pdf_path is not None:
         from .pdf_output import searchable_pdf_for
 
@@ -81,26 +103,23 @@ def _cmd_ocr(args: argparse.Namespace) -> int:
         )
         print(f"Wrote {destination}", file=sys.stderr)
 
-    # Unlike `batch`, this subcommand writes nothing unless asked: its default
-    # output is stdout. So formats are only those explicitly requested, rather
-    # than outputs.parse's default of Markdown.
-    requested = outputs.parse(args.formats) if args.formats else []
-    if explicit_pdf_path is None and (args.pdf or args.pdf_full_size or args.pdf_font):
-        if "pdf" not in requested:
-            requested = [*requested, "pdf"]
+    options = dict(
+        page_transcripts=page_transcripts,
+        spans=spans,
+        page_spans=page_spans,
+        pdf_full_size=args.pdf_full_size,
+        pdf_font=args.pdf_font,
+    )
+
+    if args.output and requested:
+        # One format, one named file: the file is that format, written where
+        # it was asked for, and stdout stays quiet as it does for --output.
+        written = outputs.write_to(requested[0], path, text, Path(args.output), **options)
+        print(f"Wrote {written}", file=sys.stderr)
+        return 0
 
     for name in requested:
-        written = outputs.write(
-            name,
-            path,
-            text,
-            path.parent,
-            page_transcripts=page_transcripts,
-            spans=spans,
-            page_spans=page_spans,
-            pdf_full_size=args.pdf_full_size,
-            pdf_font=args.pdf_font,
-        )
+        written = outputs.write(name, path, text, path.parent, **options)
         print(f"Wrote {written}", file=sys.stderr)
 
     if args.output:

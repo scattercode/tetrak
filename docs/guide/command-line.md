@@ -53,13 +53,19 @@ you would rather not choose.
 
 `--format` and the `--pdf` flags, described under [output formats](#output-formats)
 below, write files beside the source under its stem and leave stdout alone.
-`--pdf` here takes an optional path, so a single file can be named rather than
-placed:
+With one format, `--output` names that file instead; with more than one
+there is no single file to name, so the combination is refused. `--pdf`
+also takes an optional path, so a PDF can be named either way:
 
 ```bash
 tetrak-ocr ocr scan.jpg --pdf                       # scan.pdf beside it
 tetrak-ocr ocr scan.jpg --pdf catalogue-ready.pdf   # or name it
+tetrak-ocr ocr scan.jpg --format pdf --output catalogue-ready.pdf   # the same
+tetrak-ocr ocr scan.jpg --format text --output transcript.txt
 ```
+
+Without `--format`, `--output` writes the bare transcript, whatever the
+file is called.
 
 ## `tetrak-ocr batch`
 

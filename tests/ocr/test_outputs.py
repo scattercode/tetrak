@@ -109,3 +109,14 @@ class TestWriting:
 
         assert md.read_text(encoding="utf-8") == "# postcard\n\nsome words\n"
         assert txt.read_text(encoding="utf-8") == "some words\n"
+
+    def test_write_to_honours_the_name_it_is_given(self, tmp_path: Path) -> None:
+        """No stem rule and no collision guard: the caller chose the name."""
+        source = tmp_path / "postcard.jpg"
+        source.touch()
+        chosen = tmp_path / "elsewhere.name"
+
+        written = outputs.write_to("markdown", source, "some words", chosen)
+
+        assert written == chosen
+        assert chosen.read_text(encoding="utf-8") == "# postcard\n\nsome words\n"
