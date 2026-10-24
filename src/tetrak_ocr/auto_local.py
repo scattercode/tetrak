@@ -14,6 +14,12 @@ result.  The same gate is available for any single backend via
 per-backend score table, which is what makes the triage manifest worth
 reading.
 
+The gate reads English, and only English, so it is skipped -- with a message,
+and `last_choice` saying so -- when the winning transcript is not in the
+Latin script. It used to be applied regardless, and a well-read Armenian
+page scored near zero and went to triage on every run; `--quality-gate`
+had the guard and this gate did not.
+
 Backend eligibility:
 
   GPU available + Marker installed:
@@ -72,7 +78,12 @@ from .backends.tesseract import (  # noqa: F401
 from .backends.tesseract import (
     ocr_image as _tesseract_ocr,
 )
-from .qa_score import MIN_QUALITY_THRESHOLD, LowQualityError, combined_score
+from .qa_score import (
+    MIN_QUALITY_THRESHOLD,
+    LowQualityError,
+    combined_score,
+    scores_english_text,
+)
 
 
 def has_gpu() -> bool:
@@ -167,10 +178,13 @@ if _EASYOCR_AVAILABLE:
 # constant's reach.
 LENGTH_WEIGHT = 0.8
 
-# The engine the last call chose and its raw quality score, as
-# {"engine": name, "quality": score}, or None before the first call or when
-# every backend failed. Set on a triaged file too, since the choice was made
-# before the gate rejected it. The batch manifest reads it: `ocr_image` returns
+# The engine the last call chose, its raw quality score and what the gate
+# made of it, as {"engine": name, "quality": score, "quality_gate": verdict},
+# or None before the first call or when every backend failed. The verdict is
+# "passed", or "skipped" for a transcript the English-only score cannot
+# judge, in which case the score is None: it was computed, and means
+# nothing. Set on a triaged file too, since the choice was made before the
+# gate rejected it. The batch manifest reads it: `ocr_image` returns
 # a transcript alone, by the fixed backend contract, so the choice has no other
 # way out. Process-global like the telemetry sink, and for the same reason;
 # the fan-out is sequential, so there is no concurrent caller to confuse.
@@ -296,7 +310,9 @@ def ocr_image(path: "Path | str", with_paddle_vl: bool = False) -> str:
     Raises:
         LowQualityError: If the winning combined score falls below
             MIN_QUALITY_THRESHOLD.  The exception carries .scores and
-            .transcripts dicts for triage queue reporting.
+            .transcripts dicts for triage queue reporting. Not raised for
+            a winning transcript outside the Latin script, which the score
+            cannot judge: that is returned with the gate skipped.
     """
     global last_choice
     last_choice = None
@@ -360,7 +376,20 @@ def ocr_image(path: "Path | str", with_paddle_vl: bool = False) -> str:
     # Use the raw combined_score for the quality threshold — the triage gate
     # should reflect output quality, not quality × length.
     best_raw_score = scores[best_name]
-    last_choice = {"engine": best_name, "quality": best_raw_score}
+    last_choice = {"engine": best_name, "quality": best_raw_score, "quality_gate": "passed"}
+
+    # The same guard `batch --quality-gate` applies, for the same reason: the
+    # metrics are English-only, so a transcript in another script scores 0.0
+    # however well it was read, and gating on that sent every Armenian page
+    # to triage while reporting each as poor quality.
+    if not scores_english_text(transcripts[best_name]):
+        last_choice.update(quality=None, quality_gate="skipped")
+        print(
+            f"    [auto-local → {best_name}]  quality gate skipped: this transcript is "
+            "not in the Latin script, and the score would be 0.0 whatever its quality",
+            file=sys.stderr,
+        )
+        return transcripts[best_name]
 
     if best_raw_score < MIN_QUALITY_THRESHOLD:
         raise LowQualityError(

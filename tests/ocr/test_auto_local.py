@@ -509,3 +509,50 @@ class TestSpansPassThrough:
 
         assert result == "the good transcript"
         assert spans_of(result) == spans
+
+
+class TestTheGateOnlyJudgesWhatItCanRead:
+    """The gate's score is English-only, so it must not judge another script.
+
+    It did: `--quality-gate` had the guard and this gate did not, and a
+    well-read Armenian page scored near zero and went to triage on every run.
+    """
+
+    ARMENIAN = "Կիկոսի մահը\nՀովհաննես Թումանյան"
+
+    def arrange(self, monkeypatch: pytest.MonkeyPatch, winner: str, score: float) -> None:
+        monkeypatch.setattr(auto_local, "_paddle_ocr", lambda p: winner)
+        monkeypatch.setattr(auto_local, "_tesseract_ocr", lambda p, **kw: "")
+        monkeypatch.setattr(auto_local, "combined_score", lambda text: score if text else 0.0)
+
+    def test_a_non_latin_winner_is_returned_with_the_gate_skipped(
+        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+    ) -> None:
+        self.arrange(monkeypatch, self.ARMENIAN, score=0.0502)
+
+        assert auto_local.ocr_image(Path("page.jpg")) == self.ARMENIAN
+
+        assert "quality gate skipped" in capsys.readouterr().err
+        assert auto_local.last_choice == {
+            "engine": "paddle",
+            "quality": None,
+            "quality_gate": "skipped",
+        }
+
+    def test_a_poor_latin_winner_is_still_triaged(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """The guard is for another script, not for poor English."""
+        self.arrange(monkeypatch, "ISIDE FACTS", score=0.0502)
+
+        with pytest.raises(LowQualityError):
+            auto_local.ocr_image(Path("page.jpg"))
+
+    def test_a_good_latin_winner_records_a_pass(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        self.arrange(monkeypatch, "Inside Facts of Stage and Screen", score=0.4)
+
+        auto_local.ocr_image(Path("page.jpg"))
+
+        assert auto_local.last_choice == {
+            "engine": "paddle",
+            "quality": 0.4,
+            "quality_gate": "passed",
+        }

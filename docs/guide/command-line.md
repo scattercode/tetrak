@@ -116,7 +116,8 @@ The scoring reads English, and only English: it counts recognised English
 words and measures GPT-2 perplexity. A transcript in another script would
 score 0.0 however well it was read, so the gate is **skipped, with a message,
 for transcripts that are not in the Latin script** rather than sending a
-whole Armenian run to triage.
+whole Armenian run to triage. `auto-local`'s own gate applies the same rule
+to its winning transcript, and the manifest records `skipped` either way.
 
 ### The run log
 

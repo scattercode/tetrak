@@ -162,6 +162,28 @@ class TestAutoLocal:
         assert (row["backend"], row["engine"]) == ("auto-local", "vision")
         assert (row["quality"], row["quality_gate"]) == ("0.2187", "passed")
 
+    def test_a_winner_the_gate_could_not_judge(self, working_dirs, manifest_path, monkeypatch):
+        """auto-local skips its gate for a transcript outside the Latin script,
+        and the manifest must say so rather than claiming the gate passed."""
+        (working_dirs["scans"] / "page.png").touch()
+
+        def ocr(path):
+            auto_local.last_choice = {
+                "engine": "vision",
+                "quality": None,
+                "quality_gate": "skipped",
+            }
+            return "Կիկոսի մահը"
+
+        monkeypatch.setattr(batch, "build_ocr_fn", lambda *a, **k: ocr)
+
+        run_batch(["--backend", "auto-local", "--manifest", "--no-telemetry"])
+
+        (row,) = _rows(manifest_path)
+        assert (row["status"], row["engine"]) == ("processed", "vision")
+        assert (row["quality"], row["quality_gate"]) == ("", "skipped")
+        assert row["transcript"] == "Կիկոսի մահը"
+
     def test_a_file_no_engine_could_read(self, working_dirs, manifest_path, monkeypatch):
         (working_dirs["scans"] / "ruined.jpg").touch()
 

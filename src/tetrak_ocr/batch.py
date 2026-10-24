@@ -347,7 +347,10 @@ def process_file(
         raise
 
     if auto_local:
-        reading.update(_auto_local_choice(), quality_gate="passed")
+        # auto-local says whether its gate passed or was skipped for a
+        # transcript outside the Latin script; "passed" is only the default
+        # for an older last_choice that does not say.
+        reading.update({"quality_gate": "passed"} | _auto_local_choice())
 
     if quality_gate:
         from .qa_score import MIN_QUALITY_THRESHOLD, combined_score, scores_english_text
