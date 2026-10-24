@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.18.0] - 2026-10-24
+
+### Changed
+
+- Article on measuring the Armenian fold release by release (#73)
+- Bump transitive npm dependencies flagged by Dependabot (#74)
+- Follow-up article on page orientation for Armenian (#75)
+- Link Empire on Trial to the Armenian Institute project page (#76)
+- Carry positioned spans out of the backends and measure their reading order (#77)
+
 ## [5.17.0] - 2026-10-16
 
 ### Added
