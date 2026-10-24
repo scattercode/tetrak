@@ -22,7 +22,9 @@ This is something known as a *turned sort* and if you think about how printing u
 That's a slightly long-winded way of introducing today's topic. If one turned letter barely registers, then what is it that tells a reader that a whole page is upside down? If I show you a page of text that is upside down, I suspect it would take barely a moment for you to recognise that it is upside down. It certainly wouldn't take much thought. Your eyes and brain are rapidly analysing statistical patterns across the page. But the statistical patterns a reader of English (well Latin really) text relies on may not be the ones that an Armenian reader sees.
 
 [Last week]({{< relref "/articles/2026/10/2026-10-16-which-way-up.md" >}})
-we described how the Empire on Trial ingest works out which pages of a
+we described how the
+[Empire on Trial](https://www.armenianinstitute.org.uk/empire-on-trial-rafael-x-verelest)
+ingest works out which pages of a
 microfilmed archive were filmed on their side, and which way to turn
 them. Two measurements, no training data: which way the lines of text
 run, and, for a page whose lines run down the image, which way is up. The
@@ -269,3 +271,11 @@ half-turned copies, are the test set for it.
   [Improving the quality of the output](https://tesseract-ocr.github.io/tessdoc/ImproveQuality.html),
   which lists the page segmentation modes, including mode 0, orientation
   and script detection only.
+- Armenian Institute,
+  [*Empire on Trial: Rafael v. Verelst*](https://www.armenianinstitute.org.uk/empire-on-trial-rafael-x-verelest),
+  project page. The Institute's project to transcribe and publish the
+  papers of the suits that Armenian merchants of Bengal brought against
+  Harry Verelst, Governor of Bengal, in the 1770s, from the India Office
+  Records at the British Library. Its microfilm frames are the
+  manuscripts this article refers to, and its ingest is where the
+  method lives.

@@ -489,3 +489,14 @@ it will give the same answer tomorrow.
 - PaddleOCR documentation,
   [Text line orientation classification](https://www.paddleocr.ai/main/en/version3.x/module_usage/textline_orientation_classification.html),
   the trained classifier that PaddleOCR 3 runs on each detected line.
+
+### The archive
+
+- Armenian Institute,
+  [*Empire on Trial: Rafael v. Verelst*](https://www.armenianinstitute.org.uk/empire-on-trial-rafael-x-verelest),
+  project page. The Institute's project to transcribe and publish the
+  papers of the suits that Armenian merchants of Bengal brought against
+  Harry Verelst, Governor of Bengal, in the 1770s, from the India Office
+  Records at the British Library. The microfilm frames this article
+  works on are its source material, and the ingest described here is
+  the first step of that transcription.
