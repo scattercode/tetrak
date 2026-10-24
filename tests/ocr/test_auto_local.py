@@ -483,3 +483,29 @@ class TestPaddleVlOptIn:
         ]
         assert "paddle-vl" not in names
         assert names  # and the rest of the pool still runs
+
+
+class TestSpansPassThrough:
+    """The winner's transcript is returned as the backend produced it.
+
+    A backend with boxes returns a `Transcript`; nothing here knows or needs
+    to, and the spans reach the caller because the string is returned whole
+    rather than rebuilt.
+    """
+
+    def test_the_winners_spans_come_through(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        from tetrak_ocr.layout import TextSpan, Transcript, spans_of
+
+        spans = [TextSpan(text="the good transcript", bbox=(0.0, 0.0, 10.0, 10.0))]
+        monkeypatch.setattr(
+            auto_local, "_paddle_ocr", lambda p: Transcript("the good transcript", spans)
+        )
+        monkeypatch.setattr(auto_local, "_tesseract_ocr", lambda p, **kw: "the bad transcript")
+        monkeypatch.setattr(
+            auto_local, "combined_score", lambda text: 0.9 if "good" in text else 0.2
+        )
+
+        result = auto_local.ocr_image(Path("scan.jpg"))
+
+        assert result == "the good transcript"
+        assert spans_of(result) == spans

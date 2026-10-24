@@ -27,6 +27,7 @@ from pathlib import Path
 from PIL import Image
 
 from ..imaging import reject_multi_page
+from ..layout import TextSpan, Transcript, polygon_extent
 
 try:
     import easyocr
@@ -68,7 +69,9 @@ def ocr_image(path: Path) -> str:
         path: Path to the image file.
 
     Returns:
-        Extracted text as a single string, one recognised region per line.
+        Extracted text as a single string, one recognised region per line --
+        a :class:`~tetrak_ocr.layout.Transcript` carrying one span per
+        region, with the detector's box in pixels from the top-left corner.
 
     Raises:
         ValueError: If the file extension is not supported.
@@ -100,8 +103,31 @@ def ocr_image(path: Path) -> str:
         image_input = str(path)
 
     reader = _get_reader()
-    results = reader.readtext(image_input, detail=0, paragraph=False)
-    return "\n".join(results)
+    results = reader.readtext(image_input, detail=1, paragraph=False)
+    return _transcript(results)
+
+
+def _transcript(results) -> Transcript:
+    """The text this backend has always returned, now carrying its boxes.
+
+    ``detail=0`` returned the recognised texts alone, in detector order.
+    ``detail=1`` returns the same texts in the same order, each beside the
+    region's four-point polygon and its confidence -- EasyOCR builds the
+    detailed result either way and strips it for ``detail=0``. Joining the
+    texts is therefore byte-identical to what this backend wrote before, so
+    the benchmark column does not move, and the geometry that was being
+    thrown away rides along as spans.
+    """
+    spans = [
+        TextSpan(
+            text=text,
+            bbox=polygon_extent(box),
+            # EasyOCR reports 0-1; TextSpan documents 0-100.
+            confidence=float(confidence) * 100,
+        )
+        for box, text, confidence in results
+    ]
+    return Transcript("\n".join(span.text for span in spans), spans)
 
 
 if __name__ == "__main__":

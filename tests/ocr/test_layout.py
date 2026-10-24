@@ -5,10 +5,13 @@ Fast: this is geometry and sorting, with no OCR anywhere near it.
 
 from tetrak_ocr.layout import (
     TextSpan,
+    Transcript,
     dehyphenate,
     find_gutter,
     group_lines,
+    polygon_extent,
     reading_order,
+    spans_of,
     to_text,
     xy_cut_lines,
 )
@@ -394,3 +397,67 @@ def test_to_text_rejoins_but_reading_order_cannot() -> None:
 
     assert to_text(spans) == "Արագածոտն"
     assert [s.text for s in reading_order(spans)] == ["Արագա-", "ծոտն"]
+
+
+class TestTranscript:
+    """The carrier that lets a backend keep its boxes behind a `-> str` contract."""
+
+    def test_it_is_the_string_it_carries(self) -> None:
+        transcript = Transcript("hello\nworld", [span("hello", 10, 50), span("world", 10, 80)])
+
+        assert transcript == "hello\nworld"
+        assert isinstance(transcript, str)
+        assert transcript.splitlines() == ["hello", "world"]
+        assert len(transcript) == len("hello\nworld")
+
+    def test_spans_of_returns_what_the_backend_computed(self) -> None:
+        spans = [span("hello", 10, 50)]
+        assert spans_of(Transcript("hello", spans)) == spans
+
+    def test_a_plain_string_has_no_spans(self) -> None:
+        """A backend without boxes returns a str; the caller sees None, not an error."""
+        assert spans_of("hello") is None
+
+    def test_no_regions_is_an_empty_list_not_none(self) -> None:
+        """The engine ran and found nothing -- a different answer from 'cannot say'."""
+        assert spans_of(Transcript("")) == []
+
+    def test_string_operations_return_a_plain_str(self) -> None:
+        """The trap the docstring warns of, pinned so it stays documented: the
+        callers take the spans off before stripping or joining."""
+        transcript = Transcript("  hello  ", [span("hello", 10, 50)])
+
+        assert spans_of(transcript.strip()) is None
+        assert spans_of("\n\n".join([transcript, transcript])) is None
+
+    def test_spans_are_copied_out(self) -> None:
+        """One writer sorting its list must not reorder the next writer's."""
+        transcript = Transcript("b\na", [span("b", 10, 80), span("a", 10, 50)])
+
+        spans_of(transcript).reverse()
+
+        assert [s.text for s in spans_of(transcript)] == ["b", "a"]
+
+    def test_the_text_need_not_pair_with_the_spans(self) -> None:
+        """to_text rejoins a word hyphenated across two spans, so the text is
+        the transcript and the spans are the geometry -- two things, not one
+        list in two shapes."""
+        spans = [span("trans-", 10, 50), span("cript", 10, 80)]
+
+        transcript = Transcript(to_text(spans), spans)
+
+        assert transcript == "transcript"
+        assert len(spans_of(transcript)) == 2
+
+
+class TestPolygonExtent:
+    def test_an_upright_box_is_its_own_extent(self) -> None:
+        assert polygon_extent([[5, 7], [25, 7], [25, 27], [5, 27]]) == (5.0, 7.0, 25.0, 27.0)
+
+    def test_a_skewed_polygon_takes_its_outer_edges(self) -> None:
+        """A slanted line's polygon leans; the box is the smallest upright one around it."""
+        assert polygon_extent([[10, 0], [30, 4], [28, 14], [8, 10]]) == (8.0, 0.0, 30.0, 14.0)
+
+    def test_the_result_is_floats_whatever_was_given(self) -> None:
+        """Detectors report integer pixels; everything downstream does float arithmetic."""
+        assert all(isinstance(v, float) for v in polygon_extent(((1, 2), (3, 4))))

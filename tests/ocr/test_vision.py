@@ -18,6 +18,7 @@ from pathlib import Path
 import pytest
 
 from tetrak_ocr.backends import vision
+from tetrak_ocr.layout import spans_of
 
 pytestmark = pytest.mark.skipif(sys.platform != "darwin", reason="Vision is macOS-only")
 
@@ -109,3 +110,23 @@ class TestLanguages:
         complaint about Vision. If a future macOS adds it, this fails and the
         docstring needs revisiting."""
         assert not [c for c in vision.supported_languages() if c.startswith("hy")]
+
+
+class TestPositionedOutput:
+    """The boxes Vision reports leave the backend with the text, not behind it."""
+
+    def test_the_spans_travel_with_the_text(self) -> None:
+        annotations = [
+            ("bottom", 0.5, (0.1, 0.1, 0.2, 0.05)),
+            ("top", 0.99, (0.1, 0.9, 0.2, 0.05)),
+        ]
+
+        transcript = vision._to_reading_order(annotations, width=1000, height=2000)
+
+        assert transcript == "top\nbottom"
+        spans = spans_of(transcript)
+        assert [s.text for s in spans] == ["bottom", "top"], "the engine's order, not reading order"
+        # Pixels, top-left origin: the inversion from Apple's bottom-left
+        # normalised box happened at the boundary, once.
+        assert spans[1].bbox == pytest.approx((100.0, 100.0, 300.0, 200.0))
+        assert spans[0].confidence == pytest.approx(50.0)

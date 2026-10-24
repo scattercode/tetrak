@@ -289,7 +289,9 @@ def ocr_image(path: "Path | str", with_paddle_vl: bool = False) -> str:
     reads acceptably reaches the triage queue instead of being written out.
 
     Returns:
-        Extracted text as a string.
+        Extracted text as a string -- the winning backend's transcript
+        exactly as it returned it, so the positioned spans a backend carries
+        (see :class:`~tetrak_ocr.layout.Transcript`) come through with it.
 
     Raises:
         LowQualityError: If the winning combined score falls below

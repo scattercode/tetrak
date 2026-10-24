@@ -1,18 +1,25 @@
-"""Positioned text: the vocabulary shared by the backends and the PDF writer.
+"""Positioned text: the vocabulary shared by the backends and the output writers.
 
-An OCR engine knows more than the string it returns: four of the six backends
-here compute a box per recognised region and then discard it, because the
-registry contract is `-> str`. This module is where that information has a
-shape, so the backends that keep it can agree on what it means.
+An OCR engine knows more than the string it returns: four of the backends
+here -- vision, easyocr, paddle and easyocr-hy -- compute a box per
+recognised region. The registry contract is `-> str` and stays so: a backend
+that has boxes returns a :class:`Transcript`, a string that carries its
+:class:`TextSpan` list alongside the text, and a backend that has none
+returns a plain string. Every caller that wants the text is unchanged; a
+caller that wants the geometry asks :func:`spans_of`. This module is where
+that information has a shape, so the backends that keep it agree on what it
+means.
 
-Two backends read through it: the vision backend, whose reading-order logic
-this originally was, lifted out and tested, and `easyocr-hy`, which needs the
-column handling because the Armenian pages it exists for are set in two
-columns. It is deliberately not wired into the searchable PDF
-writer: a *positioned* text layer measured worse on reading order than the
-plain transcript, badly so on multi-column pages, and that is what a screen
-reader announces. See brief 008 (searchable PDF). The boxes become
-load-bearing at ALTO/hOCR, where coordinates are the whole point.
+Two backends order their text through it: the vision backend, whose
+reading-order logic this originally was, lifted out and tested, and
+`easyocr-hy`, which needs the column handling because the Armenian pages it
+exists for are set in two columns. The ordering is deliberately not wired
+into the searchable PDF writer: a *positioned* text layer measured worse on
+reading order than the plain transcript, badly so on multi-column pages, and
+that is what a screen reader announces. See brief 008 (searchable PDF). The
+boxes become load-bearing at ALTO/hOCR, where coordinates are the whole
+point, which is why the spans now travel with the transcript rather than
+being thrown away at the backend's boundary.
 
 Standard library only, so the fast tests can use it with no OCR stack
 installed.
@@ -45,6 +52,7 @@ out. Anything in between is unambiguous.
 from __future__ import annotations
 
 import statistics
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 
 
@@ -78,6 +86,69 @@ class TextSpan:
     @property
     def height(self) -> float:
         return (self.bbox[3] - self.bbox[1]) if self.bbox else 0.0
+
+
+class Transcript(str):
+    """A backend's text, carrying the positioned spans it was built from.
+
+    A ``str`` first: it is what every backend returns, so the registry
+    contract ``ocr_image(path) -> str`` holds, and the batch pipeline, the
+    quality gate, the harness and auto-local's winner selection all treat it
+    as the string it is. The spans ride along for the callers that want them
+    -- the positioned output writers -- and ``auto-local`` hands back
+    whichever candidate's transcript won, spans included, without knowing
+    they are there. That is the reason for a subclass rather than a second
+    return value: nothing between the backend and the writer has to change
+    to let the geometry through.
+
+    ``spans`` is the engine's regions as it reported them, in **its** order,
+    with boxes in pixels from a top-left origin (see the module docstring).
+    They are not re-ordered here: :func:`reading_order` is a separate,
+    measured pass, and a writer that needs it applies it. :func:`to_text`
+    may also have rejoined a word hyphenated across two spans, so the text
+    and the spans do not pair one-to-one -- the text is the transcript, the
+    spans are the geometry.
+
+    **Any string operation returns a plain ``str``.** ``transcript.strip()``
+    has no spans, and neither does ``"\\n".join(pages)``. Take them off with
+    :func:`spans_of` before transforming the text, which is what the callers
+    in ``batch`` and ``cli`` do.
+    """
+
+    spans: list[TextSpan]
+
+    def __new__(cls, text: str, spans: Iterable[TextSpan] = ()) -> Transcript:
+        self = super().__new__(cls, text)
+        self.spans = list(spans)
+        return self
+
+
+def spans_of(text: str) -> list[TextSpan] | None:
+    """The spans carried by *text*, or None when the backend returned a plain string.
+
+    The one place callers reach for the geometry, so a plain ``str`` and a
+    :class:`Transcript` are handled by the same line of code and nobody tests
+    the type. An empty list is a real answer -- the engine ran and found no
+    regions -- where None means the engine had no boxes to give.
+
+    Returned as a copy, so a writer that sorts or filters its list cannot
+    disturb the next writer's.
+    """
+    return list(text.spans) if isinstance(text, Transcript) else None
+
+
+def polygon_extent(points: Iterable[Sequence[float]]) -> tuple[float, float, float, float]:
+    """The axis-aligned ``(left, top, right, bottom)`` enclosing a polygon.
+
+    EasyOCR and PaddleOCR report each region as a four-point polygon that
+    follows a slanted line; ``TextSpan.bbox`` is an axis-aligned box, so the
+    polygon's extent is taken. On a straight page the two are the same box;
+    on a skewed one the extent is a little taller than the type and never
+    narrower. The points may be any sequence of pairs, numpy rows included.
+    """
+    xs = [float(point[0]) for point in points]
+    ys = [float(point[1]) for point in points]
+    return (min(xs), min(ys), max(xs), max(ys))
 
 
 def _default_tolerance(spans: list[TextSpan]) -> float:

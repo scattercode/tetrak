@@ -61,7 +61,7 @@ from pathlib import Path
 from PIL import Image
 
 from ..imaging import reject_multi_page
-from ..layout import TextSpan, to_text
+from ..layout import TextSpan, Transcript, polygon_extent, to_text
 
 try:
     import tetrak_hy
@@ -113,19 +113,15 @@ def _spans(results) -> list[TextSpan]:
     here, at the point the text enters the pipeline, so everything
     downstream sees Armenian rather than a mixture of scripts.
     """
-    spans = []
-    for box, text, confidence in results:
-        xs = [float(point[0]) for point in box]
-        ys = [float(point[1]) for point in box]
-        spans.append(
-            TextSpan(
-                text=tetrak_hy.fold_script(text),
-                bbox=(min(xs), min(ys), max(xs), max(ys)),
-                # EasyOCR reports 0-1; TextSpan documents 0-100.
-                confidence=float(confidence) * 100,
-            )
+    return [
+        TextSpan(
+            text=tetrak_hy.fold_script(text),
+            bbox=polygon_extent(box),
+            # EasyOCR reports 0-1; TextSpan documents 0-100.
+            confidence=float(confidence) * 100,
         )
-    return spans
+        for box, text, confidence in results
+    ]
 
 
 def ocr_image(path: Path) -> str:
@@ -142,7 +138,9 @@ def ocr_image(path: Path) -> str:
         path: Path to the image file.
 
     Returns:
-        The page's text, one recognised line per line of output.
+        The page's text, one recognised line per line of output, as a
+        :class:`~tetrak_ocr.layout.Transcript` carrying one folded span per
+        detected region in the detector's order.
 
     Raises:
         ValueError: If the file extension is not supported.
@@ -175,7 +173,8 @@ def ocr_image(path: Path) -> str:
 
     reader = _get_reader()
     results = reader.readtext(image_input, detail=1, paragraph=False, decoder=_decoder)
-    return to_text(_spans(results))
+    spans = _spans(results)
+    return Transcript(to_text(spans), spans)
 
 
 if __name__ == "__main__":

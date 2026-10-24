@@ -28,6 +28,7 @@ from pathlib import Path
 from PIL import Image
 
 from ..imaging import reject_multi_page
+from ..layout import TextSpan, Transcript, polygon_extent
 
 # PaddlePaddle's C++ layer reads these as glog initialises, which happens
 # during the import below -- so they are set before it rather than after, where
@@ -91,7 +92,9 @@ def ocr_image(path: Path) -> str:
         path: Path to the image file.
 
     Returns:
-        Extracted text as a single string, one recognised region per line.
+        Extracted text as a single string, one recognised region per line --
+        a :class:`~tetrak_ocr.layout.Transcript` carrying one span per
+        region, with the detector's box in pixels from the top-left corner.
 
     Raises:
         ValueError: If the file extension is not supported.
@@ -137,13 +140,49 @@ def ocr_image(path: Path) -> str:
         if cleanup:
             os.unlink(image_input)
 
-    texts = []
-    if results:
-        for page in results:
-            if isinstance(page, dict) and "rec_texts" in page:
-                texts.extend(page["rec_texts"])
+    return _transcript(results)
 
-    return "\n".join(texts)
+
+def _transcript(results) -> Transcript:
+    """Text and boxes from PaddleOCR's result pages.
+
+    Each page is a dict with ``rec_texts`` and, beside it, ``rec_polys`` (a
+    four-point polygon per text) and ``rec_scores`` (0-1). The text is the
+    same join of ``rec_texts`` this backend has always returned, so the
+    benchmark column does not move; the polygons were in the same dict all
+    along and were simply never read.
+
+    Geometry is attached only where it lines up. A page whose polygon count
+    does not match its text count contributes spans without boxes rather
+    than text paired with the wrong box -- a span with no box cannot be
+    positioned, which is honest, where a wrong box is a silent error.
+    """
+    texts: list[str] = []
+    spans: list[TextSpan] = []
+    for page in results or ():
+        if not (isinstance(page, dict) and "rec_texts" in page):
+            continue
+        page_texts = [str(text) for text in page["rec_texts"]]
+        texts.extend(page_texts)
+
+        polys = page.get("rec_polys")
+        if polys is None or len(polys) != len(page_texts):
+            spans.extend(TextSpan(text=text) for text in page_texts)
+            continue
+        scores = page.get("rec_scores")
+        if scores is None or len(scores) != len(page_texts):
+            scores = [None] * len(page_texts)
+        for text, poly, score in zip(page_texts, polys, scores, strict=True):
+            spans.append(
+                TextSpan(
+                    text=text,
+                    bbox=polygon_extent(poly),
+                    # Paddle reports 0-1; TextSpan documents 0-100.
+                    confidence=None if score is None else float(score) * 100,
+                )
+            )
+
+    return Transcript("\n".join(texts), spans)
 
 
 if __name__ == "__main__":

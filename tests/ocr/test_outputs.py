@@ -94,3 +94,18 @@ class TestWriting:
         assert outputs.extension("markdown") == ".md"
         assert outputs.extension("txt") == ".txt"
         assert outputs.extension("pdf") == ".pdf"
+
+    def test_the_text_writers_tolerate_the_span_options(self, tmp_path: Path) -> None:
+        """Every writer receives `spans` and `page_spans`. The text formats
+        ignore them and write exactly what they always did."""
+        from tetrak_ocr.layout import TextSpan
+
+        source = tmp_path / "postcard.jpg"
+        source.touch()
+        spans = [TextSpan(text="some words", bbox=(0.0, 0.0, 10.0, 10.0))]
+
+        md = outputs.write("markdown", source, "some words", tmp_path, spans=spans, page_spans=None)
+        txt = outputs.write("text", source, "some words", tmp_path, spans=None, page_spans=[spans])
+
+        assert md.read_text(encoding="utf-8") == "# postcard\n\nsome words\n"
+        assert txt.read_text(encoding="utf-8") == "some words\n"

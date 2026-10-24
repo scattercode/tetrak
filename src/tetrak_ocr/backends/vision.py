@@ -54,7 +54,7 @@ from pathlib import Path
 from PIL import Image
 
 from ..imaging import reject_multi_page
-from ..layout import TextSpan, to_text
+from ..layout import TextSpan, Transcript, to_text
 
 # Two separate reasons this backend may be unavailable, and they need to be
 # distinguished: `ocrmac` is importable on any platform but only *works* on
@@ -135,7 +135,9 @@ def ocr_image(
         recognition_level: ``"accurate"`` (default) or ``"fast"``.
 
     Returns:
-        Extracted text, one recognised region per line.
+        Extracted text, one recognised region per line, as a
+        :class:`~tetrak_ocr.layout.Transcript` carrying one span per region
+        with its box in pixels from the top-left corner.
 
     Raises:
         RuntimeError: If Vision is not available on this machine.
@@ -226,18 +228,22 @@ def to_spans(annotations: list, width: int, height: int) -> list[TextSpan]:
     return spans
 
 
-def _to_reading_order(annotations: list, width: int = 1, height: int = 1) -> str:
+def _to_reading_order(annotations: list, width: int = 1, height: int = 1) -> Transcript:
     """Join recognised regions top-to-bottom, then left-to-right.
 
     The ordering itself lives in :mod:`tetrak_ocr.layout` now, because the PDF
     writer needs the same rule -- the order text is emitted in *is* the order a
     screen reader announces it. Multi-column layouts are no better solved here
     than by the other single-pass backends; that is what `marker` is for.
+
+    The spans the text was ordered from travel with it, in Vision's own
+    order, for the positioned writers; the text is unchanged.
     """
+    spans = to_spans(annotations, width, height)
     # 1% of page height, the constant this backend arrived at by experiment on
     # its own material, passed explicitly rather than left to layout's adaptive
     # default. The default is finer, and on a dense multi-column page it splits
     # lines this backend has always merged -- a real change to a published
     # score, which does not belong in a refactor. Revisit it as a measured
     # change if it is worth making.
-    return to_text(to_spans(annotations, width, height), line_tolerance=0.01 * height)
+    return Transcript(to_text(spans, line_tolerance=0.01 * height), spans)

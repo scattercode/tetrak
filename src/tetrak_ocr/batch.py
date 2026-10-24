@@ -31,6 +31,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 from . import outputs, telemetry
 from .imaging import page_documents
+from .layout import TextSpan, spans_of
 from .manifest import DEFAULT_NAME as MANIFEST_NAME
 from .manifest import Manifest, ManifestError
 from .registry import BACKENDS, get_backend
@@ -252,7 +253,10 @@ def process_file(
         formats:      Output formats to write, defaulting to Markdown alone.
                       Every requested format is written for the same
                       transcript -- the OCR runs once regardless of how many
-                      are asked for.
+                      are asked for. A backend that computes boxes returns
+                      them with the transcript (see `layout.Transcript`), and
+                      they reach every writer as the `spans` and `page_spans`
+                      options; a backend without them passes None.
         manifest:     Where to append this file's row, if anywhere.
     """
     from .qa_score import LowQualityError
@@ -308,14 +312,22 @@ def process_file(
     pages = file_info.get("pages", 1)
     per_page = bool(formats) and "pdf" in formats and pages > 1
     page_transcripts: list[str] | None = None
+    # The positioned spans, taken off the transcript the moment it arrives:
+    # a string operation returns a plain str, so the strip-and-join below
+    # would lose them. Per page when the document was read per page --
+    # coordinates belong to a page image -- and for the document otherwise.
+    spans: list[TextSpan] | None = None
+    page_spans: list[list[TextSpan] | None] | None = None
 
     try:
         if per_page:
             print(f"    {pages} pages, transcribing individually for the PDF")
             page_transcripts = transcribe_per_page(image_path, ocr_fn)
+            page_spans = [spans_of(t) for t in page_transcripts]
             text = "\n\n".join(t.strip() for t in page_transcripts if t.strip())
         else:
             text = ocr_fn(image_path)
+            spans = spans_of(text)
     except LowQualityError as exc:
         if auto_local:
             reading.update(_auto_local_choice())
@@ -381,6 +393,8 @@ def process_file(
                 text,
                 PROCESSED_DIR,
                 page_transcripts=page_transcripts,
+                spans=spans,
+                page_spans=page_spans,
                 pdf_full_size=pdf_full_size,
                 pdf_font=pdf_font,
             )
