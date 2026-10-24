@@ -308,3 +308,35 @@ class TestQualityGateFlag:
 
         with pytest.raises(SystemExit):
             cli.main(["ocr", str(img), "--backend", "auto-local-fast"])
+
+
+class TestOcrSubcommandSpans:
+    """`ocr` hands a backend's spans to the writers the same way `batch` does."""
+
+    def test_spans_reach_the_writers(
+        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture, tmp_path
+    ) -> None:
+        from tetrak_ocr import outputs
+        from tetrak_ocr.layout import TextSpan, Transcript
+
+        spans = [TextSpan(text="hello", bbox=(0.0, 0.0, 10.0, 10.0))]
+        monkeypatch.setattr(
+            batch, "build_ocr_fn", lambda *a, **k: lambda path: Transcript("hello", spans)
+        )
+        seen: dict = {}
+        original = outputs.write
+
+        def recording_write(name, source, transcript, destination_dir, **options):
+            seen.update(options)
+            return original(name, source, transcript, destination_dir, **options)
+
+        monkeypatch.setattr(outputs, "write", recording_write)
+        img = tmp_path / "scan.png"
+        img.touch()
+
+        assert cli.main(["ocr", str(img), "--format", "text"]) == 0
+
+        assert seen["spans"] == spans
+        assert seen["page_spans"] is None
+        assert (tmp_path / "scan.txt").read_text() == "hello\n"
+        assert "hello" in capsys.readouterr().out

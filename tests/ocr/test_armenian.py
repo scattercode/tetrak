@@ -201,3 +201,27 @@ class TestReaderSelection:
         self.read(tmp_path)
         assert len(library.calls) == 1
         assert reader.decoders == ["beamsearch", "beamsearch"]
+
+
+class TestPositionedOutput:
+    """The spans the text was ordered from leave the backend with it."""
+
+    def test_the_transcript_carries_the_folded_spans(
+        self, stub_tetrak_hy, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        from tetrak_ocr.layout import spans_of
+
+        class Reader:
+            def readtext(self, image, **kwargs):
+                return [region("hայ", 100, 200, 260, 210), region("ա", 100, 230, 260, 240)]
+
+        monkeypatch.setattr(armenian, "_reader", Reader())
+        page = tmp_path / "page.png"
+        Image.new("RGB", (20, 20), "white").save(page)
+
+        transcript = armenian.ocr_image(page)
+
+        assert transcript == "հայ\nա"
+        spans = spans_of(transcript)
+        assert [s.text for s in spans] == ["հայ", "ա"], "folded, like the text"
+        assert spans[0].bbox == (100.0, 200.0, 260.0, 210.0)

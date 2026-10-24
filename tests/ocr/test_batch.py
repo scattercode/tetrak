@@ -25,6 +25,7 @@ import tetrak_ocr.backends.tesseract as tesseract_backend
 from tetrak_ocr.backends.tesseract import DEFAULT_CONTRAST, DEFAULT_PSM, SUPPORTED_EXTENSIONS
 from tetrak_ocr.batch import build_ocr_fn
 from tetrak_ocr.batch import main as run_batch
+from tetrak_ocr.layout import TextSpan, Transcript
 
 
 def _write_legible_image(path: Path, text: str = "HELLO ARCHIVE") -> None:
@@ -331,3 +332,49 @@ class TestTheGateOnlyJudgesWhatItCanRead:
         assert (working_dirs["processed"] / "page.png").exists()
         assert not (working_dirs["triage"] / "page.png").exists()
         assert "quality gate skipped" in capsys.readouterr().err
+
+
+class TestSpansReachTheWriters:
+    """A backend's positioned spans travel to every writer; a plain string gives None.
+
+    The text outputs must not change either way. The spans are for the
+    positioned formats, and the Markdown a batch has always written is the
+    same byte for byte whichever kind of backend produced the transcript.
+    """
+
+    @staticmethod
+    def _run(monkeypatch, working_dirs, result) -> tuple[dict, str]:
+        """Process one file with a backend returning *result*; report the
+        options every writer received and the Markdown written."""
+        from tetrak_ocr import batch, outputs
+
+        monkeypatch.setattr(batch, "build_ocr_fn", lambda *a, **k: lambda path: result)
+        seen: dict = {}
+        original = outputs.write
+
+        def recording_write(name, source, transcript, destination_dir, **options):
+            seen.update(options)
+            return original(name, source, transcript, destination_dir, **options)
+
+        monkeypatch.setattr(outputs, "write", recording_write)
+        (working_dirs["scans"] / "page.png").touch()
+
+        assert run_batch(["--backend", "tesseract"]) == 0
+
+        return seen, (working_dirs["processed"] / "page.md").read_text(encoding="utf-8")
+
+    def test_a_backend_with_boxes_hands_them_to_the_writers(self, working_dirs, monkeypatch):
+        spans = [TextSpan(text="words", bbox=(1.0, 2.0, 3.0, 4.0))]
+
+        seen, markdown = self._run(monkeypatch, working_dirs, Transcript("words", spans))
+
+        assert seen["spans"] == spans
+        assert seen["page_spans"] is None
+        assert markdown == "# page\n\nwords\n"
+
+    def test_a_backend_without_boxes_hands_over_none(self, working_dirs, monkeypatch):
+        seen, markdown = self._run(monkeypatch, working_dirs, "words")
+
+        assert seen["spans"] is None
+        assert seen["page_spans"] is None
+        assert markdown == "# page\n\nwords\n"

@@ -1,0 +1,142 @@
+{{- /*
+  The reading-order table, read from evaluation/ocr/reading_order.csv at
+  build time.
+
+  The harness (evaluation/ocr/reading_order.py) serialises each span-carrying
+  backend's spans four ways on every raster fixture and scores each against
+  the ground truth. The research page argues from those figures; it holds
+  no copy of them, for the reason partials/benchmark.html gives.
+
+  The CSV carries one row per (fixture, backend) and a `mean` row per backend
+  and layout group, computed by the harness -- so nothing here does
+  arithmetic, it only selects cells.
+
+  Context: a dict of
+    view     - "summary" (default): a row per backend, the mean over the
+               multi-column fixtures for each serialisation; or "full", every
+               fixture for one backend
+    backend  - which backend the full view shows; required there
+    metric   - "chr" (default) or "wrd"
+    boldBest - false to suppress the best-per-row marking
+*/ -}}
+
+{{- $res := resources.Get "evaluation/reading_order.csv" }}
+{{- if not $res }}
+  {{- errorf "reading-order: evaluation/ocr/reading_order.csv is not mounted -- check [module.mounts] in config/_default/hugo.toml" }}
+{{- end }}
+{{- $csv := $res.Content | transform.Unmarshal (dict "format" "csv" "delimiter" ",") }}
+{{- $header := index $csv 0 }}
+{{- $rows := after 1 $csv }}
+
+{{- $col := dict }}
+{{- range $i, $name := $header }}
+  {{- $col = merge $col (dict $name $i) }}
+{{- end }}
+{{- $fixture := index $col "fixture" }}
+{{- $backendCol := index $col "backend" }}
+{{- $layoutCol := index $col "layout" }}
+
+{{- $metric := .metric | default "chr" }}
+{{- if not (in (slice "chr" "wrd") $metric) }}
+  {{- errorf "reading-order: metric must be \"chr\" or \"wrd\", got %q" $metric }}
+{{- end }}
+{{- $view := .view | default "summary" }}
+{{- if not (in (slice "summary" "full") $view) }}
+  {{- errorf "reading-order: view must be \"summary\" or \"full\", got %q" $view }}
+{{- end }}
+{{- $boldBest := ne .boldBest false }}
+
+{{- /* The serialisations, in the order the harness scores them. */ -}}
+{{- $strategies := slice "engine" "linesort" "column" "transcript" }}
+{{- $labels := dict "engine" "Engine order" "linesort" "Line sort" "column" "Column-aware" "transcript" "Transcript" }}
+
+{{- /* The multi-column fixtures, counted rather than written down. */ -}}
+{{- $multi := slice }}
+{{- range $rows }}
+  {{- if and (eq (index . $layoutCol) "multi-column") (ne (index . $fixture) "mean") }}
+    {{- $stem := index . $fixture }}
+    {{- if not (in $multi $stem) }}{{ $multi = $multi | append $stem }}{{ end }}
+  {{- end }}
+{{- end }}
+
+{{- /* Which rows this view shows. Decided per row while rendering rather
+       than collected first: `append` spreads a slice argument, and a row is
+       a slice of cells, so building a filtered list of rows is the one thing
+       Hugo's append cannot do cleanly. */ -}}
+{{- $backend := .backend }}
+{{- if and (eq $view "full") (not $backend) }}
+  {{- errorf "reading-order: the full view needs a backend" }}
+{{- end }}
+{{- $shown := 0 }}
+{{- range $rows }}
+  {{- if eq $view "summary" }}
+    {{- if and (eq (index . $fixture) "mean") (eq (index . $layoutCol) "multi-column") }}{{ $shown = add $shown 1 }}{{ end }}
+  {{- else if eq (index . $backendCol) $backend }}{{ $shown = add $shown 1 }}{{ end }}
+{{- end }}
+{{- if not $shown }}
+  {{- errorf "reading-order: no rows for backend %q in reading_order.csv" $backend }}
+{{- end }}
+
+<div class="table-scroll">
+<table class="benchmark benchmark--reading-order">
+  <thead>
+    <tr>
+      <th scope="col">{{ if eq $view "summary" }}Backend{{ else }}Fixture{{ end }}</th>
+      {{- range $strategies }}
+        <th scope="col" class="benchmark__num">{{ index $labels . }}</th>
+      {{- end }}
+    </tr>
+  </thead>
+  <tbody>
+    {{- range $rows }}
+      {{- $row := . }}
+      {{- $isMean := eq (index $row $fixture) "mean" }}
+      {{- $wanted := false }}
+      {{- if eq $view "summary" }}
+        {{- $wanted = and $isMean (eq (index $row $layoutCol) "multi-column") }}
+      {{- else }}
+        {{- $wanted = eq (index $row $backendCol) $backend }}
+      {{- end }}
+      {{- if $wanted }}
+      {{- $best := -1.0 }}
+      {{- if $boldBest }}
+        {{- range $strategies }}
+          {{- $v := float (index $row (index $col (printf "%s_%s" . $metric))) }}
+          {{- if gt $v $best }}{{ $best = $v }}{{ end }}
+        {{- end }}
+      {{- end }}
+      <tr{{ if and $isMean (eq $view "full") }} class="benchmark__summary"{{ end }}>
+        <th scope="row">
+          {{- if eq $view "summary" -}}
+            <code>{{ index $row $backendCol }}</code>
+          {{- else if $isMean -}}
+            Mean, {{ index $row $layoutCol }}
+          {{- else -}}
+            <code>{{ index $row $fixture }}</code>
+          {{- end -}}
+        </th>
+        {{- range $strategies }}
+          {{- $v := float (index $row (index $col (printf "%s_%s" . $metric))) }}
+          <td class="benchmark__num{{ if and $boldBest (eq $v $best) }} is-best{{ end }}">
+            {{- printf "%.3f" $v -}}
+          </td>
+        {{- end }}
+      </tr>
+      {{- end }}
+    {{- end }}
+  </tbody>
+</table>
+</div>
+
+<p class="benchmark__caption">
+  {{ if eq $metric "chr" }}Character similarity — order-sensitive, the metric
+  reading order moves.{{ else }}Word recall — order-insensitive, so the first
+  three columns must agree.{{ end }}
+  {{ if eq $view "summary" }}Means over the {{ len $multi }} multi-column
+  fixtures, {{ else }}Every raster fixture for <code>{{ $backend }}</code>,
+  {{ end }}generated from <code>evaluation/ocr/reading_order.csv</code> at
+  build time. The same spans in four orders: as the engine reported them,
+  sorted into lines with no column awareness, ordered by the column-aware
+  pass, and the plain transcript the backend ships.
+  {{ if $boldBest }}Bold marks the best in each row.{{ end }}
+</p>

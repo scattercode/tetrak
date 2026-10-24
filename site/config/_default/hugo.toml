@@ -129,6 +129,13 @@ capitalizeListTitles = false
     source = "../evaluation/ocr/registers.csv"
     target = "assets/evaluation/registers.csv"
 
+  # Read at build time by the {{< reading-order >}} shortcode. Written by
+  # evaluation/ocr/reading_order.py, which needs the span-carrying engines
+  # installed, so like registers.csv it is committed rather than recomputed.
+  [[module.mounts]]
+    source = "../evaluation/ocr/reading_order.csv"
+    target = "assets/evaluation/reading_order.csv"
+
   # Pulled into content/licensing.md by {{< include >}}, so the published page
   # and the file GitHub shows beside the LICENSE cannot drift apart.
   [[module.mounts]]

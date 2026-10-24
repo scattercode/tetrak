@@ -83,6 +83,7 @@ tetrak-ocr backends                          # what is installed, and what each 
 tetrak-ocr ocr <path> --backend tesseract-auto
 tetrak-ocr batch --backend auto-local        # workspace/: scans/ → processed/, failures to triage/
 tetrak-ocr evaluate --all --save             # → evaluation/ocr/benchmark.{csv,md} + runs/
+python -m evaluation.ocr.reading_order --save  # → evaluation/ocr/reading_order.{csv,md}: column-aware order vs a positioned layer's
 
 pytest -m "not slow"                           # the fast loop; what CI gates on
 pytest                                         # adds the corpus-backed threshold tests
@@ -121,6 +122,15 @@ optional `model`, which is how `claude-haiku` differs from `claude`. Nothing els
 uniformity is what lets `registry.py`, the batch pipeline and the harness treat
 backends interchangeably; a backend that needs a different signature needs an
 adapter, not a special case in the callers.
+
+**A backend that computes boxes returns them inside that string.** `vision`,
+`easyocr`, `easyocr-hy` and `paddle` return `layout.Transcript`, a `str`
+subclass carrying one `TextSpan` per recognised region -- pixels from the
+top-left corner, in the engine's own order; the others return a plain `str`.
+Callers take the geometry with `layout.spans_of(text)`, which gives `None`
+for a plain string, and `batch` and `cli` hand it to every output writer as
+the `spans` and `page_spans` options. Take the spans off before any string
+operation: `.strip()` and `join` return a plain `str` and lose them.
 
 **Missing extras raise `MissingBackendError`, not `ImportError`.** Each backend
 module sets `_IMPORT_OK` rather than exiting at import time, so the registry can

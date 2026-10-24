@@ -18,6 +18,7 @@ from pathlib import Path
 
 from . import outputs, telemetry
 from .errors import OcrPipelineError
+from .layout import spans_of
 from .registry import BACKENDS, available
 
 
@@ -49,12 +50,18 @@ def _cmd_ocr(args: argparse.Namespace) -> int:
     wants_pdf = bool(args.formats and "pdf" in outputs.parse(args.formats)) or bool(
         args.pdf or args.pdf_full_size or args.pdf_font
     )
+    # Spans come off the transcript before anything strips or joins it, as
+    # in `batch.process_file`: a string operation returns a plain str.
     page_transcripts = None
+    page_spans = None
+    spans = None
     if wants_pdf and page_count(path) > 1:
         page_transcripts = transcribe_per_page(path, ocr)
+        page_spans = [spans_of(t) for t in page_transcripts]
         text = "\n\n".join(t.strip() for t in page_transcripts if t.strip())
     else:
         text = ocr(path)
+        spans = spans_of(text)
 
     # `--pdf PATH` names its own destination, so it stays on the direct route
     # rather than going through the format table, which writes beside the
@@ -89,6 +96,8 @@ def _cmd_ocr(args: argparse.Namespace) -> int:
             text,
             path.parent,
             page_transcripts=page_transcripts,
+            spans=spans,
+            page_spans=page_spans,
             pdf_full_size=args.pdf_full_size,
             pdf_font=args.pdf_font,
         )

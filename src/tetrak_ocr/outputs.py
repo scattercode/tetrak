@@ -11,7 +11,21 @@ Every writer exposes the same callable::
 ``source`` is the file that was transcribed, which the text formats ignore and
 the PDF writer needs (it embeds the scan). ``options`` carries format-specific
 settings; a writer must tolerate options meant for a different format, because
-the caller passes one dict to all of them.
+the caller passes one dict to all of them. The pipeline and the ``ocr``
+subcommand pass the same set to every writer::
+
+    page_transcripts  one string per page of a multi-page document, or None
+    spans             the backend's positioned spans for the document --
+                      ``layout.TextSpan``, pixels, top-left origin, in the
+                      engine's own order -- or None when the backend has none
+                      (see ``layout.Transcript`` and ``layout.spans_of``)
+    page_spans        one such list, or None, per page, when the document was
+                      read page by page; ``spans`` is then None
+    pdf_full_size     the searchable PDF's own settings
+    pdf_font
+
+The text writers ignore the spans. They exist for the positioned formats --
+ALTO, hOCR -- where the coordinates are the output.
 
 Adding a format means adding one entry to ``_FORMATS`` and nothing else: the
 CLI takes its choices, its help text and its validation from this table, the
@@ -54,6 +68,10 @@ def _write_pdf(source: Path, transcript: str, destination: Path, **options) -> N
 
     Imported lazily: the PDF path pulls in Pillow's PDF machinery and a font,
     which nobody writing Markdown should pay for.
+
+    The ``spans`` option is deliberately not used. A word-positioned text
+    layer was measured and rejected for this format -- see the
+    :mod:`tetrak_ocr.pdf_output` module docstring.
     """
     from .pdf_output import searchable_pdf_for
 

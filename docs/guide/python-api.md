@@ -104,6 +104,35 @@ ocr = build_ocr_fn("tesseract-auto", contrast=3.0)  # auto PSM, your contrast
 ocr = build_ocr_fn("auto-local", with_paddle_vl=True)
 ```
 
+## Positioned spans
+
+Four backends -- `vision`, `easyocr`, `easyocr-hy` and `paddle` -- know where
+each recognised region sits on the page. They return the same string as
+before, but as `tetrak_ocr.layout.Transcript`, a `str` subclass carrying one
+`TextSpan` per region: the text, its box as `(left, top, right, bottom)` in
+pixels from the top-left corner, and the engine's confidence on a 0-100
+scale. Take them off with `spans_of`, which returns `None` for a backend that
+has none:
+
+```python
+from pathlib import Path
+from tetrak_ocr.layout import reading_order, spans_of
+from tetrak_ocr.registry import get_backend
+
+text = get_backend("easyocr")(Path("scan.jpg"))
+spans = spans_of(text)  # a list of TextSpan, or None for marker, claude and tesseract
+if spans:
+    for span in reading_order(spans):
+        print(span.bbox, span.text)
+```
+
+The spans are in the engine's own order; `reading_order` arranges them as a
+person reads the page, column by column. Any string operation on the
+transcript returns a plain `str`, so take the spans off before stripping or
+joining it. `auto-local` returns the winning backend's transcript whole, spans
+included. The output writers receive them as the `spans` and `page_spans`
+options; the text and PDF formats ignore them.
+
 ## Fan-out and the quality gate
 
 `auto-local` runs every eligible local engine on a file, scores each
