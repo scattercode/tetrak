@@ -434,3 +434,44 @@ class TestOutputWithFormat:
         assert cli.main(["ocr", str(img), "--output", str(out)]) == 0
 
         assert out.read_text(encoding="utf-8") == "hello"
+
+
+class TestTriageSubcommand:
+    def test_lists_an_empty_queue_without_error(
+        self, capsys: pytest.CaptureFixture, tmp_path
+    ) -> None:
+        assert cli.main(["triage", "--dir", str(tmp_path / "nothing")]) == 0
+        assert "empty" in capsys.readouterr().out
+
+    def test_lists_what_is_held(self, capsys: pytest.CaptureFixture, tmp_path) -> None:
+        from tetrak_ocr import triage
+
+        image = tmp_path / "faint.png"
+        image.touch()
+        triage.hold(tmp_path / "t", image, {"vision": 0.0724}, {"vision": "x"}, reason="poor")
+
+        assert cli.main(["triage", "--dir", str(tmp_path / "t")]) == 0
+
+        out = capsys.readouterr().out
+        assert "faint.png" in out and "0.0724" in out and "poor" in out
+
+    def test_serve_reaches_the_server_with_its_directory_and_port(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path
+    ) -> None:
+        from tetrak_ocr import triage
+
+        seen: dict = {}
+        monkeypatch.setattr(
+            triage, "serve", lambda directory, port: (seen.update(dir=directory, port=port), 0)[1]
+        )
+
+        assert cli.main(["triage", "--serve", "--dir", str(tmp_path), "--port", "0"]) == 0
+
+        assert seen == {"dir": tmp_path, "port": 0}
+
+    def test_there_is_no_way_to_bind_beyond_loopback(self, capsys: pytest.CaptureFixture) -> None:
+        """No --host flag, by design: the page reads a local directory for the
+        person at the machine, and binding elsewhere would need the
+        authentication the brief rules out."""
+        assert cli.main(["triage", "--serve", "--host", "0.0.0.0"]) == 2
+        assert "unrecognized arguments: --host" in capsys.readouterr().err

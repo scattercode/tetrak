@@ -378,3 +378,75 @@ class TestSpansReachTheWriters:
         assert seen["spans"] is None
         assert seen["page_spans"] is None
         assert markdown == "# page\n\nwords\n"
+
+
+class TestWhatTriageKeeps:
+    """A held file keeps every candidate's full transcript and a record.
+
+    The manifest carried a 500-character excerpt of each candidate and
+    discarded the rest, so a decision was often made on a fragment and a
+    view could not show what was never saved (brief 001). The manifest
+    itself is unchanged for anyone who reads the directory directly.
+    """
+
+    LONG = "word " * 300  # three times the excerpt
+
+    def hold(self, working_dirs, monkeypatch) -> None:
+        from tetrak_ocr import batch
+        from tetrak_ocr.qa_score import LowQualityError
+
+        def ocr(path):
+            raise LowQualityError(
+                "Best transcript (vision, score=0.0724) is below threshold 0.1000",
+                scores={"vision": 0.0724, "easyocr": 0.0, "tesseract-auto": 0.0101},
+                transcripts={"vision": self.LONG, "easyocr": "", "tesseract-auto": "noise"},
+            )
+
+        monkeypatch.setattr(batch, "build_ocr_fn", lambda *a, **k: ocr)
+        (working_dirs["scans"] / "faint.png").touch()
+        assert run_batch(["--backend", "auto-local"]) == 0
+
+    def test_every_candidate_transcript_is_written_whole(self, working_dirs, monkeypatch):
+        self.hold(working_dirs, monkeypatch)
+        triage = working_dirs["triage"]
+
+        assert (triage / "faint.vision.txt").read_text(encoding="utf-8") == self.LONG
+        assert (triage / "faint.easyocr.txt").read_text(encoding="utf-8") == ""
+        assert (triage / "faint.tesseract-auto.txt").read_text(encoding="utf-8") == "noise"
+
+    def test_the_record_carries_the_scores_and_the_reason(self, working_dirs, monkeypatch):
+        import json
+
+        self.hold(working_dirs, monkeypatch)
+
+        record = json.loads((working_dirs["triage"] / "faint.json").read_text(encoding="utf-8"))
+        assert record["backend"] == "auto-local"
+        assert record["best"] == {"engine": "vision", "score": 0.0724}
+        assert [c["backend"] for c in record["candidates"]] == [
+            "vision",
+            "easyocr",
+            "tesseract-auto",
+        ]
+        assert (
+            record["reason"] == "Best transcript (vision, score=0.0724) is below threshold 0.1000"
+        )
+
+    def test_the_markdown_manifest_is_unchanged(self, working_dirs, monkeypatch):
+        """Byte for byte what it was before the record existed."""
+        self.hold(working_dirs, monkeypatch)
+
+        manifest = (working_dirs["triage"] / "faint.md").read_text(encoding="utf-8")
+
+        assert manifest == (
+            "# faint\n\n## Quality scores\n\n| Backend | Score |\n|---|---|\n"
+            "| vision | 0.0724 |\n| easyocr | 0.0000 |\n| tesseract-auto | 0.0101 |\n\n"
+            "## Transcript excerpts\n\n"
+            f"### vision\n\n{self.LONG.strip()[:500]}\n\n"
+            "### easyocr\n\n\n\n"
+            "### tesseract-auto\n\nnoise\n"
+        )
+
+    def test_the_scan_moves_with_them(self, working_dirs, monkeypatch):
+        self.hold(working_dirs, monkeypatch)
+        assert (working_dirs["triage"] / "faint.png").exists()
+        assert not (working_dirs["scans"] / "faint.png").exists()

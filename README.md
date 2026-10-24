@@ -106,6 +106,7 @@ Processing: kar-mi-troupe-poster.jpg
   quality=0.0618
   → TRIAGE: kar-mi-troupe-poster.jpg
   → TRIAGE: kar-mi-troupe-poster.md
+  → TRIAGE: kar-mi-troupe-poster.json  (+ 4 full transcript(s))
 
 Triaged (1): kar-mi-troupe-poster.jpg
 Done. 0 file(s) processed, 1 sent to triage.
@@ -116,6 +117,11 @@ like a successful one from the outside — it is still a `.md` file with words i
 it. The triage queue is what stops bad transcripts quietly entering a catalogue
 looking like good ones, and turns "which ones did it get wrong?" into a folder
 you can actually work through.
+
+Beside the manifest, every candidate's full transcript is kept and a `.json`
+record says what scored what and why the file was held. `tetrak-ocr triage`
+lists the queue, and `tetrak-ocr triage --serve` shows it as a page on your
+own machine only.
 
 ### Output formats
 
