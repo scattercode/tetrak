@@ -1,6 +1,6 @@
 # Using the command line
 
-Installing the package provides one command, `tetrak-ocr`, with four
+Installing the package provides one command, `tetrak-ocr`, with five
 subcommands:
 
 | Subcommand | What it does |
@@ -8,6 +8,7 @@ subcommands:
 | `backends` | List every backend and whether this environment can run it |
 | `ocr` | Transcribe a single file, to stdout or to files beside it |
 | `batch` | Transcribe everything in `workspace/scans/` |
+| `triage` | List what `batch` held back, or serve it as a local page |
 | `evaluate` | Benchmark backends against the evaluation corpus (needs a checkout) |
 
 `tetrak-ocr --help` and `tetrak-ocr <subcommand> --help` list every flag; the
@@ -103,10 +104,17 @@ do not stop the batch: the file is reported and the run carries on.
 
 `auto-local` refuses to return a transcript whose quality score falls below
 the floor (0.10, `MIN_QUALITY_THRESHOLD`). When that happens the batch
-pipeline diverts the file to `workspace/triage/` along with a manifest,
-`workspace/triage/<stem>.md`, recording which backends were tried, their
-scores, and the first 500 characters of each transcript, so you can decide
-whether to rescan, send it to Claude, or transcribe by hand.
+pipeline diverts the file to `workspace/triage/` along with three kinds of
+file, so you can decide whether to rescan, send it to Claude, or transcribe
+by hand:
+
+| File | What it holds |
+|---|---|
+| `<stem>.md` | A manifest for reading: which backends were tried, their scores, and the first 500 characters of each transcript |
+| `<stem>.json` | A record for software: every candidate's score, the reason the file was held, when, and where each full transcript is |
+| `<stem>.<backend>.txt` | Each candidate's transcript, whole |
+
+[`tetrak-ocr triage`](#tetrak-ocr-triage) lists the queue from the records.
 
 `--quality-gate` applies the same threshold to any single named backend:
 
@@ -352,6 +360,30 @@ Processing: king-of-kings-souvenir-1927.pdf
 `<stem>.searchable.pdf`. It would otherwise collide with the original, which
 the batch pipeline moves into the same directory, and one would silently
 overwrite the other. Non-PDF sources keep the plain `<stem>.pdf`.
+
+## `tetrak-ocr triage`
+
+What `batch` held back, from the records in `workspace/triage/`: each file,
+its best score, the engine that produced it and the reason it was held.
+
+```bash
+tetrak-ocr triage                     # a table in the terminal
+tetrak-ocr triage --serve             # the same as a page, at http://127.0.0.1:8321/
+tetrak-ocr triage --serve --port 9000
+tetrak-ocr triage --dir ../other/triage
+```
+
+`--serve` binds to the loopback address and nothing else, and there is no
+flag to change that. The page reads a local directory for the person at the
+machine, so there is nothing to authenticate and nothing remote, and it
+answers one address, `/`, with GET; it serves no files. It is read-only:
+triage stays passive, and the page re-reads the directory on every request,
+so it follows a batch that is still running. Stop it with Ctrl-C.
+
+A directory written by a release before 5.19 holds manifests without
+records. Those files are still listed, by name, with a note to read the
+manifest; an empty or missing directory is reported as empty rather than as
+an error.
 
 ## `tetrak-ocr evaluate`
 

@@ -16,7 +16,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from . import outputs, telemetry
+from . import outputs, telemetry, triage
 from .errors import OcrPipelineError
 from .layout import spans_of
 from .registry import BACKENDS, available
@@ -166,6 +166,19 @@ def _cmd_batch(args: argparse.Namespace) -> int:
     # `args=`, not `argv=` -- batch.main names its parameter `args`, and the
     # mismatch made `tetrak-ocr batch` raise TypeError on every invocation.
     return batch.main(args=forwarded)
+
+
+def _cmd_triage(args: argparse.Namespace) -> int:
+    """List the triage queue, or serve it as a page on the loopback address."""
+    from .batch import TRIAGE_DIR
+
+    # The same rule as `batch`: the directory is the user's, resolved against
+    # the working directory, unless they point somewhere else.
+    directory = Path(args.dir) if args.dir else TRIAGE_DIR
+    if args.serve:
+        return triage.serve(directory, port=args.port)
+    print(triage.describe(triage.queue(directory), directory))
+    return 0
 
 
 def _cmd_evaluate(args: argparse.Namespace) -> int:
@@ -329,6 +342,31 @@ def build_parser() -> argparse.ArgumentParser:
     add_format_flags(p)
     add_pdf_flags(p)
     p.set_defaults(func=_cmd_batch)
+
+    p = sub.add_parser(
+        "triage",
+        help="list what is held in workspace/triage/, or serve it as a local page",
+    )
+    p.add_argument(
+        "--serve",
+        action="store_true",
+        help=f"serve the queue as a page on http://{triage.HOST}:{triage.DEFAULT_PORT}/ "
+        "until Ctrl-C. Loopback only: nothing remote, nothing to authenticate",
+    )
+    p.add_argument(
+        "--port",
+        type=int,
+        default=triage.DEFAULT_PORT,
+        metavar="PORT",
+        help=f"port for --serve (default: {triage.DEFAULT_PORT})",
+    )
+    p.add_argument(
+        "--dir",
+        metavar="PATH",
+        help="the triage directory to read (default: workspace/triage/ under the "
+        "working directory)",
+    )
+    p.set_defaults(func=_cmd_triage)
 
     # `evaluate` forwards its flags verbatim to the harness, which owns its own
     # argument parser. REMAINDER cannot do this — argparse rejects a leading
