@@ -29,7 +29,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:  # pragma: no cover
     from .qa_score import LowQualityError
 
-from . import outputs, telemetry
+from . import outputs, telemetry, triage
 from .imaging import page_documents
 from .layout import TextSpan, spans_of
 from .manifest import DEFAULT_NAME as MANIFEST_NAME
@@ -138,15 +138,20 @@ def supported_extensions(backend: str) -> set[str]:
     return _registry_extensions(backend)
 
 
-def _send_to_triage(image_path: Path, error: "LowQualityError") -> None:
-    """Move a file to the triage queue and write its manifest.
+def _send_to_triage(image_path: Path, error: "LowQualityError", backend: str | None = None) -> None:
+    """Move a file to the triage queue and write its manifest and record.
 
     The manifest (workspace/triage/<stem>.md) contains a score table and a short
-    excerpt from each backend's transcript for human review.
+    excerpt from each backend's transcript for human review, and is written
+    exactly as it always has been. Beside it, :mod:`tetrak_ocr.triage` writes
+    the record (<stem>.json: the scores, the reason, where each transcript
+    is) and every candidate's full transcript, which the manifest's 500
+    character excerpts used to discard.
 
     Args:
         image_path: Original file path (inside workspace/scans/).
         error:      LowQualityError carrying .scores and .transcripts.
+        backend:    The backend the run asked for, recorded with the item.
     """
     TRIAGE_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -169,11 +174,21 @@ def _send_to_triage(image_path: Path, error: "LowQualityError") -> None:
     manifest_path = TRIAGE_DIR / f"{image_path.stem}.md"
     manifest_path.write_text("\n".join(lines), encoding="utf-8")
 
+    record, *transcripts = triage.hold(
+        TRIAGE_DIR,
+        image_path,
+        error.scores,
+        error.transcripts,
+        reason=str(error),
+        backend=backend,
+    )
+
     dest = TRIAGE_DIR / image_path.name
     shutil.move(str(image_path), dest)
 
     print(f"    → TRIAGE: {dest.name}")
     print(f"    → TRIAGE: {manifest_path.name}")
+    print(f"    → TRIAGE: {record.name}  (+ {len(transcripts)} full transcript(s))")
 
 
 def _relative(path: Path) -> str:
@@ -286,7 +301,7 @@ def process_file(
             )
 
     def _triage(exc: "LowQualityError") -> None:
-        _send_to_triage(image_path, exc)
+        _send_to_triage(image_path, exc, backend)
         if triaged is not None:
             triaged.append(image_path.name)
         reading["quality_gate"] = "failed"

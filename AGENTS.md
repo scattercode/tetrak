@@ -82,6 +82,7 @@ Everything runs through the `tetrak-ocr` console script. See
 tetrak-ocr backends                          # what is installed, and what each needs
 tetrak-ocr ocr <path> --backend tesseract-auto
 tetrak-ocr batch --backend auto-local        # workspace/: scans/ → processed/, failures to triage/
+tetrak-ocr triage --serve                    # what triage/ holds, as a page on 127.0.0.1 only
 tetrak-ocr evaluate --all --save             # → evaluation/ocr/benchmark.{csv,md} + runs/
 python -m evaluation.ocr.reading_order --save  # → evaluation/ocr/reading_order.{csv,md}: column-aware order vs a positioned layer's
 
