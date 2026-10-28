@@ -49,8 +49,13 @@ transliteration library.
 
 We have been thinking about Syriac OCR for a while. Syriac manuscripts
 survive in large numbers, many have been photographed, and very few have
-been transcribed. While looking at a catalogue of manuscripts that holds
-a good deal of Syriac alongside its Armenian, we saw the same thing we
+been transcribed. In late October we attended a Zoom presentation by
+[Dr Ani Shahinian](https://hmml.org/about/staff/shahinian/), cataloguer
+of Armenian manuscripts at the
+[Hill Museum & Manuscript Library](https://hmml.org) (HMML). As she
+showed HMML's online collections, we noticed what looked like a large
+Syriac collection beside the Armenian. The catalogue is published
+online, so we had a look at what it holds, and we saw the same thing we
 had seen with Armenian: titles and names recorded twice, once in the
 script and once in a romanisation, and a search that only finds a record
 if you type the form its cataloguer chose.
