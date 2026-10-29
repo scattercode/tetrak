@@ -1,9 +1,10 @@
 ---
 title: "Reference"
 kicker: "Reference"
+aliases: ["/reference/"]
 ---
 
-The detail behind [the research](../research/in-depth/): the corpus itself, what each
+The detail behind [the research]({{< relref "/research/in-depth.md" >}}): the corpus itself, what each
 engine does and does not do, how routing decides, and the command line.
 
 - **[The corpus](corpus/)** — nine items of Los Angeles stage and picture-palace

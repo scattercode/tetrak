@@ -20,7 +20,7 @@ strategy built on top of them.
 
 The measurements behind every claim on this page are on
 [tetrak.dev](https://tetrak.dev/): the [engines
-page](https://tetrak.dev/reference/engines/) for each backend's measured
+page](https://tetrak.dev/ocr/reference/engines/) for each backend's measured
 strengths and failure cases, and the [research](https://tetrak.dev/research/)
 for the full benchmark and what it does and does not establish. Figures are
 deliberately not repeated here, where nothing would keep them current.

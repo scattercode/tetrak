@@ -1,4 +1,8 @@
-{{- /* Sticky masthead: wordmark, version, nav, search, theme toggle. */ -}}
+{{- /* Sticky masthead: wordmark, nav, search, theme toggle.
+
+       The version that used to sit beside the wordmark went with brief 017:
+       the site is about several tools now, and one package's version number
+       next to the site's name said the wrong thing. */ -}}
 <header class="masthead">
   <div class="masthead__inner">
     {{- /* site.Home.RelPermalink, not `"/" | relURL`. A leading slash makes
@@ -8,18 +12,36 @@
            root. Asking a page for its own permalink cannot get this wrong. */ -}}
     <a class="masthead__brand" href="{{ site.Home.RelPermalink }}">
       <span class="masthead__name">{{ .Site.Title }}</span>
-      {{- /* Read from the git tag rather than hard-coded, the way hatch-vcs
-             already derives the package version. One source of truth. */ -}}
-      {{- with .Site.Params.version }}<span class="masthead__version">{{ . }}</span>{{ end }}
     </a>
 
     <nav class="masthead__nav" aria-label="Main">
       {{- range .Site.Menus.main }}
         {{- /* .URL, not .PageRef: PageRef is the raw string from the menu
-               config ("/tutorial"), not a resolved link. Hugo resolves pageRef
+               config ("/products"), not a resolved link. Hugo resolves pageRef
                into .URL for us, with the baseURL path already on it. */ -}}
         {{- if not .URL }}{{ errorf "menu entry %q has no URL -- check its pageRef in config/_default/menus/" .Name }}{{ end }}
+        {{- if .HasChildren }}
+          {{- /* A parent with children is a group: the link to its own page,
+                 a disclosure button that opens the list on a wide screen, and
+                 the list. A button rather than hover, so the keyboard and a
+                 screen reader get the same menu as the mouse: aria-expanded
+                 says whether it is open, aria-controls names what it opens.
+                 Below the nav breakpoint the list is always shown, indented,
+                 and the button is hidden. */ -}}
+          {{- $id := printf "submenu-%s" (.Identifier | urlize) }}
+          <div class="masthead__group" data-submenu>
+            <a href="{{ .URL }}"{{ if $.IsMenuCurrent "main" . }} aria-current="page"{{ else if $.HasMenuCurrent "main" . }} aria-current="true"{{ end }}>{{ .Name }}</a>
+            <button class="masthead__disclosure" type="button" data-submenu-toggle aria-expanded="false" aria-controls="{{ $id }}" aria-label="Show {{ .Name | lower }}">▾</button>
+            <ul class="masthead__submenu" id="{{ $id }}">
+              {{- range .Children }}
+                {{- if not .URL }}{{ errorf "menu entry %q has no URL -- check its pageRef in config/_default/menus/" .Name }}{{ end }}
+              <li><a href="{{ .URL }}"{{ if $.IsMenuCurrent "main" . }} aria-current="page"{{ else if $.HasMenuCurrent "main" . }} aria-current="true"{{ end }}>{{ .Name }}</a></li>
+              {{- end }}
+            </ul>
+          </div>
+        {{- else }}
         <a href="{{ .URL }}"{{ if $.IsMenuCurrent "main" . }} aria-current="page"{{ end }}>{{ .Name }}</a>
+        {{- end }}
       {{- end }}
     </nav>
 
@@ -28,7 +50,8 @@
         <span>Search</span><span class="btn-search__key">/</span>
       </button>
       <button class="btn-icon" data-theme-toggle type="button" title="Toggle theme" aria-label="Toggle theme">◐</button>
-      <a class="masthead__repo" href="{{ .Site.Params.repo }}">GitHub ↗</a>
+      {{- /* The organisation, not one repository: the tools live in several. */ -}}
+      <a class="masthead__repo" href="{{ .Site.Params.org }}">GitHub ↗</a>
       <button class="btn-icon" data-menu-toggle type="button" aria-label="Menu">≡</button>
     </div>
   </div>

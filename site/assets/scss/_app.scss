@@ -37,13 +37,6 @@
     letter-spacing: -0.015em;
   }
 
-  &__version {
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    color: var(--clay);
-    letter-spacing: 0.06em;
-  }
-
   &__nav {
     display: flex;
     gap: 22px;
@@ -62,11 +55,65 @@
       }
 
       // The current page is marked by weight and colour rather than an
-      // underline, which would collide with the link hover treatment.
-      &[aria-current="page"] {
+      // underline, which would collide with the link hover treatment. A
+      // parent whose child is current gets the same mark, so Products reads
+      // as current on a product page.
+      &[aria-current] {
         color: var(--ink);
         font-weight: 600;
       }
+    }
+  }
+
+  // A menu entry with children: its link, the disclosure button beside it,
+  // and the list the button opens. On a wide screen the list drops below the
+  // masthead on the paper-2 ground with the one border colour the system
+  // has, which is the same treatment the phone menu gets; on a phone the
+  // list is part of the column (see the narrow-screen rules).
+  &__group {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+
+    &.is-open .masthead__submenu {
+      display: flex;
+    }
+  }
+
+  &__disclosure {
+    appearance: none;
+    border: 0;
+    background: none;
+    padding: 4px 2px;
+    font: inherit;
+    font-size: 0.8rem;
+    line-height: 1;
+    color: var(--ink-soft);
+    cursor: pointer;
+
+    &:hover,
+    &[aria-expanded="true"] {
+      color: var(--clay-deep);
+    }
+  }
+
+  &__submenu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    left: -14px;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 15rem;
+    margin: 0;
+    padding: 10px 14px;
+    list-style: none;
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+
+    li {
+      list-style: none;
     }
   }
 
@@ -240,12 +287,51 @@
   }
 }
 
+// --- Home --------------------------------------------------------------------
+// The latest articles, under the tiles and the services panel. The rows are
+// the articles index's own; only the spacing around the block is new.
+.home-articles {
+  margin-top: 3.5rem;
+
+  &__foot {
+    margin-top: 1.6rem;
+  }
+}
+
 // --- Narrow screens ----------------------------------------------------------
 // Below the prototype's 1000px breakpoint the nav and rail both go, leaving a
-// single column. The burger reveals the nav.
+// single column. The burger reveals the nav, with the products shown
+// indented under their parent rather than behind a second disclosure.
 @media (width <= 1000px) {
   .masthead__nav {
     display: none;
+  }
+
+  // Left-aligned as a column, so the products read as indented under their
+  // parent; centred, the group sat as a left-aligned block in a centred list.
+  .masthead__nav.is-open {
+    align-items: flex-start;
+  }
+
+  .masthead__group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .masthead__disclosure {
+    display: none;
+  }
+
+  .masthead__submenu {
+    display: flex;
+    position: static;
+    min-width: 0;
+    padding: 0 0 0 18px;
+    border: 0;
+    border-left: 2px solid var(--clay);
+    background: none;
+    gap: 10px;
   }
 
   .page {

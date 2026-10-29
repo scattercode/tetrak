@@ -49,7 +49,7 @@ Three ways to use it, all Apache 2.0:
   Armenian, weights fetched and checksum-verified on first use.
 - `pip install "tetrak[armenian]"` — the `easyocr-hy` backend, which
   adds the two output-path steps described below and is what produced the
-  numbers here. See [the engines page]({{< relref "/reference/engines.md" >}}).
+  numbers here. See [the engines page]({{< relref "/ocr/reference/engines.md" >}}).
 - [`tetrak/easyocr-armenian`](https://huggingface.co/tetrak/easyocr-armenian)
   on Hugging Face — the weights themselves, with a provenance record naming
   the exact data that trained them, and a model card that keeps every

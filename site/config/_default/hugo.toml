@@ -1,10 +1,13 @@
-# Tetrak OCR — Hugo configuration.
+# Tetrak — Hugo configuration.
 #
 # Themeless: layouts/, assets/ and content/ live at the repository root,
 # following velostevie. There is one site here, so a theme directory would add
 # a layer of indirection without buying separation.
 
-title = "Tetrak OCR"
+# "Tetrak", not "Tetrak OCR", since October 2026 (brief 017): the site is the
+# home of every Tetrak tool and of the services, and the OCR tool has its own
+# page at /ocr/. The tool keeps its name wherever the tool is meant.
+title = "Tetrak"
 baseURL = "https://tetrak.dev/"
 locale = "en-gb"
 defaultContentLanguage = "en"
@@ -13,7 +16,7 @@ enableRobotsTXT = true
 enableInlineShortcodes = true
 
 # Hugo title-cases the titles it derives for list pages, which turned the tag
-# `ocr` into a page headed "Ocr" and titled "Ocr · Tetrak OCR" in the browser
+# `ocr` into a page headed "Ocr" and titled "Ocr · Tetrak" in the browser
 # tab. Tags are lowercase and hyphenated by convention here, and the term is the
 # tag -- capitalising it publishes a word the site does not use. The list pages
 # that want a proper title all have an _index.md that gives them one, including
@@ -67,8 +70,13 @@ capitalizeListTitles = false
     tabWidth = 2
 
 [params]
-  description = "Local-first OCR orchestration for archival material, and a benchmark comparing five OCR engines against a corpus of Los Angeles stage and picture-palace ephemera, c. 1910-1945."
+  description = "Tetrak makes archive collections readable and searchable, especially in scripts that mainstream software serves poorly: free, open-source tools for turning scans of old print into searchable text and for searching across scripts, and services for the collections that would rather we did the work."
+  # The repository behind this site: the OCR pipeline, its evaluation and the
+  # site itself. Used for the "Edit this page" links and the footer.
   repo = "https://github.com/scattercode/tetrak"
+  # The organisation, which the masthead links to since October 2026: the site
+  # describes several tools, each in its own repository under it.
+  org = "https://github.com/scattercode"
 
   # Plausible: privacy-friendly, no cookies, no consent banner needed.
   #

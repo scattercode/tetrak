@@ -50,7 +50,7 @@ def analyse_image(image: Image.Image) -> dict:
     2026-09-27 re-fit changed every one of them. This docstring held a copy
     until then, and the copy would have been wrong the same afternoon. Call
     `tuning.describe()` for the current values, or read the table on
-    https://tetrak.dev/reference/routing/, which is generated from the module.
+    https://tetrak.dev/ocr/reference/routing/, which is generated from the module.
 
     Contrast boost
         Based on the standard deviation of pixel intensities in the greyscale

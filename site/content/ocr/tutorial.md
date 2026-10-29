@@ -1,7 +1,7 @@
 ---
 title: "Tutorial"
 kicker: "Using it"
-aliases: ["/install/"]
+aliases: ["/install/", "/tutorial/"]
 ---
 
 From nothing to a transcribed folder in a few minutes. Everything beyond
@@ -121,5 +121,5 @@ catalogue can index.
   triage queue.
 - [Choosing a backend](https://scattercode.github.io/tetrak/guide/backends.html)
   — which engine for which material, and what a run costs.
-- [The research](research/) — nine documents, five engines, and exactly where
+- [The research]({{< relref "/research" >}}) — nine documents, five engines, and exactly where
   each one breaks.

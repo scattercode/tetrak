@@ -1,7 +1,7 @@
 ---
 title: "Auto-local routing"
 kicker: "Reference"
-aliases: ["/auto-local/", "/research/auto-local/"]
+aliases: ["/auto-local/", "/research/auto-local/", "/reference/routing/"]
 ---
 
 One strategy over the whole set of local engines, for when you would rather not
@@ -18,7 +18,7 @@ An oracle picking the best local engine for each file would average 0.79;
 `auto-local` reaches 0.66 — about 83% of the ceiling. Most of the gap is
 PaddleOCR-VL, which is not in the default pool and joins only with
 `--with-paddle-vl`. See
-[results](../research/in-depth/#fan-out-no-longer-wins).
+[results]({{< relref "/research/in-depth.md#fan-out-no-longer-wins" >}}).
 {{< /note >}}
 {{< note kind="caution" title="Fan-out is sequential, deliberately" >}}
 The engines run one after another, not in parallel. Each is individually
@@ -133,7 +133,7 @@ flowchart TD
 Candidates are ordered by measured result, because fast mode takes the first
 and fan-out uses the order to break ties. EasyOCR sits above PaddleOCR: it is
 ahead on every image where either engine reads anything at all. See
-[results](../research/in-depth/#the-results) for the scores.
+[results]({{< relref "/research/in-depth.md#the-results" >}}) for the scores.
 
 ---
 
@@ -155,7 +155,7 @@ The old auto-local picked one backend per file type before processing began. The
 
 Pure `combined_score` was insufficient on sparse-text images — a conservative backend emitting 8 perfectly clean words can outscore a backend that recovers 23 slightly noisier words, because dict_coverage is trivially 1.00 and perplexity is low for a short well-formed sentence. The `0.8 + 0.2 × words/max_words` multiplier ensures coverage is weighted alongside quality. The floor of 0.8 means even a zero-word backend retains most of its raw quality score, and `max_words` is relative so the formula is scale-invariant across different document sizes.
 
-The weight was 0.5 until 28 August 2026. At that value a noisy 77-word `tesseract-auto` transcript on `carthay-circle-premiere.jpg` beat 11-word transcripts from three other engines on word count alone, despite scoring lowest of the four on raw quality — see [the results](../research/in-depth/#fan-out-no-longer-wins). `evaluation/ocr/calibration/router_sweep.py` re-fitted the weight by minimising mean regret against ground truth; `LENGTH_WEIGHT`'s provenance comment in `auto_local.py` has the full result.
+The weight was 0.5 until 28 August 2026. At that value a noisy 77-word `tesseract-auto` transcript on `carthay-circle-premiere.jpg` beat 11-word transcripts from three other engines on word count alone, despite scoring lowest of the four on raw quality — see [the results]({{< relref "/research/in-depth.md#fan-out-no-longer-wins" >}}). `evaluation/ocr/calibration/router_sweep.py` re-fitted the weight by minimising mean regret against ground truth; `LENGTH_WEIGHT`'s provenance comment in `auto_local.py` has the full result.
 
 ### Quality gate threshold
 

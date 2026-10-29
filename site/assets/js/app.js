@@ -1,5 +1,5 @@
 /**
- * Tetrak OCR — the small amount of behaviour the site actually needs.
+ * Tetrak — the small amount of behaviour the site actually needs.
  *
  * Everything here genuinely requires the browser: a search UI, a theme the
  * reader chooses, and a clipboard. Everything else — the search index, the
@@ -297,8 +297,56 @@ function initMenu() {
   });
 }
 
+// --- Nav dropdowns -----------------------------------------------------------
+// A menu entry with children (Products) renders as a link, a disclosure button
+// and a list. The button is what opens the list, so the keyboard and a screen
+// reader get the same menu as the mouse: no hover. Escape closes it and hands
+// focus back to the button; a click elsewhere, or focus leaving the group,
+// closes it too. Below the nav breakpoint the stylesheet shows the list
+// permanently and hides the button, so nothing here runs on a phone.
+
+function initSubmenus() {
+  const groups = document.querySelectorAll("[data-submenu]");
+  if (!groups.length) return;
+
+  const setOpen = (group, open) => {
+    group.classList.toggle("is-open", open);
+    group.querySelector("[data-submenu-toggle]").setAttribute("aria-expanded", String(open));
+  };
+
+  groups.forEach(group => {
+    const button = group.querySelector("[data-submenu-toggle]");
+    if (!button) return;
+
+    button.addEventListener("click", () => {
+      setOpen(group, !group.classList.contains("is-open"));
+    });
+
+    group.addEventListener("keydown", e => {
+      if (e.key === "Escape" && group.classList.contains("is-open")) {
+        e.preventDefault();
+        setOpen(group, false);
+        button.focus();
+      }
+    });
+
+    // relatedTarget is where focus is going; null means it left the document,
+    // which happens on a window blur and should not snap the menu shut.
+    group.addEventListener("focusout", e => {
+      if (e.relatedTarget && !group.contains(e.relatedTarget)) setOpen(group, false);
+    });
+  });
+
+  document.addEventListener("click", e => {
+    groups.forEach(group => {
+      if (!group.contains(e.target)) setOpen(group, false);
+    });
+  });
+}
+
 initTheme();
 initCopyButtons();
 initSearch();
 initLightbox();
 initMenu();
+initSubmenus();

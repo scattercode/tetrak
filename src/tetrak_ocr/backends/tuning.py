@@ -186,7 +186,7 @@ def describe() -> list[dict[str, object]]:
 
     `tools/generate_tuning_data.py` reads this into `site/data/tuning.toml`
     before Hugo runs, so the values published at
-    https://tetrak.dev/reference/routing/ come from the module rather than
+    https://tetrak.dev/ocr/reference/routing/ come from the module rather than
     from a copy someone typed. That matters more than it used to: the edges
     are fitted now, and they move.
     """

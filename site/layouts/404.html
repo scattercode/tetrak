@@ -21,9 +21,9 @@
   <div class="kicker">Error 404</div>
   <h1>Page not found</h1>
   <p class="standfirst">
-    Nothing on the site matches that address. The documentation was
-    restructured in August 2026 and a few pages moved; an old link may not have
-    survived it.
+    Nothing on the site matches that address. The site was restructured in
+    August 2026 and again in October 2026, when the OCR tool's tutorial and
+    reference moved under /ocr/; an old link may not have survived it.
   </p>
 
   <p>Press <kbd>/</kbd> to search the site, or pick up the trail here:</p>
@@ -32,6 +32,9 @@
     {{- range .Site.Menus.main }}
       {{- if not .URL }}{{ errorf "menu entry %q has no URL -- check its pageRef in config/_default/menus/" .Name }}{{ end }}
       <li><a href="{{ .URL }}">{{ .Name }}</a></li>
+      {{- range .Children }}
+      <li><a href="{{ .URL }}">{{ .Name }}</a></li>
+      {{- end }}
     {{- end }}
   </ul>
 {{ end }}

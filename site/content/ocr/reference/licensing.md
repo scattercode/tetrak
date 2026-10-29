@@ -1,7 +1,7 @@
 ---
 title: "Licensing"
 kicker: "Reference"
-aliases: ["/licensing/"]
+aliases: ["/licensing/", "/reference/licensing/"]
 ---
 
 <!-- The root LICENSING.md is the single source. Including it here rather than

@@ -13,7 +13,7 @@
 {{- range where .Site.RegularPages "Params.private" "!=" true }}
   {{- $pages = $pages | append (dict
       "title" .Title
-      "section" (.Parent.Title | default "Tetrak OCR")
+      "section" (.Parent.Title | default site.Title)
       "url" .RelPermalink
       "text" .Plain
   ) }}
