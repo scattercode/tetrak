@@ -13,8 +13,8 @@ systems that can are priced for large institutions.
 We work on both. We publish free, open-source tools that turn scans of old
 printed text into searchable text, starting with Armenian, and that make it
 possible to search across scripts, so someone who types a name in Latin
-letters finds the record written in Armenian, Georgian or Cyrillic, with
-Syriac on the way. And we work with collections teams directly: assessing
+letters finds the record written in Armenian, Georgian, Cyrillic or
+Syriac. And we work with collections teams directly: assessing
 what they hold, building and hosting search sites for their catalogues, and
 helping with the technical side of grant applications.
 

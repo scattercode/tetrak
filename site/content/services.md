@@ -22,8 +22,8 @@ as they do now, and the site follows along. What changes is what a visitor
 can do with them:
 
 - **Searches work across scripts and spellings.** A reader who types a name
-  in Latin letters finds the record written in Armenian, Georgian or
-  Cyrillic, whichever romanisation the cataloguer used, and the other way
+  in Latin letters finds the record written in Armenian, Georgian,
+  Cyrillic or Syriac, whichever romanisation the cataloguer used, and the other way
   round.
 - **Name matching finds every record for a person**, whichever of their
   names or spellings was recorded: the Western and Eastern forms, the
