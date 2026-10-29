@@ -1,7 +1,7 @@
 ---
 title: "The engines"
 kicker: "Reference"
-aliases: ["/backends/", "/research/backends/"]
+aliases: ["/backends/", "/research/backends/", "/reference/engines/"]
 ---
 
 Seven engines behind one interface, plus two strategies built on them. Every one
@@ -22,7 +22,7 @@ rather than importing it directly.
 | `claude-haiku` | `[claude]` | ✓ | Not escalation: the smaller model, measured and found short |
 | `auto-local` | core | ✓ | Unattended mixed material; runs several and keeps the best |
 
-See [choosing a tool](../research/in-depth/#choosing-a-tool-for-your-own-material) for which to use when, with the
+See [choosing a tool]({{< relref "/research/in-depth.md#choosing-a-tool-for-your-own-material" >}}) for which to use when, with the
 measurements behind it.
 
 ## Tesseract, and auto-configuration
@@ -45,7 +45,7 @@ They were hand-written until 27 September 2026, and they did not generalise:
 on the two TIFFs added after that fit, the gain vanished, and on one of them
 auto-configuration was *worse* than leaving Tesseract alone. The re-fit
 repaired both. See
-[results](../research/in-depth/#re-fitting-them-and-what-it-cost).
+[results]({{< relref "/research/in-depth.md#re-fitting-them-and-what-it-cost" >}}).
 
 The corpus doubled on 28 September and the bands were re-fitted on it, so
 four fixtures are held back again. Generalisation is still the weak point:
@@ -77,7 +77,7 @@ the EasyOCR extra bought nothing.
 Adding it changed the measured outcome by nothing at all. EasyOCR wins the
 Carthay Circle front outright at 0.87, and still loses the selection there to a
 Tesseract transcript scoring 0.49, because the winner is ranked on quality
-weighted by word count. See [results](../research/in-depth/#the-results).
+weighted by word count. See [results]({{< relref "/research/in-depth.md#the-results" >}}).
 
 ## Armenian, with our own recogniser
 
@@ -255,7 +255,7 @@ than anything else local.
 **Where it fails is reading order.** On the *Inside Facts* newsprint it
 recovers 0.88–0.90 of the words and scores 0.08–0.12 on character similarity —
 the widest gap between the two metrics anywhere in this benchmark, and the
-same multi-column failure described in [the research](../research/in-depth/#the-metrics-disagree-and-that-is-the-point),
+same multi-column failure described in [the research]({{< relref "/research/in-depth.md#the-metrics-disagree-and-that-is-the-point" >}}),
 in a more extreme form than Tesseract manages.
 
 Two limits worth knowing:
@@ -279,7 +279,7 @@ word recall on the vaudeville poster, where the best local backend manages 0.39.
 Three caveats. It needs `ANTHROPIC_API_KEY` and it sends your images to an API,
 which rules it out for confidential material. Its benchmark scores are measured
 against ground truth it generated itself, so they are a ceiling reference rather
-than a measurement — see [method](../research/in-depth/#the-weakness-at-the-centre-of-the-method). And unlike every local
+than a measurement — see [method]({{< relref "/research/in-depth.md#the-weakness-at-the-centre-of-the-method" >}}). And unlike every local
 backend, it does not reproduce between runs: on the poster its character
 similarity has scored 0.73, 0.24 and 0.26 across three runs while word recall
 held at 0.96–0.98. It recovers the same words and orders them differently, which
@@ -300,7 +300,7 @@ lithographer's imprint or a copyright line, and sometimes puts plausible
 wording in its place: a different lithographer's name, the wrong count of
 swords in a sideshow act. On clean print the two models are close. Where
 `claude-haiku` appears to beat `claude`, the difference is reading order, not
-reading. The [benchmark](../research/in-depth/) has its column.
+reading. The [benchmark]({{< relref "/research/in-depth.md" >}}) has its column.
 
 ## Multi-page TIFF
 
@@ -442,4 +442,4 @@ accuracy.
 
 The one thing it uniquely offered was a single cheap engine *with* the quality
 gate. That is what `--quality-gate` is for. See
-[results](../research/in-depth/#the-results) for the measurement that decided it.
+[results]({{< relref "/research/in-depth.md#the-results" >}}) for the measurement that decided it.

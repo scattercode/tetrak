@@ -241,7 +241,7 @@ fold but things a fold cannot do:
   the Syriac calls `ܐܘܪܗܝ`, *Urhay*; *Nisibis* is `ܢܨܝܒܝܢ`. *Bar
   Hebraeus* is the Latin form of *Bar ʿEbrāyā*, with an *h* the Syriac
   does not have and a Latin ending. No spelling rule turns one into the
-  other. That is a job for a name authority, which knows that two names
+  other. That is a job for [a name authority]({{< relref "/services.md#catalogue-search" >}}), which knows that two names
   belong to the same place or person, not for a fold. Our test index
   already has one for people: when it is built, each creator is looked
   up in a snapshot of Wikidata's names for the region, and the person's

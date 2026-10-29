@@ -8,15 +8,38 @@
   never there.
 
   The heading is `heading` from front matter rather than `.Title`, because
-  .Title is "Tetrak OCR" and the masthead already says that a few centimetres
-  above. Repeating it at 66px told a reader nothing. The heading says what the
-  thing does, and the masthead keeps saying what it is called.
+  .Title is the site's name, "Tetrak", and the masthead already says that a few
+  centimetres above. Repeating it at 66px told a reader nothing. The heading
+  says what the thing does, and the masthead keeps saying what it is called.
 
   Opening order matches single.html -- h1 then standfirst -- so the home page
   reads like the rest of the site rather than as a special case.
+
+  After the content (who we are, the product tiles, the services panel) come
+  the three most recent articles, rendered through the same row partial the
+  articles index and the tag pages use, so a row looks the same wherever it
+  appears. The h2 stands in for the year heading those listings give their
+  rows, keeping h1 -> h2 -> h3 unbroken, which is what article-row.html asks
+  of its callers.
 */ -}}
 {{ define "main" }}
   <h1>{{ .Params.heading | default .Title }}</h1>
   {{- with .Params.standfirst }}<p class="standfirst">{{ . }}</p>{{ end }}
   {{ .Content }}
+
+  {{- with site.GetPage "/articles" }}
+  <section class="home-articles">
+    <h2>Latest articles</h2>
+    <div class="articles">
+      <div class="articles__rows">
+        {{- range first 3 .RegularPagesRecursive.ByDate.Reverse }}
+          {{- partial "article-row.html" . }}
+        {{- end }}
+      </div>
+    </div>
+    <p class="home-articles__foot"><a href="{{ .RelPermalink }}">All articles</a></p>
+  </section>
+  {{- else }}
+    {{- errorf "index: no page at /articles -- the latest-articles list cannot be built" }}
+  {{- end }}
 {{ end }}

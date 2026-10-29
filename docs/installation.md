@@ -88,7 +88,7 @@ writing, GPL-3.0, with a commercial-use exception offered by their author.
 That does not affect Tetrak itself, since extras are optional dependencies
 resolved at install time and never vendored, but it does affect anyone
 redistributing a bundle that includes them. Check the current terms upstream;
-licence terms change. See [licensing](https://tetrak.dev/reference/licensing/).
+licence terms change. See [licensing](https://tetrak.dev/ocr/reference/licensing/).
 ```
 
 ## Model weights

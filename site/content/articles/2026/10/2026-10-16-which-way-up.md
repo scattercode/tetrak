@@ -337,7 +337,7 @@ pinned page, and the pin is in the repository, with a comment saying why.
 That is the whole mechanism: two measurements, a majority, a report, and
 a place to write down what the measurements cannot know. It is the same
 shape as the auto-configuration in Tetrak's own
-[Tesseract backend]({{< relref "/reference/engines.md#tesseract-and-auto-configuration" >}}),
+[Tesseract backend]({{< relref "/ocr/reference/engines.md#tesseract-and-auto-configuration" >}}),
 which picks a contrast factor and a page segmentation mode from two
 statistics of the image, with thresholds fitted on data and checked by a
 test. A rule you can read is a rule you can check.

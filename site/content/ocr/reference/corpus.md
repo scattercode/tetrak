@@ -1,7 +1,7 @@
 ---
 title: "The corpus"
 kicker: "Reference"
-aliases: ["/evaluation/ocr/corpus/", "/research/corpus/"]
+aliases: ["/evaluation/ocr/corpus/", "/research/corpus/", "/reference/corpus/"]
 ---
 
 Nine items on a single theme — **the Los Angeles stage and its picture

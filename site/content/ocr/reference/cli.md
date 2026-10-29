@@ -1,7 +1,7 @@
 ---
 title: "Command line and Python API"
 kicker: "Reference"
-aliases: ["/batch/", "/reference/api/"]
+aliases: ["/batch/", "/reference/api/", "/reference/cli/"]
 ---
 
 How to install and drive the package is documented in the

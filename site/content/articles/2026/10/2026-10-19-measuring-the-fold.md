@@ -276,7 +276,7 @@ One more thing the measure made plain, and it is a rule about releases
 rather than about tests.
 
 A fold key is stored. It sits in the index beside the record, and in
-anything else built by folding: our name authority, a snapshot of
+anything else built by folding: [our name authority]({{< relref "/services.md#catalogue-search" >}}), a snapshot of
 Wikidata keyed by the same fold, stores every name's key beside the
 name. When a release changes a key, every stored copy is wrong until it
 is rebuilt. So the library treats a moved key as a change to a public

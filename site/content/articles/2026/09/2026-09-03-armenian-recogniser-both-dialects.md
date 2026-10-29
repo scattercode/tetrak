@@ -344,7 +344,7 @@ transcripts of such material are what the whole field lacks.
 
 The site's own benchmark table still shows the `easyocr-hy` backend with
 v3 weights; re-running the harness against v5 is queued behind the
-release, and the [engines page]({{< relref "/reference/engines.md" >}})
+release, and the [engines page]({{< relref "/ocr/reference/engines.md" >}})
 will pick the new numbers up from the harness rather than from this
 article. Brief 012's remaining stages are layout generality and the
 external-engine sweep across the register sets. The model, the

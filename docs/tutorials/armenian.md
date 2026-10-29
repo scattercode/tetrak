@@ -9,7 +9,7 @@ has never seen the script, and Apple's Vision framework has no Armenian at
 all. `easyocr-hy` keeps EasyOCR's detector, which already finds Armenian
 text, and swaps in `tetrak_hy`, a recogniser trained for the script. Where
 it stands against the other Armenian engines, register by register, is on
-[tetrak.dev](https://tetrak.dev/reference/engines/#armenian-with-our-own-recogniser).
+[tetrak.dev](https://tetrak.dev/ocr/reference/engines/#armenian-with-our-own-recogniser).
 
 ## 1. Install the recogniser
 

@@ -48,7 +48,7 @@ architecture — and, in one case, unbuilt a feature that had already shipped.
 Nine items of Los Angeles stage and picture-palace ephemera, c. 1910–1945,
 chosen to span the failure modes that matter in archive digitisation rather
 than to flatter anything. Provenance and rights for every item are in
-[the corpus reference](../reference/corpus/).
+[the corpus reference]({{< relref "/ocr/reference/corpus.md" >}}).
 
 Each transcript is scored on two numbers, both against normalised text —
 lowercased, whitespace collapsed.
@@ -275,7 +275,7 @@ picks the band edges that minimise mean *regret* — how far each fixture falls
 below the best it could have scored. Regret rather than mean score, because the
 corpus spans a 350× range in transcript length and a mean hands the objective
 to the longest documents. The current values are on
-[the routing reference](../reference/routing/), read from the module rather
+[the routing reference]({{< relref "/ocr/reference/routing.md" >}}), read from the module rather
 than typed into the page.
 
 Five of the nine `tesseract-auto` figures moved, and all five moved up. The
@@ -516,7 +516,7 @@ The heuristic works for a slightly different reason than the one it was reached
 for, which is also why the hand-fitted bands failed on the Kinema ad above: the
 signal is sound, and the edges drawn across it were not.
 
-The exact bands are in [the routing reference](../reference/routing/), read
+The exact bands are in [the routing reference]({{< relref "/ocr/reference/routing.md" >}}), read
 from the module at build time rather than written out here — they are fitted
 from a sweep and they move.
 
@@ -639,7 +639,7 @@ Local engines reproduce exactly between runs; the Claude column does not, for
 the reason given above. Compare like with like by re-reading the dated CSVs
 rather than trusting a single pass.
 
-Full detail lives in the reference section: [the corpus](../reference/corpus/)
-with provenance and rights, [the engines](../reference/engines/) with each
-one's constraints and failure cases, and [routing](../reference/routing/) with
+Full detail lives in the reference section: [the corpus]({{< relref "/ocr/reference/corpus.md" >}})
+with provenance and rights, [the engines]({{< relref "/ocr/reference/engines.md" >}}) with each
+one's constraints and failure cases, and [routing]({{< relref "/ocr/reference/routing.md" >}}) with
 the decision table and bands.

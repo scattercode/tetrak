@@ -3,7 +3,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
 /**
- * Smoke tests for the Tetrak OCR site.
+ * Smoke tests for the Tetrak site.
  *
  * These check the things a passing Hugo build cannot: that the benchmark table
  * carries the real numbers, that the behaviour attached by script actually
@@ -14,8 +14,117 @@ import { join, relative } from "node:path";
 
 test("the landing page renders with its branding", async ({ page }) => {
   await page.goto("./");
-  await expect(page).toHaveTitle("Tetrak OCR");
-  await expect(page.locator(".masthead__name")).toHaveText("Tetrak OCR");
+  // "Tetrak", not "Tetrak OCR": since brief 017 the site is the home of every
+  // Tetrak tool and the services, and the OCR tool has its own page at /ocr/.
+  await expect(page).toHaveTitle("Tetrak");
+  await expect(page.locator(".masthead__name")).toHaveText("Tetrak");
+  await expect(page.locator("main h1")).toHaveText("Readable, searchable archives");
+});
+
+test("the home page says who we are, what the tools are, and that there are services", async ({ page }) => {
+  // The brief's own test of success: a visitor landing on / can tell within a
+  // screen what the three products are and that we offer services.
+  await page.goto("./");
+  const tiles = page.locator(".grid.cards li > p:first-child a");
+  await expect(tiles).toHaveCount(3);
+  await expect(tiles.nth(0)).toHaveText("Tetrak OCR");
+  await expect(tiles.nth(1)).toHaveText("Armenian text recognition");
+  await expect(tiles.nth(2)).toHaveText("Transliteration and cross-script search");
+  await expect(page.locator('main a[href$="/services/"]').first()).toBeVisible();
+
+  // And the three most recent articles, through the same row the index uses.
+  await expect(page.locator(".home-articles .article-row")).toHaveCount(3);
+});
+
+test("the products dropdown opens and closes from the keyboard", async ({ page }) => {
+  await page.goto("./");
+  const group = page.locator(".masthead__group").first();
+  const button = group.locator("[data-submenu-toggle]");
+  const submenu = group.locator(".masthead__submenu");
+
+  // The parent label is itself a link to the overview, so the dropdown is
+  // never the only way to reach the products.
+  await expect(group.locator("> a")).toHaveAttribute("href", /\/products\/$/);
+
+  await expect(button).toHaveAttribute("aria-expanded", "false");
+  await expect(submenu).toBeHidden();
+
+  await button.focus();
+  await page.keyboard.press("Enter");
+  await expect(button).toHaveAttribute("aria-expanded", "true");
+  await expect(submenu).toBeVisible();
+  await expect(submenu.locator("a")).toHaveCount(3);
+  await expect(submenu.locator("a").first()).toHaveText("Tetrak OCR");
+
+  // Tab moves into the list; Escape closes it and hands focus back.
+  await page.keyboard.press("Tab");
+  await expect(submenu.locator("a").first()).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(button).toHaveAttribute("aria-expanded", "false");
+  await expect(submenu).toBeHidden();
+  await expect(button).toBeFocused();
+
+  // Tabbing out of the group closes it too, so an open menu is never left
+  // hanging over the page for a keyboard user who moved on.
+  await page.keyboard.press("Enter");
+  await expect(submenu).toBeVisible();
+  for (let n = 0; n < 4; n++) await page.keyboard.press("Tab");
+  await expect(submenu).toBeHidden();
+});
+
+test("the phone menu shows the products under Products", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.goto("./");
+
+  const nav = page.locator(".masthead__nav");
+  await expect(nav).toBeHidden();
+  await page.locator("[data-menu-toggle]").click();
+  await expect(nav).toBeVisible();
+
+  // No disclosure on a phone: the three products are simply listed, indented
+  // under their parent, which still links to the overview.
+  await expect(page.locator("[data-submenu-toggle]")).toBeHidden();
+  const products = nav.locator(".masthead__submenu a");
+  await expect(products).toHaveCount(3);
+  for (const link of await products.all()) await expect(link).toBeVisible();
+  await expect(nav.locator('.masthead__group > a[href$="/products/"]')).toBeVisible();
+});
+
+test("every old URL still lands on its page", async ({ request, baseURL }) => {
+  // Brief 017 moved the tutorial and the reference under /ocr/. PyPI, the
+  // READMEs, the user guide and published articles link to the old paths, so
+  // each is kept as an alias: a meta-refresh stub whose target must itself be
+  // a real page. Checked with request rather than page.goto, because landing
+  // on a stub navigates away underneath anything that runs next.
+  const old = [
+    ["tutorial/", "/ocr/tutorial/"],
+    ["install/", "/ocr/tutorial/"],
+    ["reference/", "/ocr/reference/"],
+    ["reference/cli/", "/ocr/reference/cli/"],
+    ["reference/api/", "/ocr/reference/cli/"],
+    ["batch/", "/ocr/reference/cli/"],
+    ["reference/corpus/", "/ocr/reference/corpus/"],
+    ["evaluation/ocr/corpus/", "/ocr/reference/corpus/"],
+    ["research/corpus/", "/ocr/reference/corpus/"],
+    ["reference/engines/", "/ocr/reference/engines/"],
+    ["backends/", "/ocr/reference/engines/"],
+    ["research/backends/", "/ocr/reference/engines/"],
+    ["reference/licensing/", "/ocr/reference/licensing/"],
+    ["licensing/", "/ocr/reference/licensing/"],
+    ["reference/routing/", "/ocr/reference/routing/"],
+    ["auto-local/", "/ocr/reference/routing/"],
+    ["research/auto-local/", "/ocr/reference/routing/"],
+  ];
+  const bad: string[] = [];
+  for (const [from, to] of old) {
+    const stub = await request.get(new URL(from, baseURL!).href);
+    if (stub.status() !== 200) { bad.push(`${from}: ${stub.status()}`); continue; }
+    const target = (await stub.text()).match(/http-equiv="?refresh"? content="?0; ?url=([^"\s>]+)/i)?.[1];
+    if (!target || new URL(target, baseURL!).pathname !== to) { bad.push(`${from} -> ${target ?? "no redirect"}, expected ${to}`); continue; }
+    const page = await request.get(new URL(target, baseURL!).href);
+    if (page.status() !== 200) bad.push(`${from} -> ${to}: ${page.status()}`);
+  }
+  expect(bad, `old URLs that no longer land:\n${bad.join("\n")}`).toHaveLength(0);
 });
 
 test("every real page has exactly one h1, including the home page", async ({ page, request, baseURL }) => {
@@ -155,7 +264,7 @@ test("the theme toggle flips and persists", async ({ page }) => {
 });
 
 test("copy buttons attach to code blocks", async ({ page }) => {
-  await page.goto("tutorial/");
+  await page.goto("ocr/tutorial/");
   await expect(page.locator(".copy-btn").first()).toBeVisible();
 });
 
@@ -380,7 +489,7 @@ test("an included file does not put its own title on the page as well", async ({
   // template already renders a title from front matter, so including the file
   // whole produced two h1s saying the same thing. The build stayed green
   // throughout, which is why this is a test rather than a code comment.
-  await page.goto("reference/licensing/");
+  await page.goto("ocr/reference/licensing/");
   await expect(page.locator("main h1")).toHaveCount(1);
 
   // The rest of the file still has to arrive: stripping too much would leave a
@@ -449,7 +558,7 @@ test("no mkdocs markup leaks into the rendered text", async ({ page, request, ba
 });
 
 test("the lightbox opens a corpus scan, takes focus, and closes again", async ({ page }) => {
-  await page.goto("reference/corpus/");
+  await page.goto("ocr/reference/corpus/");
 
   await page.locator("[data-lightbox]").first().click();
   const overlay = page.locator(".lightbox-overlay");
@@ -501,7 +610,7 @@ test("no page scrolls sideways", async ({ page }) => {
   // the meta-refresh then navigated away underneath page.evaluate, which fails
   // with "Execution context was destroyed" -- and does so on timing, so it
   // passed locally and failed in CI.
-  for (const path of ["./", "research/", "research/in-depth/", "reference/engines/", "articles/", "tags/"]) {
+  for (const path of ["./", "research/", "research/in-depth/", "ocr/reference/engines/", "articles/", "tags/", "services/", "products/"]) {
     await page.goto(path);
     const overflows = await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth
@@ -734,7 +843,7 @@ test("the summary view carries both metrics and derives its register count", asy
     .split(/\r?\n/);
   const registerCount = csv.length - 2; // minus the header and the mean row
 
-  await page.goto("reference/engines/");
+  await page.goto("ocr/reference/engines/");
   const table = page.locator("table.benchmark").filter({ hasText: "Char similarity" });
   await expect(table).toHaveCount(1);
   await expect(table.locator("thead th")).toHaveCount(3);

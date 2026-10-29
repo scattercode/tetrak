@@ -272,7 +272,7 @@ navigates rather than just fetching needs that guard.
 **A backend** — add `src/tetrak_ocr/backends/<name>.py` exposing
 `SUPPORTED_EXTENSIONS` and `ocr_image`, guarding its import with `_IMPORT_OK`;
 register it in `registry.py`; add its extra to `pyproject.toml`; add a page
-section to [`site/content/reference/engines.md`](site/content/reference/engines.md). The CLI needs no change.
+section to [`site/content/ocr/reference/engines.md`](site/content/ocr/reference/engines.md). The CLI needs no change.
 
 `_IMPORT_OK` must answer "can this actually run", not "did the import
 statement succeed". `paddle-vl` imports its class from `paddleocr` and then
@@ -390,7 +390,7 @@ What goes where: `docs/` is everything about *using* the package —
 installation, the command line and Python API guides, the tutorials, and the
 reference generated from the parser and the docstrings. The Hugo site is the
 research: the corpus, the engines as measured, routing, results and method,
-and the articles. The site's `/reference/cli/` page is a stub that links to
+and the articles. The site's `/ocr/reference/cli/` page is a stub that links to
 the guide; the generated API page it used to carry (`tools/generate_api_docs.py`)
 was retired in favour of Sphinx's, so the two could not drift. Build the
 Sphinx site locally with `pip install -e '.[apidocs]'` and

@@ -9,7 +9,7 @@
              pointed both of these at the domain root. Going through the page
              also means renaming or removing one fails the build here, instead
              of publishing a link that 404s. */ -}}
-      {{- range slice "/articles" "/research" "/reference/licensing" }}
+      {{- range slice "/articles" "/research" "/ocr/reference/licensing" }}
         {{- with site.GetPage . }}
           <a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
         {{- else }}
