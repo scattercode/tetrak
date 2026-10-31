@@ -94,7 +94,7 @@ class TestAgainstTheRealProject:
         """A consumer-facing extra with no SBOM is the failure this prevents."""
         found = {t["target"] for t in targets(TOOL.parent.parent / "pyproject.toml")}
 
-        assert {"core", "all", "claude", "easyocr", "marker", "paddle", "qa", "vision"} <= found
+        assert {"core", "all", "claude", "easyocr", "paddle", "qa", "vision"} <= found
         assert "dev" not in found and "docs" not in found and "apidocs" not in found
 
     def test_the_matrix_is_valid_json_for_actions(self) -> None:

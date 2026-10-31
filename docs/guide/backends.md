@@ -13,7 +13,7 @@ strategy built on top of them.
 | `easyocr-hy` | `[armenian]` | ✗ | EasyOCR's detector with our own Armenian recogniser behind it. See [Armenian material](#armenian-material) |
 | `paddle` | `[paddle]` | ✗ | Deep-learning detector and recogniser aimed at dense small text |
 | `paddle-vl` | `[paddle-vl]` | ✓ | Document vision-language model. Reads PDFs and multi-page TIFFs; strongest local engine measured, but minutes per page |
-| `marker` | `[marker]` | ✓ | Layout-aware document conversion, the only local backend that models reading order |
+| `marker` | withdrawn | ✓ | Layout-aware document conversion, the only local backend that models reading order |
 | `claude` | `[claude]` | ✓ | The Anthropic vision API. Reads material no local tool can |
 | `claude-haiku` | `[claude]` | ✓ | The same API with Anthropic's smallest current model. Cheaper, and measurably worse on the material `claude` is for |
 | `auto-local` | `[qa]` | ✓ | **The recommended default.** Runs the viable local engines, scores each, keeps the best |
@@ -37,6 +37,9 @@ deliberately not repeated here, where nothing would keep them current.
   the fastest worth using: the model ships with macOS, so there are no
   weights to download and no slow first call. It cannot read PDFs, and it
   has no Armenian, Greek, Hebrew, Georgian or Indic support.
+- **`marker` cannot be installed for now.** Its extra is withdrawn because
+  marker-pdf requires Pillow below 11 and Tetrak requires Pillow 13; see
+  [installation](../installation.md). Where it is available:
 - **`marker` is slow and GPU-gated inside `auto-local`.** It is the only
   local engine that gets multi-column newsprint into the right reading
   order, and it is much the most expensive engine in the set.
