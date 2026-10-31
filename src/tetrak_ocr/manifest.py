@@ -65,7 +65,8 @@ COLUMNS = (
 - ``outputs``: the files written for it, relative to the workspace and
   separated by ``;``.
 - ``location``: where the scan is now, relative to the workspace.
-- ``note``: why a file went to triage, or what went wrong.
+- ``note``: why a file went to triage, or what went wrong; for a processed
+  file read with ``--orient``, what was done to turn it upright.
 - ``run``: the telemetry run id, to find the run's events in the log; empty
   when telemetry is off.
 - ``finished_at``: when the file finished, in UTC, ISO 8601.

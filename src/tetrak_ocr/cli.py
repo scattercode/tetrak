@@ -16,7 +16,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from . import outputs, telemetry, triage
+from . import orientation, outputs, telemetry, triage
 from .errors import OcrPipelineError
 from .layout import spans_of
 from .registry import BACKENDS, available
@@ -69,6 +69,30 @@ def _cmd_ocr(args: argparse.Namespace) -> int:
         )
         return 2
 
+    # A page that needs turning is read from a turned copy, and the searchable
+    # PDF embeds that copy so its text layer lines up with what is shown. The
+    # outputs are still written beside the scan, which is never changed.
+    if args.orient:
+        orientation.require(args.orient)
+    with orientation.upright(path, args.orient) as (source, found):
+        if args.orient:
+            print(
+                f"{path.name}: "
+                + (found.describe() if found else "orientation not checked: more than one page"),
+                file=sys.stderr,
+            )
+        return _transcribe(args, ocr, path, source, requested, explicit_pdf_path)
+
+
+def _transcribe(
+    args: argparse.Namespace,
+    ocr,
+    path: Path,
+    source: Path,
+    requested: list[str],
+    explicit_pdf_path: str | None,
+) -> int:
+    """The rest of `ocr`: read *source*, and write what was asked for beside *path*."""
     # Same rule as `batch`: a multi-page searchable PDF needs a transcript per
     # page, and nothing else does, so only that case pays for the per-page
     # pass. `--output`/stdout get the pages joined.
@@ -81,12 +105,12 @@ def _cmd_ocr(args: argparse.Namespace) -> int:
     page_transcripts = None
     page_spans = None
     spans = None
-    if wants_pdf and page_count(path) > 1:
-        page_transcripts = transcribe_per_page(path, ocr)
+    if wants_pdf and page_count(source) > 1:
+        page_transcripts = transcribe_per_page(source, ocr)
         page_spans = [spans_of(t) for t in page_transcripts]
         text = "\n\n".join(t.strip() for t in page_transcripts if t.strip())
     else:
-        text = ocr(path)
+        text = ocr(source)
         spans = spans_of(text)
 
     if explicit_pdf_path is not None:
@@ -94,7 +118,7 @@ def _cmd_ocr(args: argparse.Namespace) -> int:
 
         destination = Path(explicit_pdf_path)
         searchable_pdf_for(
-            path,
+            source,
             text,
             destination,
             page_transcripts=page_transcripts,
@@ -114,12 +138,12 @@ def _cmd_ocr(args: argparse.Namespace) -> int:
     if args.output and requested:
         # One format, one named file: the file is that format, written where
         # it was asked for, and stdout stays quiet as it does for --output.
-        written = outputs.write_to(requested[0], path, text, Path(args.output), **options)
+        written = outputs.write_to(requested[0], source, text, Path(args.output), **options)
         print(f"Wrote {written}", file=sys.stderr)
         return 0
 
     for name in requested:
-        written = outputs.write(name, path, text, path.parent, **options)
+        written = outputs.write(name, source, text, path.parent, **options)
         print(f"Wrote {written}", file=sys.stderr)
 
     if args.output:
@@ -144,6 +168,8 @@ def _cmd_batch(args: argparse.Namespace) -> int:
         forwarded.append("--with-paddle-vl")
     if args.quality_gate:
         forwarded.append("--quality-gate")
+    if args.orient:
+        forwarded += ["--orient", args.orient]
     if args.dry_run:
         forwarded.append("--dry-run")
     if args.telemetry:
@@ -298,6 +324,18 @@ def build_parser() -> argparse.ArgumentParser:
             "refused rather than written as black boxes",
         )
 
+    def add_orient_flag(parser: argparse.ArgumentParser) -> None:
+        """Turning pages upright before reading, shared by `ocr` and `batch`."""
+        parser.add_argument(
+            "--orient",
+            choices=orientation.SCRIPTS,
+            metavar="SCRIPT",
+            help="turn the page upright before reading it, judging which way is up by "
+            f"the named script ({', '.join(orientation.SCRIPTS)}). Turned only when the "
+            "reading is clear; the scan itself is never changed. Single-page files only; "
+            "'armenian' needs the orientation extra",
+        )
+
     p = sub.add_parser("ocr", help="OCR a single file")
     p.add_argument("path", help="image or PDF to transcribe")
     p.add_argument("--backend", default="tesseract", choices=BACKENDS)
@@ -305,6 +343,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_tuning_flags(p)
     add_format_flags(p)
     add_pdf_flags(p)
+    add_orient_flag(p)
     p.set_defaults(func=_cmd_ocr)
 
     p = sub.add_parser("batch", help="process everything in workspace/scans/")
@@ -341,6 +380,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_tuning_flags(p)
     add_format_flags(p)
     add_pdf_flags(p)
+    add_orient_flag(p)
     p.set_defaults(func=_cmd_batch)
 
     p = sub.add_parser(

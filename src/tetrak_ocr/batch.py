@@ -29,7 +29,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:  # pragma: no cover
     from .qa_score import LowQualityError
 
-from . import outputs, telemetry, triage
+from . import orientation, outputs, telemetry, triage
+from .errors import MissingFeatureError
 from .imaging import page_documents
 from .layout import TextSpan, spans_of
 from .manifest import DEFAULT_NAME as MANIFEST_NAME
@@ -240,6 +241,7 @@ def process_file(
     pdf_full_size: bool = False,
     pdf_font: str | None = None,
     manifest: Manifest | None = None,
+    orient: str | None = None,
 ) -> None:
     """OCR a single file, write Markdown output, and move it to workspace/processed/.
 
@@ -273,13 +275,69 @@ def process_file(
                       they reach every writer as the `spans` and `page_spans`
                       options; a backend without them passes None.
         manifest:     Where to append this file's row, if anywhere.
+        orient:       The script to judge which way up the page is by (see
+                      `orientation.SCRIPTS`), or None to read it as it is.
+                      A page that needs turning is read from a turned copy,
+                      which the searchable PDF embeds so its text layer lines
+                      up; the scan itself moves untouched.
     """
+    print(f"  Processing: {image_path.name}")
+    with orientation.upright(image_path, orient) as (read_path, found):
+        _process_file(
+            image_path,
+            read_path,
+            found if orient else False,
+            ocr_fn,
+            triaged=triaged,
+            quality_gate=quality_gate,
+            backend=backend,
+            formats=formats,
+            pdf_full_size=pdf_full_size,
+            pdf_font=pdf_font,
+            manifest=manifest,
+        )
+
+
+def _process_file(
+    image_path: Path,
+    read_path: Path,
+    found: orientation.Orientation | bool | None,
+    ocr_fn: Callable[[Path], str],
+    triaged: list[str] | None,
+    quality_gate: bool,
+    backend: str | None,
+    formats: list[str] | None,
+    pdf_full_size: bool,
+    pdf_font: str | None,
+    manifest: Manifest | None,
+) -> None:
+    """`process_file` once the page is upright: *read_path* is what to read and
+    what the outputs embed, *image_path* the scan that moves. *found* is the
+    orientation reading, None when the file has more than one page and was not
+    checked, and False when no check was asked for."""
     from .qa_score import LowQualityError
 
-    print(f"  Processing: {image_path.name}")
     file_info = telemetry.describe_file(image_path)
     telemetry.record("file_start", backend=backend, **file_info)
     started = time.perf_counter()
+
+    # Said once, then carried into the manifest row of a processed file.
+    turned = ""
+    if found is None:
+        turned = "orientation not checked: more than one page"
+    elif found:
+        turned = found.describe()
+        telemetry.record(
+            "orientation",
+            script=found.script,
+            turn=found.turn,
+            lines=round(found.lines, 3),
+            share=None if found.share is None else round(found.share, 3),
+            unsure=found.unsure,
+            **file_info,
+        )
+    if turned:
+        print(f"    {turned}")
 
     def _elapsed() -> float:
         return round(time.perf_counter() - started, 3)
@@ -337,11 +395,11 @@ def process_file(
     try:
         if per_page:
             print(f"    {pages} pages, transcribing individually for the PDF")
-            page_transcripts = transcribe_per_page(image_path, ocr_fn)
+            page_transcripts = transcribe_per_page(read_path, ocr_fn)
             page_spans = [spans_of(t) for t in page_transcripts]
             text = "\n\n".join(t.strip() for t in page_transcripts if t.strip())
         else:
-            text = ocr_fn(image_path)
+            text = ocr_fn(read_path)
             spans = spans_of(text)
     except LowQualityError as exc:
         if auto_local:
@@ -407,7 +465,7 @@ def process_file(
         written = [
             outputs.write(
                 name,
-                image_path,
+                read_path,
                 text,
                 PROCESSED_DIR,
                 page_transcripts=page_transcripts,
@@ -444,6 +502,7 @@ def process_file(
         transcript=text,
         outputs=[_relative(path) for path in written],
         location=_relative(dest),
+        **({"note": turned} if turned else {}),
     )
 
     telemetry.record(
@@ -566,6 +625,16 @@ def main(args=None) -> int:
         "files are now, for a spreadsheet or a collections system's CSV import.",
     )
     parser.add_argument(
+        "--orient",
+        choices=orientation.SCRIPTS,
+        default=None,
+        metavar="SCRIPT",
+        help="Turn each page upright before reading it, judging which way is up by the "
+        f"named script ({', '.join(orientation.SCRIPTS)}). A page is turned only when the "
+        "reading is clear; the rest are read as they are and named. The scan itself is "
+        "never changed. Single-page files only; 'armenian' needs the 'orientation' extra.",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="List what would be processed, then stop without running OCR or moving anything.",
@@ -607,6 +676,14 @@ def main(args=None) -> int:
                 "Install it with: pip install -e '.[qa]'",
                 file=sys.stderr,
             )
+            return 1
+
+    # Likewise the orientation extra: checked before the first file, not on it.
+    if args.orient:
+        try:
+            orientation.require(args.orient)
+        except MissingFeatureError as exc:
+            print(f"Error: {exc}", file=sys.stderr)
             return 1
 
     if not SCANS_DIR.exists():
@@ -673,6 +750,7 @@ def main(args=None) -> int:
             bytes_total=sum(f.stat().st_size for f in files),
             scans_dir=str(SCANS_DIR),
             quality_gate=bool(args.quality_gate),
+            orient=args.orient,
         )
         if log is not None:
             print(f"Run log: {log.path}  (run {log.run_id})\n")
@@ -701,6 +779,7 @@ def main(args=None) -> int:
                 pdf_full_size=args.pdf_full_size,
                 pdf_font=args.pdf_font,
                 manifest=manifest,
+                orient=args.orient,
             )
         except Exception as exc:
             print(f"  ERROR processing {f.name}: {exc}", file=sys.stderr)

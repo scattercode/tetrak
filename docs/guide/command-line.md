@@ -68,6 +68,10 @@ tetrak-ocr ocr scan.jpg --format text --output transcript.txt
 Without `--format`, `--output` writes the bare transcript, whatever the
 file is called.
 
+`--orient` turns a page upright before reading it, as `batch` does; see
+[turning pages upright](#turning-pages-upright). It reports what it did on
+stderr, so stdout stays the transcript.
+
 ## `tetrak-ocr batch`
 
 The pipeline's normal mode. It uses three directories under `workspace/`,
@@ -242,6 +246,52 @@ is where that becomes visible.
 No OCR runs and nothing is moved, but the chosen backend's package does have
 to be installed: the file list depends on which extensions that backend
 declares it can read.
+
+### Turning pages upright
+
+```bash
+tetrak-ocr batch --backend tesseract-auto --orient latin
+tetrak-ocr batch --backend easyocr-hy --orient armenian
+```
+
+Scans come in on their side or upside down (microfilm shot however the pages
+lay, a postcard turned on the glass), and an engine reading a page that is not
+upright returns nonsense or nothing. `--orient` reads which way up each page
+is from the ink on it, and turns the page before the engine sees it. It asks
+two questions:
+
+1. **Do the lines of text run across or down?** This works for any script.
+2. **With the lines across, which way is up?** This depends on the script,
+   which is why you name it. For `latin`, more ink sits above a line of
+   writing than below it (ascenders and capitals against descenders). For
+   `armenian` that is not true, and what tells is which way the open sides of
+   the letters face. Each measure is wrong on the other script, so name the
+   script the pages are in. A page that is half one and half the other, such
+   as a bilingual dictionary, reads as whichever script the measure knows.
+
+The article [Which way up is Armenian?](https://tetrak.dev/articles/2026/10/which-way-up-armenian/)
+has the measurements behind both.
+
+A page is turned only when both answers are clear. Turning an upright page
+upside down would be worse than leaving a sideways one alone, so a blank leaf,
+a dark frame or a reading too near even is read as it is, and the batch says
+so by name:
+
+```text
+  Processing: frame-0042.tif
+    turned 90° clockwise to read
+  Processing: frame-0043.tif
+    orientation unsure (no text to read); read as it is
+```
+
+The scan itself is never changed. The engine reads a turned copy, a searchable
+PDF embeds that copy so its text layer lines up with the page it shows, and
+the original moves to `workspace/processed/` exactly as it arrived. The
+manifest's `note` column and the run log's `orientation` event record what was
+done. Only single-page files are checked; a PDF or a multi-page TIFF is read
+as it is. `--orient armenian` needs the `orientation` extra
+(`pip install 'tetrak[orientation]'`); `latin` needs nothing beyond the core
+install.
 
 ### Tuning Tesseract
 
