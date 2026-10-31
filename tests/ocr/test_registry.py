@@ -9,7 +9,9 @@ halves of that are worth pinning.
 from __future__ import annotations
 
 import sys
+import tomllib
 import types
+from pathlib import Path
 
 import pytest
 
@@ -164,6 +166,32 @@ class TestMissingExtras:
         message = str(exc.value)
         assert "tetrak[paddle]" in message, "must give the exact install command"
         assert "pip install" in message
+
+    def test_a_withdrawn_extra_is_not_offered(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """pip warns and installs nothing for an extra that no longer exists,
+        so the error says why the backend is unavailable instead."""
+        stub = types.ModuleType("tetrak_ocr.backends.marker")
+        stub._IMPORT_OK = False
+        monkeypatch.setitem(sys.modules, "tetrak_ocr.backends.marker", stub)
+
+        with pytest.raises(MissingBackendError) as exc:
+            get_backend("marker")
+
+        message = str(exc.value)
+        assert "tetrak[marker]" not in message
+        assert "Pillow" in message
+
+    def test_every_withdrawn_extra_is_absent_from_pyproject(self) -> None:
+        """Restoring an extra means deleting its _WITHDRAWN entry, or the
+        error would go on saying it cannot be installed."""
+        from tetrak_ocr import registry
+
+        pyproject = Path(__file__).resolve().parents[2] / "pyproject.toml"
+        extras = tomllib.loads(pyproject.read_text(encoding="utf-8"))["project"][
+            "optional-dependencies"
+        ]
+        for name in registry._WITHDRAWN:
+            assert registry._BACKENDS[name][1] not in extras
 
     def test_is_available_reports_false_without_raising(
         self, monkeypatch: pytest.MonkeyPatch

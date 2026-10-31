@@ -60,11 +60,11 @@ well over a gigabyte before any model downloads at first run.
 | `armenian` | `easyocr-hy` | our Armenian recogniser, as an EasyOCR custom network (pulls in EasyOCR) |
 | `paddle` | `paddle` | PaddleOCR and PaddlePaddle |
 | `paddle-vl` | `paddle-vl` | PaddleOCR-VL, the document vision-language model in the same package |
-| `marker` | `marker` | marker-pdf 1.x |
+| `marker` | `marker` | withdrawn for now; see below |
 | `vision` | `vision` | `ocrmac`, a wrapper over Apple's Vision framework. macOS only |
 | `claude` | `claude`, `claude-haiku` | the Anthropic SDK |
 | `orientation` | `--orient armenian` | NumPy and OpenCV, which EasyOCR brings in anyway |
-| `ocr` | everything above except `armenian` | |
+| `ocr` | everything above except `armenian` and `marker` | |
 | `all` | the same as `ocr` | |
 
 ```bash
@@ -81,6 +81,15 @@ rather than raising `ModuleNotFoundError`:
 $ tetrak-ocr ocr scan.jpg --backend paddle
 error: The 'paddle' backend needs the 'paddleocr' and 'paddlepaddle' packages, not installed here.
 Install with:  pip install 'tetrak[paddle]'
+```
+
+```{note}
+The `marker` extra is withdrawn for now. Every marker-pdf release, and
+surya-ocr under it, requires Pillow below 11, and Tetrak requires Pillow 13
+for the security fixes in that release, so the two cannot share an
+environment. `tetrak-ocr backends` lists `marker` as unavailable and says
+why. The extra comes back once marker-pdf allows Pillow 13. Until then,
+use tetrak 5.20 or earlier for Marker, in an environment of its own.
 ```
 
 ```{warning}

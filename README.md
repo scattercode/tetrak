@@ -25,7 +25,7 @@ pip install 'tetrak[all]'       # everything, several gigabytes
 `[qa]` is what turns `auto-local` on, because scoring needs a spell checker and
 GPT-2 perplexity. It does not install any extra *engines* — `auto-local` picks
 the best of whatever is present, so with core plus `[qa]` it is choosing
-between one engine. Add `[easyocr]`, `[paddle]`, `[marker]` or `[vision]` to
+between one engine. Add `[easyocr]`, `[paddle]` or `[vision]` to
 give it something to choose between, or `[all]` for the lot.
 
 Plus the system dependencies Tesseract and poppler:
@@ -225,10 +225,15 @@ top of them.
 | `easyocr` | `[easyocr]` | ✗ | Deep-learning detector/recogniser. Handles varied contrast and awkward grounds |
 | `paddle` | `[paddle]` | ✗ | Deep-learning detector/recogniser aimed at dense small text |
 | `paddle-vl` | `[paddle-vl]` | ✓ | Document vision-language model. Reads PDFs and multi-page TIFFs; strongest local engine measured, but minutes per page. Join it to auto-local with `--with-paddle-vl` |
-| `marker` | `[marker]` | ✓ | Layout-aware document conversion — the only local backend that models reading order |
+| `marker` | withdrawn¹ | ✓ | Layout-aware document conversion — the only local backend that models reading order |
 | `claude` | `[claude]` | ✓ | The Anthropic vision API. Reads material no local tool can |
 | `claude-haiku` | `[claude]` | ✓ | The same API with Anthropic's smallest current model. Cheaper, and measurably worse on the material `claude` is for |
 | `auto-local` | `[qa]` | ✓ | **The recommended default.** Runs the viable local engines, scores each, keeps the best |
+
+¹ The `marker` extra is withdrawn for now. Every marker-pdf release requires
+Pillow below 11, and Tetrak requires Pillow 13 for its security fixes, so the
+two cannot share an environment. It comes back when marker-pdf allows Pillow
+13; until then, use tetrak 5.20 or earlier for Marker.
 
 A few things worth knowing before you pick one:
 

@@ -44,7 +44,7 @@ done
 # every container build.
 #
 # `[dev]` is pytest and ruff, which is what a Codespace needs to run the fast
-# suite. The OCR backends are separate extras: add ,easyocr ,paddle ,marker or
+# suite. The OCR backends are separate extras: add ,easyocr ,paddle or
 # use [all] if you need them, and expect a long install and model downloads on
 # first use.
 echo "Creating Python virtualenv..."

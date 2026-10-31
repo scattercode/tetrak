@@ -35,6 +35,27 @@ class MissingBackendError(OcrPipelineError):
         )
 
 
+class BackendWithdrawnError(MissingBackendError):
+    """A backend's extra has been withdrawn, so no ``pip install`` enables it.
+
+    A :class:`MissingBackendError`, so callers that fall back to another
+    backend still do, but the message must not name an extra that no longer
+    exists: pip would warn and install nothing, and the user would be back
+    where they started.
+    """
+
+    def __init__(self, backend: str, packages: str, reason: str) -> None:
+        self.backend = backend
+        self.extra = None
+        self.packages = packages
+        self.reason = reason
+        OcrPipelineError.__init__(
+            self,
+            f"The '{backend}' backend needs {packages}, which this version of "
+            f"Tetrak cannot be installed alongside.\n{reason}",
+        )
+
+
 class MissingFeatureError(OcrPipelineError):
     """An option was asked for whose optional dependency is not installed.
 

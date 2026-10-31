@@ -17,7 +17,7 @@ import importlib
 from collections.abc import Callable
 from pathlib import Path
 
-from .errors import MissingBackendError, UnknownBackendError
+from .errors import BackendWithdrawnError, MissingBackendError, UnknownBackendError
 
 # name -> (module path, extra to install, human-readable requirement)
 #
@@ -80,6 +80,22 @@ _BACKENDS: dict[str, tuple[str, str | None, str]] = {
 
 BACKENDS: tuple[str, ...] = tuple(_BACKENDS)
 
+# Backends whose extra has been withdrawn from pyproject.toml, with what to
+# tell someone who asks for one. The backend stays registered, so it runs
+# wherever its package is importable, and comes back by restoring the extra
+# and deleting its entry here.
+_WITHDRAWN: dict[str, str] = {
+    # Every marker-pdf release, and surya-ocr under it, requires Pillow below
+    # 11. Tetrak requires Pillow 13 for its security fixes, so the two cannot
+    # share an environment. Restore the `marker` extra once marker-pdf allows
+    # Pillow 13.
+    "marker": (
+        "marker-pdf requires Pillow below 11, and Tetrak requires Pillow 13 or "
+        "later for its security fixes. Use tetrak 5.20 or earlier for Marker, in "
+        "an environment of its own."
+    ),
+}
+
 
 def _load(name: str):
     """Import a backend module, raising a helpful error for unknown names."""
@@ -94,6 +110,8 @@ def _load(name: str):
     # cannot run. Turn that into the actionable error here rather than letting
     # a NameError surface from deep inside the call.
     if extra is not None and not getattr(module, "_IMPORT_OK", True):
+        if name in _WITHDRAWN:
+            raise BackendWithdrawnError(name, packages, _WITHDRAWN[name])
         raise MissingBackendError(name, extra, packages)
 
     return module

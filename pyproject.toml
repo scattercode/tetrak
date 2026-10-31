@@ -40,7 +40,10 @@ classifiers = [
 # other backend pulls hundreds of megabytes to several gigabytes, and most
 # users want one or two of them — so they are extras, not requirements.
 dependencies = [
-    "Pillow>=10.0",
+    # 13.0 fixes the October 2026 advisories, among them heap overflows in
+    # the TIFF, JPEG and JPEG 2000 decoders that a crafted scan reaches
+    # through Image.open(). Archives send scans, so the floor is the patch.
+    "Pillow>=13.0",
     "pytesseract>=0.3",
     "pdf2image>=1.16",
     "python-dotenv>=1.0",
@@ -67,11 +70,19 @@ paddle = ["paddleocr>=3.0", "paddlepaddle>=3.0"]
 # here however much it sounds like it. Floors raised from `paddle`'s >=3.0:
 # PaddleOCRVL does not exist before paddleocr 3.4.
 paddle-vl = ["paddleocr>=3.4", "paddlex[ocr]>=3.4", "paddlepaddle>=3.2"]
-# Capped below 2.0: marker-pdf 2.0 routes through an LLM and requires a
-# llama-server binary installed separately (brew install llama.cpp), which
-# turns a pip-only install into one with a system dependency and changes what
-# the backend measures. The committed benchmark was produced with 1.x.
-marker = ["marker-pdf>=1.0,<2.0"]
+# The `marker` extra is withdrawn. Every marker-pdf release, and surya-ocr
+# under it, requires Pillow below 11, which cannot share an environment with
+# the Pillow>=13.0 floor above. The backend stays registered and says why it
+# is unavailable (registry._WITHDRAWN).
+#
+# To bring Marker back once marker-pdf allows Pillow 13, restore:
+#
+#   marker = ["marker-pdf>=1.0,<2.0"]
+#
+# add `marker` back to the `ocr` umbrella, and delete its _WITHDRAWN entry.
+# The cap below 2.0 still applies: marker-pdf 2.0 routes through an LLM and
+# requires a separately installed llama-server binary, which changes what the
+# backend measures. The committed benchmark was produced with 1.x.
 # Apple's Vision framework, via a thin PyObjC wrapper. macOS only, hence the
 # marker: without it `pip install "tetrak[all]"` would fail on Linux.
 # Vision itself ships with the OS, so this extra downloads a wrapper and
@@ -114,7 +125,7 @@ dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.5", "tetrak[orientation]"]
 # Per-pipeline umbrellas. The individual extras keep their own names --
 # `easyocr` and a future `whisper` do not collide, so namespacing them would
 # churn CI, AGENTS.md and the devcontainer for nothing.
-ocr = ["tetrak[claude,easyocr,paddle,paddle-vl,marker,vision,qa,orientation]"]
+ocr = ["tetrak[claude,easyocr,paddle,paddle-vl,vision,qa,orientation]"]
 all = ["tetrak[ocr]"]
 
 [project.scripts]

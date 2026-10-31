@@ -17,7 +17,7 @@ rather than importing it directly.
 | `easyocr` | `[easyocr]` | ✗ | Varied contrast and awkward grounds |
 | `paddle` | `[paddle]` | ✗ | Dense small text — but weak on this corpus |
 | `paddle-vl` | `[paddle-vl]` | ✓ | Document vision-language model. Best local average, and slow enough to be batch-only |
-| `marker` | `[marker]` | ✓ | Layout-aware conversion; multi-column and PDFs |
+| `marker` | withdrawn | ✓ | Layout-aware conversion; multi-column and PDFs |
 | `claude` | `[claude]` | ✓ | Anything the others cannot read |
 | `claude-haiku` | `[claude]` | ✓ | Not escalation: the smaller model, measured and found short |
 | `auto-local` | core | ✓ | Unattended mixed material; runs several and keeps the best |
@@ -213,6 +213,11 @@ not `paddleocr[doc-parser]`, however much that sounds like the one. Model
 weights (~1 GB) download on first use and cache under `~/.paddlex/`.
 
 ## Marker
+
+The `marker` extra is withdrawn for now. Every marker-pdf release requires
+Pillow below 11, and Tetrak requires Pillow 13 for its security fixes, so the
+two cannot share an environment. It comes back when marker-pdf allows
+Pillow 13. The measurements below were made with marker-pdf 1.x and stand.
 
 Layout-aware document conversion, and the only local backend that models
 reading order — which is why it wins the multi-column newsprint cover.
