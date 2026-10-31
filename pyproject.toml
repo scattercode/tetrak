@@ -99,7 +99,14 @@ docs = [
     # Draws the benchmark comparison chart from benchmark.csv.
     "matplotlib>=3.8",
 ]
-dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.5"]
+# Turning pages upright before OCR (brief 020). Only `--orient armenian`
+# needs these: OpenCV finds the letters whose open sides the measure reads.
+# Both already arrive with EasyOCR; declared here for anyone orienting pages
+# for Tesseract. Apache 2.0 and BSD -- see the dependency licence audit.
+orientation = ["numpy>=1.24", "opencv-python-headless>=4.8"]
+# The orientation extra is in dev so that its tests run in CI; it is the one
+# extra small enough for that.
+dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.5", "tetrak[orientation]"]
 # Composed from the other extras rather than restating them. The hand-written
 # copy had drifted: it listed pyspellchecker and transformers but not torch, so
 # `pip install "tetrak[all]"` -- the command the docs lead with -- left
@@ -107,7 +114,7 @@ dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.5"]
 # Per-pipeline umbrellas. The individual extras keep their own names --
 # `easyocr` and a future `whisper` do not collide, so namespacing them would
 # churn CI, AGENTS.md and the devcontainer for nothing.
-ocr = ["tetrak[claude,easyocr,paddle,paddle-vl,marker,vision,qa]"]
+ocr = ["tetrak[claude,easyocr,paddle,paddle-vl,marker,vision,qa,orientation]"]
 all = ["tetrak[ocr]"]
 
 [project.scripts]

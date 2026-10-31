@@ -35,6 +35,23 @@ class MissingBackendError(OcrPipelineError):
         )
 
 
+class MissingFeatureError(OcrPipelineError):
+    """An option was asked for whose optional dependency is not installed.
+
+    :class:`MissingBackendError` for something that is not a backend, such as
+    ``--orient armenian``, so the message does not call it one.
+    """
+
+    def __init__(self, feature: str, extra: str, packages: str) -> None:
+        self.feature = feature
+        self.extra = extra
+        self.packages = packages
+        super().__init__(
+            f"{feature} needs {packages}, not installed here.\n"
+            f"Install with:  pip install 'tetrak[{extra}]'"
+        )
+
+
 class UnknownBackendError(OcrPipelineError):
     """A backend name was requested that does not exist."""
 

@@ -63,6 +63,7 @@ well over a gigabyte before any model downloads at first run.
 | `marker` | `marker` | marker-pdf 1.x |
 | `vision` | `vision` | `ocrmac`, a wrapper over Apple's Vision framework. macOS only |
 | `claude` | `claude`, `claude-haiku` | the Anthropic SDK |
+| `orientation` | `--orient armenian` | NumPy and OpenCV, which EasyOCR brings in anyway |
 | `ocr` | everything above except `armenian` | |
 | `all` | the same as `ocr` | |
 
