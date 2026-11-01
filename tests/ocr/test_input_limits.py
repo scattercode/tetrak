@@ -73,6 +73,17 @@ class TestPixels:
         with pytest.raises(InputRefusedError, match="240,000 pixels; the limit is 60,000"):
             next(iter_frames(path))
 
+    def test_a_tall_narrow_image_is_refused(self, tmp_path, monkeypatch) -> None:
+        """sillybos 4 holds either side to a ceiling: a strip within the pixel budget still fails."""
+        monkeypatch.setattr(imaging, "MAX_SIDE", 250)
+        path = tmp_path / "strip.png"
+        page(20, 300).save(path)
+
+        with pytest.raises(
+            InputRefusedError, match="300 pixels on its longest side; the limit is 250"
+        ):
+            open_image(path)
+
 
 @needs_poppler
 class TestPdf:
