@@ -9,7 +9,7 @@ author: stephen-masters
 tags: [security, advisories, sillybos, automation, project-notes]
 ---
 
-A digitisation pipeline rests on a short list of libraries it did not
+A digitisation pipeline relies on a short list of libraries it did not
 write: Pillow, libtiff, libpng, libjpeg-turbo, zlib, OpenJPEG, FreeType and
 poppler. Between them they publish a security advisory most weeks, and in
 a bad month, as October 2026 was, several dozen. Each one arrives as a

@@ -10,11 +10,12 @@ tags: [security, sillybos, pillow, poppler, project-notes]
 ---
 
 A library in the ancient world kept its books as rolled scrolls, and a
-scroll gives nothing away from the outside. To know what one held you
+scroll gives nothing away from the outside. To know which you held, you
 unrolled it, which is slow, and wears the papyrus, and in a large
 collection is no way to find anything. So a small parchment tag, a
-σίλλυβος, hung from the end of each roll with the title and the author on
-it. Cicero had a set made for his library. The reader checked the tag, and
+*sillybos* (say it *SIL-lee-boss*; Cicero's Latin made it *sittybus*),
+hung from the end of each roll with the title and the author on it. He
+had a set made for his library. The reader checked the tag, and
 only then unrolled the scroll, or did not.
 
 An OCR pipeline is handed files it did not make, and every one of them is
