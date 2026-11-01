@@ -58,9 +58,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PIL import Image
-
-from ..imaging import reject_multi_page
+from ..imaging import open_image, reject_multi_page
 from ..layout import TextSpan, Transcript, polygon_extent, to_text
 
 try:
@@ -166,7 +164,7 @@ def ocr_image(path: Path) -> str:
         import io
 
         buf = io.BytesIO()
-        Image.open(path).convert("RGB").save(buf, format="PNG")
+        open_image(path).convert("RGB").save(buf, format="PNG")
         image_input = buf.getvalue()
     else:
         image_input = str(path)

@@ -51,9 +51,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from PIL import Image
-
-from ..imaging import reject_multi_page
+from ..imaging import open_image, reject_multi_page
 from ..layout import TextSpan, Transcript, to_text
 
 # Two separate reasons this backend may be unavailable, and they need to be
@@ -177,7 +175,7 @@ def ocr_image(
     # Hand Pillow's decoded image over rather than the path. Vision reads a
     # narrower set of TIFF variants than Pillow does, and the conversion is
     # the same one the EasyOCR backend makes for the same reason.
-    with Image.open(path) as image:
+    with open_image(path) as image:
         prepared = image.convert("RGB")
         # Captured inside the block: the boxes Vision returns are normalised,
         # and turning them back into pixels needs the size they were measured

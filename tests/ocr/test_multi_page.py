@@ -27,8 +27,8 @@ def scan(width: int = 200, height: int = 300) -> Image.Image:
     return Image.new("RGB", (width, height), "white")
 
 
-def multi_frame_tiff(path: Path, frames: int = 3) -> Path:
-    first, *rest = [scan() for _ in range(frames)]
+def multi_frame_tiff(path: Path, frames: int = 3, width: int = 200, height: int = 300) -> Path:
+    first, *rest = [scan(width, height) for _ in range(frames)]
     first.save(path, save_all=True, append_images=rest)
     return path
 
@@ -128,7 +128,9 @@ class TestStreamingPages:
 
 class TestWritingAMultiPageSearchablePdf:
     def test_each_page_carries_its_own_text(self, tmp_path: Path) -> None:
-        source = multi_frame_tiff(tmp_path / "pamphlet.tif", frames=3)
+        # A postcard's size at the assumed 300 dpi: the 200 x 300 default is
+        # two-thirds of an inch wide, too narrow for "SECOND PAGE" to fit.
+        source = multi_frame_tiff(tmp_path / "pamphlet.tif", frames=3, width=1200, height=1800)
         out = tmp_path / "out.pdf"
 
         searchable_pdf_for(

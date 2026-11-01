@@ -25,9 +25,7 @@ import logging
 import os
 from pathlib import Path
 
-from PIL import Image
-
-from ..imaging import reject_multi_page
+from ..imaging import open_image, reject_multi_page
 from ..layout import TextSpan, Transcript, polygon_extent
 
 # PaddlePaddle's C++ layer reads these as glog initialises, which happens
@@ -122,7 +120,7 @@ def ocr_image(path: Path) -> str:
         import tempfile
 
         buf = io.BytesIO()
-        Image.open(path).convert("RGB").save(buf, format="PNG")
+        open_image(path).convert("RGB").save(buf, format="PNG")
         buf.seek(0)
         with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
             tmp.write(buf.read())

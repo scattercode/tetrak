@@ -17,6 +17,14 @@ already does for PDFs. The backends that cannot yet do so raise
 :class:`MultiPageNotSupportedError`, which names the file, the page count and a
 backend that will read it — rather than returning page one as though that were
 the document.
+
+It is also where every file is opened, so it is where files are refused.
+:func:`open_image` lets Pillow run only the readers for the formats Tetrak
+supports, so a PostScript or FlashPix file renamed ``.png`` never reaches
+the readers whose flaws ran commands in October 2026, and refuses an image
+with more pixels than any real scan. :func:`check_pdf` does the same for a
+PDF's page count and page sizes, from poppler's ``pdfinfo``, before a page is
+rendered. See the Tetrak vault's note on checking an image before OCR.
 """
 
 from __future__ import annotations
@@ -28,7 +36,98 @@ from pathlib import Path
 
 from PIL import Image
 
-from .errors import MultiPageNotSupportedError
+from .errors import InputRefusedError, MultiPageNotSupportedError
+
+ALLOWED_FORMATS = ("JPEG", "PNG", "TIFF")
+"""The only Pillow readers Tetrak lets run: those for SUPPORTED_EXTENSIONS.
+A PDF is never handed to Pillow; poppler renders it."""
+
+MAX_PIXELS = 89_478_485
+"""The most pixels in one image or rendered page: Pillow's own warning
+threshold, and 2.3 times the largest scan Tetrak has read (38.7 million,
+an Armenian page at 600 dpi). Enforced here, not left to Pillow's global,
+so that a program which raises the global cannot raise it for us."""
+
+MAX_PDF_PAGES = 500
+"""The most pages in one PDF: three times the longest book read so far
+(166 pages). Rendering streams page by page, so this bounds the time and the
+temporary disk a run takes rather than its memory."""
+
+PDF_RENDER_DPI = 200
+"""The resolution poppler renders at: pdf2image's default, used everywhere."""
+
+
+def _check_pixels(path: Path, image: Image.Image) -> None:
+    if image.width * image.height > MAX_PIXELS:
+        raise InputRefusedError(
+            path,
+            f"{image.width} x {image.height} is {image.width * image.height:,} pixels; "
+            f"the limit is {MAX_PIXELS:,}.",
+        )
+
+
+def open_image(path: Path) -> Image.Image:
+    """Open a raster scan with only Tetrak's readers, refusing an oversized one.
+
+    Pillow decides what a file is from its contents, not its name, and then
+    runs the reader for that format. Passing ``formats`` means only the
+    JPEG, PNG and TIFF readers can be chosen, whatever the file claims to be.
+    Only the header has been read when the size is checked; the pixels are
+    decoded later, on first use.
+
+    Raises:
+        InputRefusedError: If the file is not JPEG, PNG or TIFF, or has more
+            pixels than :data:`MAX_PIXELS`.
+    """
+    try:
+        image = Image.open(path, formats=ALLOWED_FORMATS)
+    except Image.UnidentifiedImageError:
+        raise InputRefusedError(
+            path, f"It is not one of the formats Tetrak reads ({', '.join(ALLOWED_FORMATS)})."
+        ) from None
+    try:
+        _check_pixels(Path(path), image)
+    except InputRefusedError:
+        image.close()
+        raise
+    return image
+
+
+def check_pdf(path: Path) -> int:
+    """Refuse a PDF too long, or with a page too large, to render; else count its pages.
+
+    Reads poppler's ``pdfinfo``, which parses the document's structure without
+    rendering anything. A page's size is in points (1/72 inch), so its pixels
+    at :data:`PDF_RENDER_DPI` are known before poppler allocates them.
+
+    Raises:
+        InputRefusedError: If poppler cannot read the file, it has more pages
+            than :data:`MAX_PDF_PAGES`, or a page would render to more pixels
+            than :data:`MAX_PIXELS`.
+    """
+    from pdf2image import pdfinfo_from_path
+
+    try:
+        pages = int(pdfinfo_from_path(str(path))["Pages"])
+    except Exception as exc:
+        raise InputRefusedError(path, f"poppler could not read it as a PDF ({exc}).") from None
+    if pages > MAX_PDF_PAGES:
+        raise InputRefusedError(path, f"It has {pages} pages; the limit is {MAX_PDF_PAGES}.")
+    info = pdfinfo_from_path(str(path), first_page=1, last_page=pages)
+    for key, value in info.items():
+        # "Page    3 size": "408 x 559.44 pts", with a paper name after on some.
+        if not (key.startswith("Page") and key.endswith("size")):
+            continue
+        width, _, height = str(value).split()[:3]
+        pixels = (float(width) / 72 * PDF_RENDER_DPI) * (float(height) / 72 * PDF_RENDER_DPI)
+        if pixels > MAX_PIXELS:
+            page = key.split()[1]
+            raise InputRefusedError(
+                path,
+                f"Page {page} is {value}, which renders to {pixels:,.0f} pixels at "
+                f"{PDF_RENDER_DPI} dpi; the limit is {MAX_PIXELS:,}.",
+            )
+    return pages
 
 
 def pdf_renderer():
@@ -65,7 +164,7 @@ def frame_count(path: Path) -> int:
     routes. It never raises, so it is safe to call as a guard.
     """
     try:
-        with Image.open(path) as image:
+        with open_image(path) as image:
             frames = int(getattr(image, "n_frames", 1))
             if frames == 1:
                 return 1
@@ -141,10 +240,12 @@ def iter_frames(path: Path) -> Iterator[Image.Image]:
     one open file that `seek` mutates in place, so a caller that collected them
     without copying would end up holding several references to the last frame.
     """
-    with Image.open(path) as image:
+    with open_image(path) as image:
         for index in range(int(getattr(image, "n_frames", 1))):
             image.seek(index)
             if _is_page(image):
+                # Frame 0 was checked on opening; each later one has its own size.
+                _check_pixels(path, image)
                 yield image.copy()
 
 
@@ -193,11 +294,14 @@ def streamed_pages(path: Path) -> Iterator[Iterator[Image.Image]]:
         return
 
     convert_from_path = pdf_renderer()
+    check_pdf(path)
 
     with tempfile.TemporaryDirectory(prefix="tetrak-render-") as tmp:
         # fmt="ppm" is what pdf2image writes natively, so nothing is re-encoded
         # on the way to disk.
-        yield _release_after_use(convert_from_path(path, output_folder=tmp, fmt="ppm"))
+        yield _release_after_use(
+            convert_from_path(path, output_folder=tmp, fmt="ppm", dpi=PDF_RENDER_DPI)
+        )
 
 
 @contextmanager
@@ -235,6 +339,7 @@ def page_documents(path: Path) -> Iterator[list[Path]]:
             # down, and each one prints "Cannot close object, library is
             # destroyed. This may cause a memory leak!". A 21-page document
             # opens 22 of them.
+            check_pdf(path)
             pages = []
             source = pdfium.PdfDocument(path)
             try:

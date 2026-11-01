@@ -141,3 +141,22 @@ class MultiPagePdfError(OcrPipelineError):
             f"Refusing rather than putting every page's text on page one. Transcribe "
             f"without --pdf, or split the file into single pages first."
         )
+
+
+class InputRefusedError(OcrPipelineError):
+    """A file was refused before any decoder read more than its header.
+
+    Raised for a file that is not one of the formats Tetrak reads, whatever
+    its name says, or that is larger than any real scan: more pixels than
+    :data:`tetrak_ocr.imaging.MAX_PIXELS`, more pages than
+    :data:`tetrak_ocr.imaging.MAX_PDF_PAGES`, or a PDF page that would render
+    past the pixel limit. Image libraries have had flaws that a crafted file
+    triggers just by being opened (Pillow's EPS and FlashPix readers, October
+    2026), and a decompression bomb exhausts memory before anything fails
+    cleanly, so the refusal comes first and says why.
+    """
+
+    def __init__(self, path: Path, reason: str) -> None:
+        self.path = path
+        self.reason = reason
+        super().__init__(f"{path.name}: refused before reading. {reason}")
