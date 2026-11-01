@@ -31,19 +31,26 @@
            reader who searches a CVE id lands on /security/cve-2026-112900/.
            The date is when the advisory was published, or when it was
            triaged if upstream gave no date, so the feed and the ordering
-           have something to go on. */ -}}
+           have something to go on. It goes in the `dates` map: a top-level
+           `date` key is not one the adapter reads, and Hugo ignores it
+           without a word, leaving every page at year 1. */ -}}
+    {{- /* $seen maps each library's slug to the date of its newest advisory,
+           which becomes the library page's own date, so the feed and the
+           sitemap can say when it last gained a row. */ -}}
     {{- $seen := dict }}
     {{- range $record.records }}
       {{- $key := .key }}
       {{- $slug := lower $key }}
       {{- $date := .published | default .triaged }}
       {{- $libslug := lower .library }}
-      {{- $seen = merge $seen (dict $libslug true) }}
+      {{- $newest := index $seen $libslug | default "" }}
+      {{- if gt $date $newest }}{{ $newest = $date }}{{ end }}
+      {{- $seen = merge $seen (dict $libslug $newest) }}
       {{- $page := dict
             "path" $slug
             "kind" "page"
             "title" .title
-            "date" $date
+            "dates" (dict "date" (time.AsTime $date))
             "description" .summary
             "params" (dict
               "kind" "advisory"
@@ -59,7 +66,7 @@
 
     {{- /* One page per library that has at least one record. The watchlist
            in data/watch.toml names the rest; the index lists them. */ -}}
-    {{- range $slug, $_ := $seen }}
+    {{- range $slug, $newest := $seen }}
       {{- $lib := index $libraries $slug }}
       {{- if not $lib }}
         {{- errorf "security: the record names a library, %q, that data/watch.toml does not describe" $slug }}
@@ -68,6 +75,7 @@
             "path" $slug
             "kind" "page"
             "title" (printf "%s advisories" $lib.name)
+            "dates" (dict "date" (time.AsTime $newest))
             "description" (printf "Published security flaws in %s, what each one takes to trigger, and whether a check before decoding refuses the file." $lib.name)
             "params" (dict
               "kind" "library"

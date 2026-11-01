@@ -58,6 +58,16 @@ capitalizeListTitles = false
   [security.http]
     urls = ['^https://raw\.githubusercontent\.com/scattercode/sillybos/']
 
+# The advisory record is the one remote resource the build reads, and the
+# point of reading it at build time is to publish the current one. Hugo's
+# default keeps a fetched resource for ever (maxAge -1), so a machine that
+# had built the site once would keep showing the record as it was that
+# day: a weekly rebuild would fetch nothing new. No caching, so every
+# build reads the record as it is.
+[caches]
+  [caches.getresource]
+    maxAge = 0
+
 [outputs]
   # index.json is the search index: built once at build time and filtered in
   # the browser, rather than a search service. Build time over runtime.

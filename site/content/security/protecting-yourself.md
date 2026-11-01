@@ -3,6 +3,7 @@ title: "Protecting yourself"
 kicker: "Security"
 standfirst: "What a pipeline that opens images and PDFs it did not make can do about the flaws in its decoders, in order of how much each step buys. None of it replaces upgrading; all of it helps when the next flaw has no fix yet."
 description: "How to protect an OCR pipeline, thumbnailer or upload handler from vulnerabilities in image and PDF libraries: pin and scan, allow-list formats, set limits, check before decoding, decode in a boxed process, and keep a routine for the next advisory."
+date: 2026-11-01
 weight: 1
 ---
 

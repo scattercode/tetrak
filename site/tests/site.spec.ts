@@ -53,8 +53,9 @@ test("the products dropdown opens and closes from the keyboard", async ({ page }
   await page.keyboard.press("Enter");
   await expect(button).toHaveAttribute("aria-expanded", "true");
   await expect(submenu).toBeVisible();
-  await expect(submenu.locator("a")).toHaveCount(3);
+  await expect(submenu.locator("a")).toHaveCount(4);
   await expect(submenu.locator("a").first()).toHaveText("Tetrak OCR");
+  await expect(submenu.locator("a").last()).toHaveText("sillybos");
 
   // Tab moves into the list; Escape closes it and hands focus back.
   await page.keyboard.press("Tab");
@@ -68,7 +69,7 @@ test("the products dropdown opens and closes from the keyboard", async ({ page }
   // hanging over the page for a keyboard user who moved on.
   await page.keyboard.press("Enter");
   await expect(submenu).toBeVisible();
-  for (let n = 0; n < 4; n++) await page.keyboard.press("Tab");
+  for (let n = 0; n < 5; n++) await page.keyboard.press("Tab");
   await expect(submenu).toBeHidden();
 });
 
@@ -81,13 +82,47 @@ test("the phone menu shows the products under Products", async ({ page }) => {
   await page.locator("[data-menu-toggle]").click();
   await expect(nav).toBeVisible();
 
-  // No disclosure on a phone: the three products are simply listed, indented
+  // No disclosure on a phone: the four products are simply listed, indented
   // under their parent, which still links to the overview.
   await expect(page.locator("[data-submenu-toggle]")).toBeHidden();
   const products = nav.locator(".masthead__submenu a");
-  await expect(products).toHaveCount(3);
+  await expect(products).toHaveCount(4);
   for (const link of await products.all()) await expect(link).toBeVisible();
   await expect(nav.locator('.masthead__group > a[href$="/products/"]')).toBeVisible();
+});
+
+test("the security watch renders the advisory record everywhere it is promised", async ({ page, request, baseURL }) => {
+  // The rows, the per-advisory pages, the feed and the JSON export all come
+  // from one fetch of sillybos's record at build time. A fetch that fails
+  // fails the build; this checks that one that succeeded reached the page.
+  await page.goto("security/");
+  const rows = page.locator("table.watch tbody tr");
+  const count = await rows.count();
+  expect(count).toBeGreaterThan(0);
+  for (const row of await rows.all()) {
+    await expect(row.locator("td:nth-child(2) a")).toHaveAttribute("href", /\/security\/cve-[\w-]+\/$/);
+    await expect(row.locator(".verdict")).not.toBeEmpty();
+  }
+
+  // Newest first. The adapter set the date under the wrong key once, and
+  // every page sat at year 1: the table shuffled, the feed went out undated.
+  const shown = await rows.locator("td.watch__date").allInnerTexts();
+  const dates = shown.map((t) => t.match(/\d{4}-\d{2}-\d{2}/)![0]);
+  expect(dates).toEqual([...dates].sort().reverse());
+
+  const json = await (await request.get(new URL("security/index.json", baseURL!).href)).json();
+  expect(json.records).toHaveLength(count);
+  expect(json.generated).toMatch(/^\d{4}-\d{2}-\d{2}/);
+
+  const feed = await (await request.get(new URL("security/index.xml", baseURL!).href)).text();
+  expect((feed.match(/<item>/g) ?? []).length).toBeGreaterThanOrEqual(count);
+  expect(feed).not.toContain("0001 00:00:00");
+
+  // The first row's own page carries the verdict and links back to the record.
+  await rows.first().locator("td:nth-child(2) a").click();
+  await expect(page.locator("main h1")).not.toBeEmpty();
+  await expect(page.locator(".verdict").first()).toBeVisible();
+  await expect(page.locator('a[href*="scattercode/sillybos"]').first()).toBeVisible();
 });
 
 test("every old URL still lands on its page", async ({ request, baseURL }) => {
@@ -291,6 +326,9 @@ async function allPages(request: APIRequestContext, baseURL: string): Promise<st
 }
 
 test("every image on every page actually loads", async ({ page, request, baseURL }) => {
+  // Every page, with a wait for the network to go quiet on each: the security
+  // watch took the site past a hundred pages and past the default 30 s.
+  test.slow();
   // The migration published a site on which all 19 corpus images were dead
   // links, behind a green build and a green test suite: the markdown still
   // carried mkdocs-relative paths. Parsing the HTML for src attributes is what
