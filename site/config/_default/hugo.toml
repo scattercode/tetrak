@@ -49,6 +49,15 @@ capitalizeListTitles = false
 [build]
   writeStats = true
 
+# The one place the build fetches from at build time: the advisory record
+# behind /security/ (params.advisoriesURL). An allow-list rather than Hugo's
+# permissive default, so that a template cannot quietly start reading from
+# somewhere else. Override with HUGO_SECURITY_HTTP_URLS to build against a
+# local copy.
+[security]
+  [security.http]
+    urls = ['^https://raw\.githubusercontent\.com/scattercode/sillybos/']
+
 [outputs]
   # index.json is the search index: built once at build time and filtered in
   # the browser, rather than a search service. Build time over runtime.
@@ -77,6 +86,15 @@ capitalizeListTitles = false
   # The organisation, which the masthead links to since October 2026: the site
   # describes several tools, each in its own repository under it.
   org = "https://github.com/scattercode"
+
+  # The security watch at /security/ is built from sillybos's advisory record
+  # (docs/advisories/record.json in that repository): one page per advisory
+  # and one per library, created at build time by content/security/
+  # _content.gotmpl from this file. Fetched rather than copied, so the site
+  # cannot drift from the record; the weekly refresh workflow rebuilds the
+  # site after sillybos's Monday advisory run. Override with
+  # HUGO_PARAMS_ADVISORIESURL to build against a branch.
+  advisoriesURL = "https://raw.githubusercontent.com/scattercode/sillybos/main/docs/advisories/record.json"
 
   # Plausible: privacy-friendly, no cookies, no consent banner needed.
   #

@@ -1,0 +1,12 @@
+{{- /*
+  The watch as JSON: the record's entries with this site's page for each,
+  for anyone who would rather read it by machine. The fields are the
+  record's own; only `url` is added. Built from the same pages as the HTML.
+*/ -}}
+{{- $rows := slice }}
+{{- $generated := "" }}
+{{- range (where .RegularPages "Params.kind" "advisory").ByDate.Reverse }}
+  {{- $generated = .Params.generated }}
+  {{- $rows = $rows | append (merge .Params.advisory (dict "url" .Permalink)) }}
+{{- end }}
+{{- dict "generated" $generated "source" "https://github.com/scattercode/sillybos/blob/main/docs/advisories/record.json" "records" $rows | jsonify (dict "indent" "  ") }}

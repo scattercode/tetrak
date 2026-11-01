@@ -1,0 +1,38 @@
+# Rebuild tetrak.dev on a schedule, so the security watch at /security/
+# picks up sillybos's advisory record without a commit here.
+#
+# The site is built and published by Cloudflare Pages on every push to main.
+# The watch is fetched from sillybos at build time, so a change to the
+# record only reaches the site when something triggers a build. sillybos's
+# advisory job runs on Mondays at 07:00 UTC; this runs two hours later and
+# asks Cloudflare to build again, through a deploy hook.
+#
+# One secret: CLOUDFLARE_DEPLOY_HOOK, the hook's URL from the Pages
+# project's settings (Builds & deployments → Deploy hooks). The URL is the
+# credential, which is why it is a secret and never printed. Until it is
+# set, the job says so and does nothing, so the workflow can land before
+# the hook exists.
+name: Refresh the site
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Mondays 09:00 UTC, after sillybos's advisory run
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  refresh:
+    name: Ask Cloudflare to rebuild
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger the deploy hook
+        env:
+          HOOK: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::notice::CLOUDFLARE_DEPLOY_HOOK is not set; nothing to trigger"
+            exit 0
+          fi
+          curl --fail --silent --show-error --request POST "$HOOK" --output /dev/null
+          echo "Rebuild requested."

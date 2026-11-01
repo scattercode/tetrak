@@ -781,3 +781,96 @@
     }
   }
 }
+
+// The security watch: the advisory table, the verdict label and the facts
+// list on an advisory page. Same bargain as the article apparatus: mono
+// labels, hairlines and air, no boxes and no second accent. A verdict is
+// a mono label like a kicker; the modifiers change nothing but weight, so
+// that "refused by default" and "needs decoding to detect" read as the same
+// kind of thing and the sentence beside them does the work.
+.watch {
+  &__date {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  &__key {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+  }
+
+  &__counts {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  &__libraries {
+    display: grid;
+    gap: 0.4rem 1.5rem;
+    margin: 0 0 2.4rem;
+
+    dt {
+      font-family: var(--font-display);
+      margin-top: 0.6rem;
+    }
+
+    dd {
+      margin: 0;
+      max-width: var(--measure);
+    }
+  }
+
+  &__package {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    margin-left: 0.6em;
+  }
+}
+
+.verdict {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ink-soft);
+
+  &--default {
+    color: var(--clay-deep);
+  }
+}
+
+.advisory {
+  &__facts {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.35rem 1.5rem;
+    margin: 0 0 2.4rem;
+    border-top: 2px solid var(--clay);
+    padding-top: 1rem;
+
+    dt {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      padding-top: 0.2rem;
+    }
+
+    dd {
+      margin: 0;
+    }
+  }
+
+  &__tests code {
+    font-size: 0.8rem;
+  }
+}

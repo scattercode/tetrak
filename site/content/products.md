@@ -1,8 +1,8 @@
 ---
 title: "Products"
 kicker: "Open source"
-standfirst: "Three tools, free and open source. Each works on its own, on your own machine, without us."
-description: "Tetrak's open-source tools: Tetrak OCR for turning scans into searchable text, the Armenian text recogniser, and tetrak-translit for transliteration and cross-script search."
+standfirst: "Four tools, free and open source. Each works on its own, on your own machine, without us."
+description: "Tetrak's open-source tools: Tetrak OCR for turning scans into searchable text, the Armenian text recogniser, tetrak-translit for transliteration and cross-script search, and sillybos for checking a file before any decoder opens it."
 ---
 
 Everything here is published under an open licence, with the code, the
@@ -32,5 +32,13 @@ what [our services]({{< relref "/services.md" >}}) are for.
     Detects the script, writes it in Latin letters by a named library
     standard, and folds every spelling of a name to one form for searching.
     Armenian, Georgian, Russian and Syriac so far.
+
+-   **[sillybos]({{< relref "/sillybos.md" >}})**
+
+    Decides, before any image library or PDF renderer opens a file, whether
+    it is one of the formats you meant to read and within the limits you
+    expect, and says why not in a sentence. No dependencies. The
+    [security watch]({{< relref "/security/_index.md" >}}) records which
+    published flaws it refuses.
 
 </div>
