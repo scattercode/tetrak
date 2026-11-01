@@ -50,7 +50,7 @@ dependencies = [
     # TIFF or PDF within our limits (imaging.open_image and check_pdf). Grew
     # out of this package; 0.x minor releases are additive, a breaking one
     # becomes 1.0 and stops at the ceiling.
-    "sillybos>=0.1,<1",
+    "sillybos>=3,<4",
     "python-dotenv>=1.0",
     # Writes the searchable PDF. Core rather than an extra because the roadmap
     # treats that as the flagship catalogue-ready output, and it should work on

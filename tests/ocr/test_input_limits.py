@@ -106,6 +106,30 @@ class TestPdf:
         with pytest.raises(InputRefusedError, match="unknown format"):
             check_pdf(path)
 
+    def test_a_pdf_that_carries_javascript_is_refused(self, tmp_path: Path) -> None:
+        """sillybos 3 refuses the features a scanned book never has; the reason reaches triage."""
+        path = tmp_path / "scripted.pdf"
+        objects = [
+            b"<< /Type /Catalog /Pages 2 0 R /OpenAction 4 0 R >>",
+            b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+            b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] >>",
+            b"<< /Type /Action /S /JavaScript /JS (app.alert('hello');) >>",
+        ]
+        out = bytearray(b"%PDF-1.4\n")
+        offsets = []
+        for number, body in enumerate(objects, start=1):
+            offsets.append(len(out))
+            out += f"{number} 0 obj\n".encode() + body + b"\nendobj\n"
+        xref = len(out)
+        out += f"xref\n0 {len(objects) + 1}\n".encode() + b"0000000000 65535 f \n"
+        for position in offsets:
+            out += f"{position:010d} 00000 n \n".encode()
+        out += f"trailer\n<< /Size {len(objects) + 1} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n".encode()
+        path.write_bytes(bytes(out))
+
+        with pytest.raises(InputRefusedError, match="a PDF with JavaScript"):
+            check_pdf(path)
+
 
 class TestPageSize:
     def test_pillows_one_dpi_for_no_resolution_is_not_believed(self) -> None:
