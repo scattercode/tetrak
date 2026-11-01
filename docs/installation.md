@@ -12,8 +12,11 @@ pip install tetrak
 
 The distribution is `tetrak`; the command it installs is `tetrak-ocr`, and
 the import package is `tetrak_ocr`. A plain install gives you Tesseract (via
-`pytesseract`), image handling, PDF rasterisation and the searchable-PDF
-writer: enough to process a folder of scans offline.
+`pytesseract`), image handling, PDF rasterisation, the searchable-PDF
+writer, and the check that every scan passes before any of them opens it
+([sillybos](https://github.com/scattercode/sillybos): the file really is a
+JPEG, PNG, TIFF or PDF, within size and page limits; anything else goes to
+triage with the reason): enough to process a folder of scans offline.
 
 Most people want more than that. The install we recommend adds quality
 scoring, which is what turns on `auto-local`, the backend that runs every
@@ -30,9 +33,10 @@ choosing between one engine. Add the extras below to give it a choice.
 
 Two things must be installed separately, because they are binaries rather
 than Python packages. **Tesseract** is the OCR engine itself; `pytesseract`
-only wraps it. **Poppler** provides `pdftoppm`, which `pdf2image` shells out
-to when rasterising PDF pages. Without poppler, PDF input fails with
-`PDFPageCountError`, which does not look like a missing-poppler problem.
+only wraps it. **Poppler** provides `pdfinfo`, which the check reads a PDF's
+page count and page sizes from, and `pdftoppm`, which `pdf2image` shells out
+to when rasterising the pages. Without poppler, the first PDF stops with a
+message that says to install it.
 
 macOS:
 

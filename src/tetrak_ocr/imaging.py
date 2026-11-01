@@ -19,12 +19,16 @@ backend that will read it — rather than returning page one as though that were
 the document.
 
 It is also where every file is opened, so it is where files are refused.
-:func:`open_image` lets Pillow run only the readers for the formats Tetrak
-supports, so a PostScript or FlashPix file renamed ``.png`` never reaches
-the readers whose flaws ran commands in October 2026, and refuses an image
-with more pixels than any real scan. :func:`check_pdf` does the same for a
-PDF's page count and page sizes, from poppler's ``pdfinfo``, before a page is
-rendered. See the Tetrak vault's note on checking an image before OCR.
+The deciding is done by sillybos (``pip install sillybos``), which grew out
+of this module: it names a file's real format from its first bytes, reads
+the JPEG, PNG or TIFF header with code of its own, asks ``pdfinfo`` about a
+PDF, and refuses anything outside a policy with a reason in a sentence.
+:func:`open_image` runs that check and then lets Pillow use only the JPEG,
+PNG and TIFF readers, so a PostScript or FlashPix file renamed ``.png``
+never reaches the readers whose flaws ran commands in October 2026;
+:func:`check_pdf` does the same for a PDF's page count and page sizes
+before a page is rendered. The limits are this module's constants, set
+from the corpus; sillybos's defaults are the same numbers.
 """
 
 from __future__ import annotations
@@ -34,13 +38,11 @@ from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
+import sillybos
 from PIL import Image
+from sillybos.pillow import pillow_formats
 
 from .errors import InputRefusedError, MultiPageNotSupportedError
-
-ALLOWED_FORMATS = ("JPEG", "PNG", "TIFF")
-"""The only Pillow readers Tetrak lets run: those for SUPPORTED_EXTENSIONS.
-A PDF is never handed to Pillow; poppler renders it."""
 
 MAX_PIXELS = 89_478_485
 """The most pixels in one image or rendered page: Pillow's own warning
@@ -57,77 +59,67 @@ PDF_RENDER_DPI = 200
 """The resolution poppler renders at: pdf2image's default, used everywhere."""
 
 
-def _check_pixels(path: Path, image: Image.Image) -> None:
-    if image.width * image.height > MAX_PIXELS:
-        raise InputRefusedError(
-            path,
-            f"{image.width} x {image.height} is {image.width * image.height:,} pixels; "
-            f"the limit is {MAX_PIXELS:,}.",
-        )
+RASTER_FORMATS = frozenset({"jpeg", "png", "tiff"})
+"""What :func:`open_image` accepts: the formats Pillow is allowed to read. A
+PDF is never handed to Pillow; poppler renders it."""
+
+
+def _policy(formats: frozenset[str]) -> sillybos.Policy:
+    """Tetrak's limits as a sillybos policy, built per call so a test can tune the constants."""
+    return sillybos.Policy(
+        formats=formats,
+        max_pixels=MAX_PIXELS,
+        max_pages=MAX_PDF_PAGES,
+        render_dpi=PDF_RENDER_DPI,
+    )
+
+
+def _require(path: Path, formats: frozenset[str]) -> sillybos.Verdict:
+    """Check *path* against Tetrak's limits; refuse with sillybos's reasons in one sentence."""
+    verdict = sillybos.check(path, _policy(formats))
+    if not verdict.ok:
+        raise InputRefusedError(path, "; ".join(verdict.reasons) + ".")
+    return verdict
 
 
 def open_image(path: Path) -> Image.Image:
     """Open a raster scan with only Tetrak's readers, refusing an oversized one.
 
-    Pillow decides what a file is from its contents, not its name, and then
-    runs the reader for that format. Passing ``formats`` means only the
-    JPEG, PNG and TIFF readers can be chosen, whatever the file claims to be.
-    Only the header has been read when the size is checked; the pixels are
+    sillybos decides first, from the file's own bytes and header: the format
+    it really is, its size, and every frame's pixels for a TIFF. Only then is
+    Pillow asked to open it, with ``formats`` naming the JPEG, PNG and TIFF
+    readers, so no other reader can be chosen whatever the file claims to
+    be. Only the header has been read when this returns; the pixels are
     decoded later, on first use.
 
     Raises:
-        InputRefusedError: If the file is not JPEG, PNG or TIFF, or has more
-            pixels than :data:`MAX_PIXELS`.
+        InputRefusedError: If the file is not JPEG, PNG or TIFF, lies about
+            which it is, or has a frame with more pixels than
+            :data:`MAX_PIXELS`.
     """
-    try:
-        image = Image.open(path, formats=ALLOWED_FORMATS)
-    except Image.UnidentifiedImageError:
-        raise InputRefusedError(
-            path, f"It is not one of the formats Tetrak reads ({', '.join(ALLOWED_FORMATS)})."
-        ) from None
-    try:
-        _check_pixels(Path(path), image)
-    except InputRefusedError:
-        image.close()
-        raise
-    return image
+    path = Path(path)
+    policy = _policy(RASTER_FORMATS)
+    _require(path, RASTER_FORMATS)
+    return Image.open(path, formats=pillow_formats(policy))
 
 
 def check_pdf(path: Path) -> int:
     """Refuse a PDF too long, or with a page too large, to render; else count its pages.
 
-    Reads poppler's ``pdfinfo``, which parses the document's structure without
-    rendering anything. A page's size is in points (1/72 inch), so its pixels
-    at :data:`PDF_RENDER_DPI` are known before poppler allocates them.
+    sillybos reads poppler's ``pdfinfo``, which parses the document's
+    structure without rendering anything, in a separate process with a time
+    limit. A page's size is in points (1/72 inch), so its pixels at
+    :data:`PDF_RENDER_DPI` are known before poppler allocates them.
 
     Raises:
-        InputRefusedError: If poppler cannot read the file, it has more pages
-            than :data:`MAX_PDF_PAGES`, or a page would render to more pixels
-            than :data:`MAX_PIXELS`.
+        InputRefusedError: If the file is not a PDF or poppler cannot read
+            it, it has more pages than :data:`MAX_PDF_PAGES`, a page would
+            render to more pixels than :data:`MAX_PIXELS`, or it is
+            encrypted.
     """
-    from pdf2image import pdfinfo_from_path
-
-    try:
-        pages = int(pdfinfo_from_path(str(path))["Pages"])
-    except Exception as exc:
-        raise InputRefusedError(path, f"poppler could not read it as a PDF ({exc}).") from None
-    if pages > MAX_PDF_PAGES:
-        raise InputRefusedError(path, f"It has {pages} pages; the limit is {MAX_PDF_PAGES}.")
-    info = pdfinfo_from_path(str(path), first_page=1, last_page=pages)
-    for key, value in info.items():
-        # "Page    3 size": "408 x 559.44 pts", with a paper name after on some.
-        if not (key.startswith("Page") and key.endswith("size")):
-            continue
-        width, _, height = str(value).split()[:3]
-        pixels = (float(width) / 72 * PDF_RENDER_DPI) * (float(height) / 72 * PDF_RENDER_DPI)
-        if pixels > MAX_PIXELS:
-            page = key.split()[1]
-            raise InputRefusedError(
-                path,
-                f"Page {page} is {value}, which renders to {pixels:,.0f} pixels at "
-                f"{PDF_RENDER_DPI} dpi; the limit is {MAX_PIXELS:,}.",
-            )
-    return pages
+    verdict = _require(Path(path), frozenset({"pdf"}))
+    assert verdict.facts is not None  # a passing verdict always carries its facts
+    return verdict.facts.pages
 
 
 def pdf_renderer():
@@ -244,8 +236,8 @@ def iter_frames(path: Path) -> Iterator[Image.Image]:
         for index in range(int(getattr(image, "n_frames", 1))):
             image.seek(index)
             if _is_page(image):
-                # Frame 0 was checked on opening; each later one has its own size.
-                _check_pixels(path, image)
+                # Every frame's size was checked by open_image, before Pillow
+                # opened the file: sillybos walks the whole frame chain.
                 yield image.copy()
 
 
