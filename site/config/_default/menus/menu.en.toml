@@ -41,6 +41,12 @@
   pageRef = "/translit"
   weight = 3
 
+[[main]]
+  name = "sillybos"
+  parent = "products"
+  pageRef = "/sillybos"
+  weight = 4
+
 # Beside Products rather than at the end: the split between the free tools
 # and the paid work is the first thing a visitor should be able to see.
 [[main]]
@@ -56,6 +62,14 @@
 # Added August 2026 with the articles section. It sits next to Research
 # because it is the same kind of thing: writing about the problem and about
 # the tools' progress, alongside the fixed evidence.
+# Added November 2026 with the security watch. A reference page rather than
+# writing: the advisories on the image and PDF libraries everyone decodes
+# with, what each one takes to trigger, and how to protect yourself.
+[[main]]
+  name = "Security"
+  pageRef = "/security"
+  weight = 35
+
 [[main]]
   name = "Articles"
   pageRef = "/articles"

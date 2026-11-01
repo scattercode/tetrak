@@ -1,0 +1,34 @@
+{{- /*
+  What the record says sillybos does about one advisory, as a label a reader
+  can scan and a sentence that says why. Takes the advisory dict from the
+  record and returns a dict: label, class (a modifier on .verdict), sentence.
+
+  The label is the honest one. "Refused by default" is used only where the
+  record claims a refusal under the default policy and names the test that
+  proves it; "with a setting" where only a policy change refuses the file;
+  and the rest say that the check does not reach the flaw, which is the
+  more important thing to publish.
+*/ -}}
+{{- $a := . }}
+{{- $bucket := $a.bucket }}
+{{- $label := "" }}{{ $class := "" }}{{ $sentence := "" }}
+{{- if and $a.refusal $a.refusal.default }}
+  {{- $label = "Refused by default" }}{{ $class = "default" }}
+  {{- $sentence = printf "sillybos refuses the triggering file under its default policy, through the %s check." $a.refusal.check }}
+{{- else if $a.refusal }}
+  {{- $label = "Refused with a setting" }}{{ $class = "setting" }}
+  {{- $sentence = printf "sillybos refuses the triggering file when the policy says so (%s); the default policy lets it through." $a.refusal.setting }}
+{{- else if eq $bucket "N" }}
+  {{- $label = "Not reached by opening a file" }}{{ $class = "none" }}
+  {{- $sentence = "Opening or reading a file never reaches this flaw, so a check before decoding has nothing to refuse. Listed so that nobody expects it to." }}
+{{- else if eq $bucket "C" }}
+  {{- $label = "Needs decoding to detect" }}{{ $class = "beyond" }}
+  {{- $sentence = "The flaw is in the pixel data or the compressed stream, which only a decoder can see. Nothing before the decoder can refuse it; updating the decoder is the fix." }}
+{{- else if eq $bucket "D" }}
+  {{- $label = "Reaches pdfinfo itself" }}{{ $class = "beyond" }}
+  {{- $sentence = "The flaw is in the PDF parser sillybos asks, in a separate process with a time limit, so a crash or a hang there is one file refused." }}
+{{- else }}
+  {{- $label = "Not yet triaged" }}{{ $class = "none" }}
+  {{- $sentence = "The advisory has an identifier but no text yet, and is checked again weekly." }}
+{{- end }}
+{{- return (dict "label" $label "class" $class "sentence" $sentence) }}

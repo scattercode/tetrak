@@ -91,9 +91,13 @@
       <aside class="rail">
         <div class="rail__label">On this page</div>
         {{ .TableOfContents }}
+        {{- /* A page the content adapter made (the security watch) has no
+               file to edit; the record it came from is linked on the page. */ -}}
+        {{- with .File }}
         <div class="rail__foot">
-          <a href="{{ .Site.Params.repo }}/edit/main/site/content/{{ .File.Path }}">Edit this page ↗</a>
+          <a href="{{ $.Site.Params.repo }}/edit/main/site/content/{{ .Path }}">Edit this page ↗</a>
         </div>
+        {{- end }}
       </aside>
     {{- end }}
   </main>

@@ -1,0 +1,92 @@
+{{- /*
+  Content adapter for the security watch.
+
+  Fetches sillybos's advisory record (site.Params.advisories_url, the
+  record.json that scripts/advisory_record.py in that repository generates)
+  and creates one page per advisory at /security/<key>/ and one per library
+  at /security/<library>/. The pages carry the record's fields as params;
+  layouts/security/single.html renders them and layouts/security/list.html
+  lists them. Nothing is copied into this repository, so the site cannot
+  drift from the record.
+
+  A fetch failure fails the build rather than publishing a watch with no
+  rows in it: a page that silently went empty is worse than a build that
+  says why.
+*/ -}}
+{{- $url := site.Params.advisoriesURL }}
+{{- if not $url }}{{ errorf "security: site.Params.advisoriesURL is not set" }}{{ end }}
+{{- $opts := dict "headers" (dict "Accept" "application/json") }}
+{{- $attempt := try (resources.GetRemote $url $opts) }}
+{{- if $attempt.Err }}
+  {{- errorf "security: could not fetch the advisory record from %s: %s" $url $attempt.Err }}
+{{- else if not $attempt.Value }}
+  {{- errorf "security: nothing came back from %s" $url }}
+{{- else }}
+  {{- with $attempt.Value.Content }}
+    {{- $record := . | transform.Unmarshal }}
+    {{- $generated := $record.generated }}
+    {{- $libraries := hugo.Data.watch.library }}
+
+    {{- /* One page per advisory. The path is the key, lowercased, so a
+           reader who searches a CVE id lands on /security/cve-2026-112900/.
+           The date is when the advisory was published, or when it was
+           triaged if upstream gave no date, so the feed and the ordering
+           have something to go on. It goes in the `dates` map: a top-level
+           `date` key is not one the adapter reads, and Hugo ignores it
+           without a word, leaving every page at year 1. */ -}}
+    {{- /* $seen maps each library's slug to the date of its newest advisory,
+           which becomes the library page's own date, so the feed and the
+           sitemap can say when it last gained a row. */ -}}
+    {{- $seen := dict }}
+    {{- range $record.records }}
+      {{- $key := .key }}
+      {{- $slug := lower $key }}
+      {{- $date := .published | default .triaged }}
+      {{- $libslug := lower .library }}
+      {{- $newest := index $seen $libslug | default "" }}
+      {{- if gt $date $newest }}{{ $newest = $date }}{{ end }}
+      {{- $seen = merge $seen (dict $libslug $newest) }}
+      {{- $page := dict
+            "path" $slug
+            "kind" "page"
+            "title" .title
+            "dates" (dict "date" (time.AsTime $date))
+            "description" .summary
+            "params" (dict
+              "kind" "advisory"
+              "advisory" .
+              "library_slug" $libslug
+              "generated" $generated
+              "kicker" (printf "Security · %s" .library)
+              "standfirst" .summary)
+            "content" (dict "mediaType" "text/markdown" "value" .summary)
+      }}
+      {{- $.AddPage $page }}
+    {{- end }}
+
+    {{- /* One page per library that has at least one record. The watchlist
+           in data/watch.toml names the rest; the index lists them. */ -}}
+    {{- range $slug, $newest := $seen }}
+      {{- $lib := index $libraries $slug }}
+      {{- if not $lib }}
+        {{- errorf "security: the record names a library, %q, that data/watch.toml does not describe" $slug }}
+      {{- end }}
+      {{- $page := dict
+            "path" $slug
+            "kind" "page"
+            "title" (printf "%s advisories" $lib.name)
+            "dates" (dict "date" (time.AsTime $newest))
+            "description" (printf "Published security flaws in %s, what each one takes to trigger, and whether a check before decoding refuses the file." $lib.name)
+            "params" (dict
+              "kind" "library"
+              "library" $lib
+              "library_slug" $slug
+              "generated" $generated
+              "kicker" "Security"
+              "standfirst" $lib.what)
+            "content" (dict "mediaType" "text/markdown" "value" $lib.what)
+      }}
+      {{- $.AddPage $page }}
+    {{- end }}
+  {{- end }}
+{{- end }}

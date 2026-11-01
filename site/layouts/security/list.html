@@ -1,0 +1,99 @@
+{{- /*
+  The security watch index.
+
+  Opens like every other page -- kicker, h1, standfirst, the section's own
+  prose -- then the watchlist, then every advisory the record holds, newest
+  first. The rows are the pages the content adapter created, so the table,
+  the per-advisory pages, the feed and the JSON export all come from the
+  one fetch and cannot disagree.
+
+  No cards and no colour per verdict: the verdict is a mono label, the way
+  a kicker or a tag is, and the row is the same open sheet as an article row.
+*/ -}}
+{{ define "main" }}
+  {{- with .Params.kicker }}<div class="kicker">{{ . }}</div>{{ end }}
+  <h1>{{ .Title }}</h1>
+  {{- with .Params.standfirst }}<p class="standfirst">{{ . }}</p>{{ end }}
+  {{ .Content }}
+
+  {{- $advisories := where .RegularPages "Params.kind" "advisory" }}
+  {{- $libraries := where .RegularPages "Params.kind" "library" }}
+  {{- $generated := "" }}
+  {{- with index $advisories 0 }}{{ $generated = .Params.generated }}{{ end }}
+
+  <h2 id="watched">What is watched</h2>
+  <p>
+    The libraries below are the ones sillybos's weekly job asks
+    <a href="https://osv.dev/">OSV.dev</a> about. A library with a page has
+    advisories in the record; the others are watched and have none recorded
+    yet.
+  </p>
+  <dl class="watch__libraries">
+    {{- range $slug, $lib := hugo.Data.watch.library }}
+      {{- $page := "" }}
+      {{- range $libraries }}{{ if eq .Params.library_slug $slug }}{{ $page = . }}{{ end }}{{ end }}
+      <dt>{{ with $page }}<a href="{{ .RelPermalink }}">{{ $lib.name }}</a>{{ else }}{{ $lib.name }}{{ end }}
+        <span class="watch__package">{{ $lib.package }}</span></dt>
+      <dd>{{ $lib.what }}.</dd>
+    {{- end }}
+  </dl>
+
+  <h2 id="advisories">The advisories</h2>
+  <p class="watch__counts">
+    {{ len $advisories }} recorded
+    {{- $byDefault := 0 }}
+    {{- range $advisories }}{{ if and .Params.advisory.refusal .Params.advisory.refusal.default }}{{ $byDefault = add $byDefault 1 }}{{ end }}{{ end }}
+    · {{ $byDefault }} refused by sillybos's default policy
+    {{- with $generated }} · record generated {{ . }}{{ end }}
+  </p>
+  <p>
+    <em>Reaches you</em> says how the triggering input gets to the flaw:
+    by opening a file is the one that matters for a pipeline that takes
+    files from outside. <em>What sillybos does</em> is the record's claim,
+    and "refused by default" is only written where a test proves it. Each
+    row links to a page with the trigger, the finding, the tests and the
+    advice in full.
+  </p>
+
+  <div class="table-scroll">
+    <table class="watch">
+      <thead>
+        <tr>
+          <th>Published</th>
+          <th>Advisory</th>
+          <th>Library</th>
+          <th>Reaches you</th>
+          <th>What sillybos does</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{- range $advisories.ByDate.Reverse }}
+          {{- $a := .Params.advisory }}
+          {{- $v := partial "advisory-verdict.html" $a }}
+          <tr>
+            <td class="watch__date">{{ with $a.published }}<time datetime="{{ . }}">{{ . }}</time>{{ else }}<span class="watch__key">triaged {{ $a.triaged }}</span>{{ end }}</td>
+            <td>
+              <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+              <span class="watch__key">{{ $a.key }}</span>
+            </td>
+            <td>{{ $a.library }}</td>
+            <td>{{ index hugo.Data.watch.reached_by $a.reached_by | default $a.reached_by }}</td>
+            <td><span class="verdict verdict--{{ $v.class }}">{{ $v.label }}</span></td>
+          </tr>
+        {{- end }}
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="feeds">Follow it</h2>
+  <p>
+    {{- with .OutputFormats.Get "rss" }}New advisories turn up in the
+    <a href="{{ .RelPermalink }}">RSS feed</a>.{{ end }}
+    {{- with .OutputFormats.Get "json" }} The whole record is also published
+    as <a href="{{ .RelPermalink }}">JSON</a>, with a link to each page here,
+    for anyone who would rather read it by machine; the file it is built from
+    is in the <a href="https://github.com/scattercode/sillybos/blob/main/docs/advisories/record.json">sillybos repository</a>.{{ end }}
+    The site is rebuilt every Monday after the weekly advisory run, and on
+    every change to the record.
+  </p>
+{{ end }}

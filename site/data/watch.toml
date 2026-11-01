@@ -1,0 +1,65 @@
+# The security watch's watchlist: the libraries sillybos's weekly advisory
+# job asks OSV.dev about, and a sentence on what each one is for a reader
+# who has never installed it. The advisories themselves come from the record
+# (params.advisories_url); this file only names the libraries and says what
+# they are. Keys match the record's `library` field, lowercased.
+#
+# A library with no records yet still appears in the index's list, so the
+# page says what is watched, not only what has been found.
+
+[library.pillow]
+name = "Pillow"
+what = "The Python image library. Most Python programs that open a JPEG, PNG or TIFF do it with Pillow, Tetrak OCR included; it wraps libjpeg-turbo, libpng, libtiff and the others below"
+package = "pillow on PyPI"
+upstream = "https://github.com/python-pillow/Pillow"
+
+[library.libtiff]
+name = "libtiff"
+what = "The C library that reads and writes TIFF, the format most archival scans are kept in. Pillow, poppler, ImageMagick and nearly everything else decode TIFF through it"
+package = "tiff on Debian"
+upstream = "https://gitlab.com/libtiff/libtiff"
+
+[library.libpng]
+name = "libpng"
+what = "The reference C library for PNG, used by Pillow, browsers and most image software"
+package = "libpng1.6 on Debian"
+upstream = "https://github.com/pnggroup/libpng"
+
+[library.libjpeg-turbo]
+name = "libjpeg-turbo"
+what = "The JPEG decoder nearly everything uses, Pillow included"
+package = "libjpeg-turbo on Debian"
+upstream = "https://github.com/libjpeg-turbo/libjpeg-turbo"
+
+[library.zlib]
+name = "zlib"
+what = "The compression library inside PNG and Deflate-compressed TIFF, so a flaw in it reaches every program that opens either"
+package = "zlib on Debian"
+upstream = "https://github.com/madler/zlib"
+
+[library.poppler]
+name = "poppler"
+what = "The PDF renderer behind pdftoppm and pdfinfo, which Tetrak OCR and most Python PDF tools call to turn pages into images"
+package = "poppler on Debian"
+upstream = "https://gitlab.freedesktop.org/poppler/poppler"
+
+[library.openjpeg]
+name = "OpenJPEG"
+what = "The JPEG 2000 codec, bundled inside Pillow's wheels and used by poppler for JPEG 2000 streams inside PDFs"
+package = "openjpeg2 on Debian"
+upstream = "https://github.com/uclouvain/openjpeg"
+
+[library.freetype]
+name = "FreeType"
+what = "The font renderer, which poppler uses for the text in a PDF and Pillow uses to draw text"
+package = "freetype on Debian"
+upstream = "https://gitlab.freedesktop.org/freetype/freetype"
+
+# How the triggering input reaches a flaw, in the words the record uses as
+# keys and the words the pages show.
+[reached_by]
+open = "by opening a file"
+save = "on a save path"
+api = "through another call"
+tool = "through a command-line tool"
+other = "another way"

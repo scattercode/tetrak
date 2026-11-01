@@ -1,0 +1,107 @@
+{{- /*
+  A page in the security section. Three kinds share it:
+
+    advisory   created by the content adapter from one record; the whole
+               page is rendered from params.advisory
+    library    created by the adapter for each library with records; lists
+               that library's advisories
+    (neither)  an ordinary markdown page in the section, such as
+               protecting-yourself.md, rendered as _default/single does
+
+  One template rather than three, so the section's pages open the same way
+  and a reader moving between them is never surprised.
+*/ -}}
+{{ define "main" }}
+  {{ partial "breadcrumbs.html" . }}
+  {{- with .Params.kicker }}<div class="kicker">{{ . }}</div>{{ end }}
+  <h1>{{ .Title }}</h1>
+  {{- with .Params.standfirst }}<p class="standfirst">{{ . }}</p>{{ end }}
+
+  {{- if eq .Params.kind "advisory" }}
+    {{- $a := .Params.advisory }}
+    {{- $v := partial "advisory-verdict.html" $a }}
+    {{- $lib := index hugo.Data.watch.library .Params.library_slug }}
+    {{- $libPage := "" }}
+    {{- range where .Parent.RegularPages "Params.kind" "library" }}{{ if eq .Params.library_slug $.Params.library_slug }}{{ $libPage = . }}{{ end }}{{ end }}
+
+    <dl class="advisory__facts">
+      <dt>Advisory</dt>
+      <dd>{{ $a.key }}{{ with $a.aliases }} (also {{ delimit . ", " }}){{ end }}</dd>
+      <dt>Library</dt>
+      <dd>{{ with $libPage }}<a href="{{ .RelPermalink }}">{{ $a.library }}</a>{{ else }}{{ $a.library }}{{ end }}, {{ $a.package }} on {{ $a.ecosystem }}</dd>
+      <dt>Published</dt>
+      <dd>{{ with $a.published }}<time datetime="{{ . }}">{{ . }}</time>{{ else }}not given by the upstream record{{ end }}</dd>
+      <dt>Severity</dt>
+      <dd>{{ with $a.severity }}{{ . }} out of 10, as published{{ else }}not scored upstream{{ end }}</dd>
+      <dt>Affected</dt>
+      <dd>{{ $a.affected }}</dd>
+      <dt>Fixed in</dt>
+      <dd>{{ with $a.fixed }}{{ . }}{{ else }}see the upstream record{{ end }}</dd>
+      <dt>Reaches you</dt>
+      <dd>{{ index hugo.Data.watch.reached_by $a.reached_by | default $a.reached_by }}</dd>
+    </dl>
+
+    <h2 id="trigger">What triggers it</h2>
+    <p>{{ $a.trigger }}</p>
+
+    <h2 id="sillybos">What sillybos does</h2>
+    <p><span class="verdict verdict--{{ $v.class }}">{{ $v.label }}</span></p>
+    <p>{{ $v.sentence }}</p>
+    <p>{{ $a.finding }}</p>
+    {{- with $a.notes }}<p><em>{{ . }}</em></p>{{ end }}
+    {{- with $a.verified_by }}
+      <p>Proved by {{ if gt (len .) 1 }}these tests in the sillybos suite, each of which builds{{ else }}this test in the sillybos suite, which builds{{ end }} the triggering file from bytes and checks that it is refused:</p>
+      <ul class="advisory__tests">
+        {{- range . }}
+          {{- $file := index (split . "::") 0 }}
+          <li><a href="https://github.com/scattercode/sillybos/blob/main/{{ $file }}"><code>{{ . }}</code></a></li>
+        {{- end }}
+      </ul>
+    {{- end }}
+
+    <h2 id="protect">How to protect yourself</h2>
+    <p><strong>In general.</strong> {{ $a.protect.general }}</p>
+    <p><strong>Specifically.</strong> {{ $a.protect.specific }}</p>
+    <p>The <a href="{{ (site.GetPage "/security/protecting-yourself").RelPermalink }}">general advice</a> applies to every row here.</p>
+
+    <h2 id="sources">Sources</h2>
+    <ul>
+      {{- range $a.sources }}<li><a href="{{ . }}">{{ . }}</a></li>{{ end }}
+      <li><a href="https://github.com/scattercode/sillybos/blob/main/docs/advisories/record/{{ $a.key }}.json">The record entry</a>, triaged {{ $a.triaged }}, last checked {{ $a.checked }}</li>
+    </ul>
+
+  {{- else if eq .Params.kind "library" }}
+    {{- $lib := .Params.library }}
+    {{- $slug := .Params.library_slug }}
+    {{- $rows := where (where .Parent.RegularPages "Params.kind" "advisory") "Params.library_slug" $slug }}
+    <p>
+      {{ len $rows }} {{ if eq (len $rows) 1 }}advisory{{ else }}advisories{{ end }} recorded for
+      {{ $lib.name }} ({{ $lib.package }});
+      the project is at <a href="{{ $lib.upstream }}">{{ $lib.upstream }}</a>.
+      Newest first.
+    </p>
+    <div class="table-scroll">
+      <table class="watch">
+        <thead>
+          <tr><th>Published</th><th>Advisory</th><th>Reaches you</th><th>What sillybos does</th></tr>
+        </thead>
+        <tbody>
+          {{- range $rows.ByDate.Reverse }}
+            {{- $a := .Params.advisory }}
+            {{- $v := partial "advisory-verdict.html" $a }}
+            <tr>
+              <td class="watch__date">{{ with $a.published }}<time datetime="{{ . }}">{{ . }}</time>{{ else }}<span class="watch__key">triaged {{ $a.triaged }}</span>{{ end }}</td>
+              <td><a href="{{ .RelPermalink }}">{{ .Title }}</a> <span class="watch__key">{{ $a.key }}</span></td>
+              <td>{{ index hugo.Data.watch.reached_by $a.reached_by | default $a.reached_by }}</td>
+              <td><span class="verdict verdict--{{ $v.class }}">{{ $v.label }}</span></td>
+            </tr>
+          {{- end }}
+        </tbody>
+      </table>
+    </div>
+    <p>Back to <a href="{{ .Parent.RelPermalink }}">the whole watch</a>.</p>
+
+  {{- else }}
+    {{ .Content }}
+  {{- end }}
+{{ end }}
