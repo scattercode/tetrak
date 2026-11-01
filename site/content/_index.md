@@ -44,6 +44,14 @@ Free, open source, and yours to use without us.
     form so that a single search finds them all. Armenian, Georgian, Russian
     and Syriac.
 
+-   **[sillybos]({{< relref "/sillybos.md" >}})**
+
+    Decides, before any image library or PDF renderer opens a file, whether
+    it is one of the formats you meant to read and within the limits you
+    expect, and says why not in a sentence. The
+    [security watch]({{< relref "/security/_index.md" >}}) records which
+    published flaws it refuses.
+
 </div>
 
 ## Services

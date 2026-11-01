@@ -23,13 +23,14 @@ test("the landing page renders with its branding", async ({ page }) => {
 
 test("the home page says who we are, what the tools are, and that there are services", async ({ page }) => {
   // The brief's own test of success: a visitor landing on / can tell within a
-  // screen what the three products are and that we offer services.
+  // screen what the four products are and that we offer services.
   await page.goto("./");
   const tiles = page.locator(".grid.cards li > p:first-child a");
-  await expect(tiles).toHaveCount(3);
+  await expect(tiles).toHaveCount(4);
   await expect(tiles.nth(0)).toHaveText("Tetrak OCR");
   await expect(tiles.nth(1)).toHaveText("Armenian text recognition");
   await expect(tiles.nth(2)).toHaveText("Transliteration and cross-script search");
+  await expect(tiles.nth(3)).toHaveText("sillybos");
   await expect(page.locator('main a[href$="/services/"]').first()).toBeVisible();
 
   // And the three most recent articles, through the same row the index uses.
