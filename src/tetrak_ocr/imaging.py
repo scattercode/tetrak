@@ -50,6 +50,14 @@ threshold, and 2.3 times the largest scan Tetrak has read (38.7 million,
 an Armenian page at 600 dpi). Enforced here, not left to Pillow's global,
 so that a program which raises the global cannot raise it for us."""
 
+MAX_SIDE = 30_000
+"""The most pixels along either side of one image, frame, tile or rendered
+page. The pixel budget alone lets through a page a few pixels wide and a
+million tall, which is what an abnormally tall TIFF needed to make libtiff
+write colour data to an arbitrary address (CVE-2025-9900). sillybos's own
+default: three times the longest side of an A3 page at 600 dpi (9,933
+pixels), and no scan Tetrak has read comes near it."""
+
 MAX_PDF_PAGES = 500
 """The most pages in one PDF: three times the longest book read so far
 (166 pages). Rendering streams page by page, so this bounds the time and the
@@ -69,6 +77,7 @@ def _policy(formats: frozenset[str]) -> sillybos.Policy:
     return sillybos.Policy(
         formats=formats,
         max_pixels=MAX_PIXELS,
+        max_side=MAX_SIDE,
         max_pages=MAX_PDF_PAGES,
         render_dpi=PDF_RENDER_DPI,
     )
