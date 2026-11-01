@@ -138,14 +138,17 @@ class TestLanguagePassThrough:
 
         calls = self._capture_calls(monkeypatch)
 
-        def fake_convert_from_path(path):
+        def fake_convert_from_path(path, **kwargs):
             from PIL import Image
 
             return [Image.new("RGB", (60, 20), "white"), Image.new("RGB", (60, 20), "white")]
 
         import pdf2image
 
+        from tetrak_ocr import imaging
+
         monkeypatch.setattr(pdf2image, "convert_from_path", fake_convert_from_path)
+        monkeypatch.setattr(imaging, "check_pdf", lambda path: 2)
         pdf = tmp_path / "doc.pdf"
         pdf.write_bytes(b"%PDF-fake")
 

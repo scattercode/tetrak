@@ -24,7 +24,7 @@ from __future__ import annotations
 import base64
 from pathlib import Path
 
-from ..imaging import reject_multi_page
+from ..imaging import open_image, reject_multi_page
 
 try:
     import anthropic
@@ -105,10 +105,8 @@ def _to_base64(path: Path) -> tuple[str, str]:
     elif suffix in {".tif", ".tiff"}:
         from io import BytesIO
 
-        from PIL import Image
-
         buf = BytesIO()
-        Image.open(path).save(buf, format="PNG")
+        open_image(path).save(buf, format="PNG")
         return base64.standard_b64encode(buf.getvalue()).decode(), "image/png"
     elif suffix == ".pdf":
         return base64.standard_b64encode(path.read_bytes()).decode(), "application/pdf"

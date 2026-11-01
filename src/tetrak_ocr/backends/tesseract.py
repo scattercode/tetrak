@@ -18,7 +18,7 @@ from pathlib import Path
 import pytesseract
 from PIL import Image, ImageEnhance, ImageOps, ImageStat
 
-from ..imaging import frame_count, iter_frames, pdf_renderer
+from ..imaging import frame_count, iter_frames, open_image, streamed_pages
 from . import tuning
 
 # File extensions this module can handle.
@@ -186,7 +186,7 @@ def ocr_image(
     # to every page -- see _ocr_image_file for why that is the conservative
     # choice rather than a measured one.
     if auto and (contrast is None or psm is None):
-        with Image.open(path) as image:
+        with open_image(path) as image:
             config = analyse_image(image)
         contrast = contrast if contrast is not None else config["contrast"]
         psm = psm if psm is not None else config["psm"]
@@ -225,7 +225,7 @@ def _ocr_image_file(
     pages = frame_count(path)
 
     if pages == 1:
-        with Image.open(path) as image:
+        with open_image(path) as image:
             return pytesseract.image_to_string(
                 preprocess(image, contrast), config=f"--psm {psm}", lang=lang
             )
@@ -271,20 +271,21 @@ def _ocr_pdf(
     the comparison before assuming the defaults still win — a PDF-specific band
     set may become worth fitting once there is enough material to fit it to.
     """
-    # Imported through the shared helper so a missing renderer is explained
-    # the same way wherever it is hit.
-    convert_from_path = pdf_renderer()
-
     # `auto` is intentionally unused here — see the docstring for the measured
     # comparison that settled it.
     contrast = contrast if contrast is not None else DEFAULT_CONTRAST
     psm = psm if psm is not None else DEFAULT_PSM
 
-    pages = convert_from_path(path)
-    page_texts = [
-        pytesseract.image_to_string(preprocess(page, contrast), config=f"--psm {psm}", lang=lang)
-        for page in pages
-    ]
+    # Streamed, a page at a time, and checked before anything renders: the
+    # list convert_from_path returns held every page at once, so a long PDF
+    # or one with an enormous page exhausted memory before the first was read.
+    with streamed_pages(path) as pages:
+        page_texts = [
+            pytesseract.image_to_string(
+                preprocess(page, contrast), config=f"--psm {psm}", lang=lang
+            )
+            for page in pages
+        ]
     return "\n\n".join(page_texts)
 
 
@@ -327,7 +328,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.analyse:
-        img = Image.open(args.path)
+        img = open_image(args.path)
         info = analyse_image(img)
         print(f"Image analysis: {args.path.name}")
         print(f"  StdDev:   {info['stddev']:.1f}  (contrast → {info['contrast']})")

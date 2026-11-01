@@ -57,7 +57,8 @@ from tempfile import TemporaryDirectory
 
 from PIL import Image, ImageChops, ImageFilter, ImageOps
 
-from .errors import MissingFeatureError, OcrPipelineError
+from .errors import InputRefusedError, MissingFeatureError, OcrPipelineError
+from .imaging import open_image
 
 SCRIPTS = ("latin", "armenian")
 """The scripts whose up/down measure has been measured. Nothing else is offered."""
@@ -141,7 +142,7 @@ def detect(image: Image.Image | Path, script: str) -> Orientation:
     """
     require(script)
     if isinstance(image, Path):
-        with Image.open(image) as im:
+        with open_image(image) as im:
             grey = ImageOps.exif_transpose(im).convert("L")
     else:
         grey = ImageOps.exif_transpose(image).convert("L")
@@ -208,6 +209,11 @@ def upright(path: Path, script: str | None) -> Iterator[tuple[Path, Orientation 
         return
     try:
         found = detect(path, script)
+    except InputRefusedError as exc:
+        # Refused, not missing a feature: the OCR that follows refuses it too,
+        # with the same reason, which is where the run should hear it.
+        yield path, Orientation(script, 0, 0.0, 0, unsure=f"could not be read: {exc}")
+        return
     except OcrPipelineError:
         raise
     except Exception as exc:
@@ -216,7 +222,7 @@ def upright(path: Path, script: str | None) -> Iterator[tuple[Path, Orientation 
     if not found.turn:
         yield path, found
         return
-    with Image.open(path) as im, TemporaryDirectory(prefix="tetrak-upright-") as tmp:
+    with open_image(path) as im, TemporaryDirectory(prefix="tetrak-upright-") as tmp:
         copy = Path(tmp) / f"{path.stem}.png"
         turn(ImageOps.exif_transpose(im), found.turn).save(copy)
         yield copy, found

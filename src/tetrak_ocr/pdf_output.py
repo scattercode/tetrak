@@ -63,6 +63,12 @@ _INVISIBLE = 3
 # physical original rather than absurdly large.
 _ASSUMED_DPI = 300
 
+# Below this a recorded DPI is not a scan's: Pillow reports (1, 1) for a TIFF
+# that carries no resolution, which made a 200 x 300 pixel page 200 x 300
+# inches, and a page that size renders to 2.4 billion pixels when the PDF is
+# read back (imaging.check_pdf now refuses it).
+_MIN_PLAUSIBLE_DPI = 50
+
 # The access derivative. NDNP and the Internet Archive both ship the PDF as an
 # access copy beside a preservation master, and a 600dpi archival TIFF makes a
 # PDF no small institution can serve from its website.
@@ -209,6 +215,8 @@ def _page_size(image: Image.Image) -> tuple[float, float]:
     dpi = image.info.get("dpi")
     x_dpi = float(dpi[0]) if dpi and dpi[0] else _ASSUMED_DPI
     y_dpi = float(dpi[1]) if dpi and len(dpi) > 1 and dpi[1] else x_dpi
+    if min(x_dpi, y_dpi) < _MIN_PLAUSIBLE_DPI:
+        x_dpi = y_dpi = _ASSUMED_DPI
     return image.width / x_dpi * 72.0, image.height / y_dpi * 72.0
 
 
