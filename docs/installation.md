@@ -15,7 +15,8 @@ the import package is `tetrak_ocr`. A plain install gives you Tesseract (via
 `pytesseract`), image handling, PDF rasterisation, the searchable-PDF
 writer, and the check that every scan passes before any of them opens it
 ([sillybos](https://github.com/scattercode/sillybos): the file really is a
-JPEG, PNG, TIFF or PDF, within size and page limits; anything else goes to
+JPEG, PNG, TIFF or PDF, within size and page limits, with nothing in its
+header or its PDF features that a scan never has; anything else goes to
 triage with the reason): enough to process a folder of scans offline.
 
 Most people want more than that. The install we recommend adds quality
