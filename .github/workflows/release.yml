@@ -18,8 +18,9 @@ on:
   push:
     branches: [main]
 
-permissions:
-  contents: write
+# Granted per job below, not here: a workflow-level grant reaches every job,
+# and only the release job and the SBOM upload write to the repository.
+permissions: {}
 
 concurrency:
   group: release
@@ -30,6 +31,8 @@ jobs:
     # Belt and braces: never react to our own release commit.
     if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     # Published so the SBOM jobs know whether a release happened and which
     # tag to attach their documents to.
     outputs:
@@ -52,6 +55,10 @@ jobs:
         with:
           app-id: ${{ secrets.RELEASE_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          # Scoped to what the job uses, even though the installation grants
+          # no more: a token minted without this inherits whatever the App
+          # is later given.
+          permission-contents: write
 
       # The committer line needs the App's bot *user* id, which is not any of
       # the ids the token action returns -- `installation-id` is a different
@@ -116,6 +123,10 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.next }}
           GH_TOKEN: ${{ github.token }}
+          # Passed through the environment rather than expanded into the
+          # script: an expression inside `run:` is pasted into the shell
+          # before it runs, which is how workflow injection happens.
+          BRANCH: ${{ github.ref_name }}
         run: |
           set -euo pipefail
 
@@ -173,7 +184,7 @@ jobs:
           # and no changelog commit, so re-running the job is a clean redo.
           # A retry would have to move an annotated tag, which is a worse
           # thing to get wrong than a re-run is to perform.
-          git push --atomic origin "HEAD:${{ github.ref_name }}" "$VERSION"
+          git push --atomic origin "HEAD:${BRANCH}" "$VERSION"
 
           gh release create "$VERSION" --title "$VERSION" --notes-file RELEASE_NOTES.md
 
@@ -185,9 +196,8 @@ jobs:
     needs: release
     if: needs.release.outputs.released == 'true'
     runs-on: ubuntu-latest
-    # The workflow grants contents: write for the release job. This job only
-    # reads the tag, and it runs third-party build tooling with the checkout
-    # credential persisted, so it gets no more than it needs.
+    # This job only reads the tag, and it runs third-party build tooling with
+    # the checkout credential persisted, so it gets no more than it needs.
     permissions:
       contents: read
     steps:
@@ -278,6 +288,8 @@ jobs:
     needs: release
     if: needs.release.outputs.released == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       matrix: ${{ steps.targets.outputs.matrix }}
     steps:
@@ -301,6 +313,17 @@ jobs:
     name: SBOM (${{ matrix.target }})
     needs: [release, sbom-targets]
     runs-on: ${{ matrix.runner }}
+    # Write, because the last step attaches the SBOM to the release.
+    permissions:
+      contents: write
+    # The matrix values and the version reach the scripts below through the
+    # environment rather than as expressions inside `run:`, which would be
+    # pasted into the shell before it runs.
+    env:
+      SPEC: ${{ matrix.spec }}
+      EXTRAS: ${{ matrix.extras }}
+      TARGET: ${{ matrix.target }}
+      VERSION: ${{ needs.release.outputs.version }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.sbom-targets.outputs.matrix) }}
@@ -336,7 +359,7 @@ jobs:
           # --no-cache-dir: the venv is read once for the SBOM and thrown
           # away, so a wheel cache of torch-sized downloads is pure disk
           # cost for a job that has just run out of it.
-          ./.sbomvenv/bin/python -m pip install --quiet --no-cache-dir "${{ matrix.spec }}"
+          ./.sbomvenv/bin/python -m pip install --quiet --no-cache-dir "$SPEC"
           echo "resolved $(./.sbomvenv/bin/python -m pip list --format=freeze | wc -l) packages"
 
       # syft directly rather than anchore/sbom-action, because the action
@@ -349,9 +372,9 @@ jobs:
       - name: Generate SBOM
         run: |
           syft scan dir:.sbomvenv \
-            --source-name "tetrak${{ matrix.extras }}" \
-            --source-version "${{ needs.release.outputs.version }}" \
-            -o cyclonedx-json="sbom-${{ matrix.target }}.cdx.json"
+            --source-name "tetrak${EXTRAS}" \
+            --source-version "$VERSION" \
+            -o cyclonedx-json="sbom-${TARGET}.cdx.json"
 
       # CycloneDX has no field for the platform a BOM was resolved against --
       # the spec's file-naming guidance covers the extension and
@@ -365,18 +388,18 @@ jobs:
       # extra removing ten packages.
       - name: Record the install target and platform
         run: |
-          python3 tools/annotate_sbom.py "sbom-${{ matrix.target }}.cdx.json" \
-            --target "tetrak${{ matrix.extras }}"
+          python3 tools/annotate_sbom.py "sbom-${TARGET}.cdx.json" \
+            --target "tetrak${EXTRAS}"
 
       - name: Check the SBOM actually describes something
         run: |
-          count=$(python3 -c "import json;print(len([c for c in json.load(open('sbom-${{ matrix.target }}.cdx.json')).get('components',[]) if c.get('type')=='library']))")
-          echo "${{ matrix.target }}: $count library components"
+          count=$(python3 -c "import json, os;print(len([c for c in json.load(open('sbom-' + os.environ['TARGET'] + '.cdx.json')).get('components',[]) if c.get('type')=='library']))")
+          echo "${TARGET}: $count library components"
           # An empty or near-empty document would attach to the release and
           # look authoritative while saying nothing. Core alone resolves well
           # above this floor.
           if [ "$count" -lt 5 ]; then
-            echo "::error::SBOM for ${{ matrix.target }} has only $count components"
+            echo "::error::SBOM for ${TARGET} has only $count components"
             exit 1
           fi
 
@@ -384,5 +407,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release upload "${{ needs.release.outputs.version }}" \
-            "sbom-${{ matrix.target }}.cdx.json" --clobber
+          gh release upload "$VERSION" \
+            "sbom-${TARGET}.cdx.json" --clobber
