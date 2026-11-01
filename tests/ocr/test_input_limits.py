@@ -39,7 +39,7 @@ class TestFormats:
         path = tmp_path / "postcard.png"
         page().save(path, format="GIF")
 
-        with pytest.raises(InputRefusedError, match="not one of the formats"):
+        with pytest.raises(InputRefusedError, match="says PNG, is GIF"):
             open_image(path)
 
     def test_a_postscript_file_never_reaches_the_eps_reader(self, tmp_path: Path) -> None:
@@ -47,7 +47,7 @@ class TestFormats:
         path = tmp_path / "scan.jpg"
         path.write_bytes(b"%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 10 10\n")
 
-        with pytest.raises(InputRefusedError, match="not one of the formats"):
+        with pytest.raises(InputRefusedError, match="says JPEG, is PostScript"):
             open_image(path)
 
 
@@ -61,15 +61,17 @@ class TestPixels:
             open_image(path)
 
     def test_a_later_tiff_frame_over_the_limit_is_refused(self, tmp_path, monkeypatch) -> None:
-        """Each frame has its own size; checking frame 0 alone is not enough."""
+        """Each frame has its own size; checking frame 0 alone is not enough.
+
+        The whole chain is walked before Pillow opens the file, so the file
+        is refused at once, before even the first frame is handed out.
+        """
         monkeypatch.setattr(imaging, "MAX_PIXELS", 200 * 300)
         path = tmp_path / "register.tif"
         page().save(path, save_all=True, append_images=[page(400, 600)])
 
-        frames = iter_frames(path)
-        next(frames).close()
-        with pytest.raises(InputRefusedError, match="400 x 600"):
-            next(frames)
+        with pytest.raises(InputRefusedError, match="240,000 pixels; the limit is 60,000"):
+            next(iter_frames(path))
 
 
 @needs_poppler
@@ -93,7 +95,7 @@ class TestPdf:
         path = tmp_path / "poster.pdf"
         page().save(path, resolution=1)
 
-        with pytest.raises(InputRefusedError, match="Page 1 is 14400 x 21600 pts"):
+        with pytest.raises(InputRefusedError, match="2,400,000,000 pixels"):
             with streamed_pages(path):
                 pass
 
@@ -101,7 +103,7 @@ class TestPdf:
         path = tmp_path / "broken.pdf"
         path.write_bytes(b"not a pdf at all")
 
-        with pytest.raises(InputRefusedError, match="could not read it as a PDF"):
+        with pytest.raises(InputRefusedError, match="unknown format"):
             check_pdf(path)
 
 
