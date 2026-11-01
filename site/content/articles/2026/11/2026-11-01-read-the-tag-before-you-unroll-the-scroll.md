@@ -3,8 +3,8 @@ title: "Read the tag before you unroll the scroll"
 date: 2026-11-01
 draft: false
 slug: "read-the-tag-before-you-unroll-the-scroll"
-kicker: "Security"
-standfirst: "In October 2026 Pillow fixed more than thirty flaws at once, and one of them let a file's name become a command. A scanning pipeline cannot stop using decoders, but it can decide, from a file's first bytes and its header, whether a decoder should see it at all. That decision is now a library of its own, and this is why we built it"
+kicker: "The field"
+standfirst: "In 2026 the number of published vulnerabilities more than doubled, and in October Pillow fixed thirty-eight security flaws in one release. A scanning pipeline cannot stop using decoders, but it can decide, from a file's first bytes and its header, whether a decoder should see it at all. We built that decision for ourselves, then made it a library, and this is why"
 author: stephen-masters
 tags: [security, sillybos, pillow, poppler, project-notes]
 ---
@@ -20,16 +20,39 @@ only then unrolled the scroll, or did not.
 An OCR pipeline is handed files it did not make, and every one of them is
 a scroll. The decoders that open them, Pillow for images and poppler for
 PDFs, are large and old and read formats of great complexity, and they
-have flaws. The question this article is about is whether anything can be
-read from the outside of a file before a decoder unrolls it. It can, it
-turns out, and quite a lot.
+have flaws. This article is about the month that made us take those flaws
+seriously, what we decided to do about them, and why the result is a
+library anyone can use rather than a corner of our own code.
 
-## October 2026
+## The October storm
 
-On 16 October 2026 the Pillow project released version 13.0.0 and, with
-it, fixes for more than thirty security advisories. Several could be
-reached by opening one crafted file. Two of them are worth describing,
-because together they show the shape of the problem.
+Something changed in 2026 in how fast security flaws are found. The
+numbers are stark enough to give plainly, with their source. An analysis
+of the CVE Program's full list, taken on 23 October, counted 86,292 CVEs
+published since the start of the year, against 38,569 in the same window
+of 2025: more than double, and already more than the whole of 2025. The
+third quarter of 2026 alone held more CVEs than any full year before 2024.
+September had three and a half times as many as the September before.
+
+The analysis also counted the records that credit an AI system, or an AI
+lab's research team, as the finder: 34 in the whole of 2025 and 769 by
+late October 2026, with the monthly figure rising through the year from
+18 in January to 199 in October with a week still to run. That is under
+one per cent of the year's CVEs and the author calls it a floor, since
+most vendors do not say who found their bugs. Anthropic's own disclosure
+dashboard gives a sense of the volume behind the floor: as of 2 October it
+had disclosed 6,157 vulnerabilities across 591 open source projects, from
+nearly thirty thousand candidates, and it says in plain words that human
+triage is the rate-limiting step and that there are confirmed bugs not yet
+reported to maintainers for want of capacity. A dashboard like that does
+not describe a spike. It describes a new rate, limited by how fast people
+can read, and the reading is being automated too.
+
+The press called it the October vulnerability storm. For a project that
+reads scans, the storm had one address. On 16 October Pillow released
+version 13.0.0 with thirty-eight security entries in its notes, two of
+them critical, most of them reachable by opening one crafted file. Two are
+worth describing, because together they show the shape of the problem.
 
 The first was in the EPS reader. Pillow does not decode PostScript itself;
 it hands the file to Ghostscript, as a separate program, with the file's
@@ -48,18 +71,45 @@ file, and until October it went to the PostScript reader. The extension
 was never a defence, and for years nobody who ran scans through Pillow had
 reason to notice.
 
-Pillow's own answer, which has been in its documentation for some time,
-is the `formats` argument to `Image.open`: a list of the readers that may
-be tried. Pass `["JPEG", "PNG", "TIFF"]` and a PostScript file is not a
-PostScript file any more, it is an unrecognised one, and no reader runs on
-it. That one argument closes both of the flaws above and a good many
-others. It is, in the end, most of what the library this article is about
-does. The rest is what follows once you take the idea seriously.
+## What we decided
 
-## What can be read from the outside
+We read the October advisories against our own code in a sitting, and
+the first conclusion was uncomfortable: the only gate in front of our
+decoders was the file's extension. The second was more useful. Nearly
+everything the advisories needed was visible from outside the file, before
+any decoder ran.
 
-Suppose you accept the premise: a pipeline should decide whether to open
-a file before any decoder opens it. What can it decide from?
+So we decided to build a layer whose only job is to decide whether a file
+may be opened, and we staged it. Stage zero was an afternoon: Pillow's
+`Image.open` takes a `formats` argument, a list of the readers it may try,
+and passing `["JPEG", "PNG", "TIFF"]` means a PostScript file is not a
+PostScript file any more but an unrecognised one, and no reader runs on
+it. That one argument, with an explicit pixel limit and a page cap on PDF
+rendering, closed the October paths. Stage one was the check proper: the
+format from the first bytes, the name against the contents, the header
+read without decoding, the features of a PDF that a scan never has, and a
+refusal that goes to the pipeline's triage queue with a reason rather than
+a silent drop. Stage two is decoding in a boxed process with memory and
+time limits, for the flaws nobody has announced yet. Stage three is the
+same check as the front door of the platform, where files will arrive
+from partner catalogues, one more step removed from anyone we know.
+
+Stage one is where we noticed that the thing we were building was not
+really about OCR. A thumbnailer needs it. An upload form needs it. A
+service that converts documents needs it. Anything that runs Pillow or
+poppler over files other people made has exactly our problem, and most of
+the people who have it will never install an OCR tool. So the check
+became a library of its own, [sillybos]({{< relref "/sillybos.md" >}}),
+MIT licensed, with no dependencies at all, because a security library
+that pulls in a parser adds to the attack surface it exists to reduce.
+Tetrak OCR was its first user and calls it in front of every scan.
+
+## What sillybos does
+
+The check reads what can be read from the outside of a file, in order,
+and stops at the first thing it does not like.
+
+**The size**, from the file system, before anything reads the file.
 
 **The format, from the first bytes.** Every format a scanner writes
 announces itself in its first few bytes, and so do most of the ones it
@@ -67,12 +117,13 @@ does not: PostScript, GIF, BMP, WebP, HEIF, JPEG 2000, BigTIFF, Photoshop,
 the OLE container that holds FlashPix and old Office files, zip, gzip,
 icons, XML. Reading those bytes is a table lookup, not a parse, and it
 lets a refusal say *what* the file was, which is the first thing the
-person running the batch wants to know.
+person running the batch wants to know. Only JPEG, PNG, TIFF and PDF can
+pass.
 
 **The name against the contents.** A JPEG called `.png` would decode
-perfectly well. We refuse it anyway, because a file whose name lies is not
-one to trust, and because the lie is the thing the operator wants told
-about.
+perfectly well. It is refused anyway, because a file whose name lies is
+not one to trust, and because the lie is the thing the operator wants
+told about.
 
 **The header, read with code of our own.** This is where it became a
 library rather than a wrapper. A JPEG's dimensions, how its frame is
@@ -83,8 +134,7 @@ TIFF's directory chain carries, for every frame, the dimensions,
 compression scheme, colour model, samples and bits, tile size and
 subsampling, and the position and size of every tag's data. Reading each
 of these turned out to be a few dozen lines, with no decoder involved and
-no dependency on one, and it is the reason the library has no dependencies
-at all: it adds nothing to the attack surface it exists to reduce.
+no dependency on one.
 
 **For a PDF, what poppler will say without rendering.** `pdfinfo` reports
 the page count, encryption, the size of every page in points and whether
@@ -92,14 +142,29 @@ the document carries JavaScript or a form; `pdfdetach` lists attached
 files. Both run as separate processes with a time limit, so a file that
 makes a parser loop costs one file's failure and nothing more.
 
-From these, a policy can refuse a file for being too large, for having too
-many pages, for a page that would decode to more pixels than the
-machine should allocate, for a frame coding no scanner writes, for a
-compression scheme that lives only in the least-exercised corner of
-libtiff, for a metadata block the size of the file, for a PDF that would
-make a viewer act rather than draw. Each refusal is a sentence: *a
-lossless JPEG; the policy allows baseline, extended and progressive
-frames*. The sentence is for the person, never a code.
+**The limits**, against what the header said, from a policy set from your
+own largest real files. A file is refused for being too large, for having
+too many pages, for a page that would decode to more pixels than the
+machine should allocate, for a side longer than any scanner writes, for a
+frame coding no scanner uses, for a compression scheme that lives only in
+the least-exercised corner of libtiff, for a metadata block the size of
+the file, for a PDF that would make a viewer act rather than draw. Each
+refusal is a sentence: *a lossless JPEG; the policy allows baseline,
+extended and progressive frames*. The sentence is for the person, never a
+code.
+
+```python
+from sillybos import check
+
+verdict = check("inbox/page-012.png")
+if not verdict.ok:
+    quarantine(verdict.path, verdict.reasons)   # ('says PNG, is PostScript',)
+```
+
+With Pillow installed, `open_checked` runs the check and then opens the
+file with Pillow's `formats` list set from the policy. That is the October
+fix, packaged, with everything the header can add to it in front. There
+is a command, `sillybos scans/*`, for a shell pipeline or a Dockerfile.
 
 ## The limits are the point, not the format
 
@@ -127,8 +192,9 @@ never opened.
 
 Or take a multi-frame TIFF whose second frame has a different colour mode
 from its first. A decoder that sized its buffers for frame one and then
-reads frame two writes past them (CVE-2026-96639). We walk the whole chain
-before the file is opened and require every frame to agree.
+reads frame two writes past them (CVE-2026-96639, one of October's two
+critical entries). We walk the whole chain before the file is opened and
+require every frame to agree.
 
 In each case the check reads something the header already says, costs
 microseconds, and turns a decoder's flaw into a file that was refused with
@@ -138,8 +204,9 @@ policy field, with a default, a command-line option, and a case in a
 hostile corpus that builds the triggering file from bytes and proves the
 check refuses it. The [security watch]({{< relref "/security/_index.md"
 >}}) is the record of which advisories that has been done for, and which
-it cannot be done for, and why. How that record is kept is a story of its
-own, told in [Keeping watch on the decoders]({{< relref
+it cannot be done for, and why. How two people keep that record current
+against the rate described above is a story of its own, told in [Keeping
+watch on the decoders]({{< relref
 "/articles/2026/11/2026-11-01-keeping-watch-on-the-decoders.md" >}}).
 
 ## What it does not do
@@ -160,31 +227,30 @@ It does not scan for malware, repair a file, or read any format beyond the
 four a scan can be. Adding a format is adding attack surface, and we will
 add one when someone shows us a scan in it.
 
-## The library
-
-The check grew out of [Tetrak OCR]({{< relref "/ocr" >}}), where it now
-sits in front of every scan: a verdict before any decoder opens a file,
-with the reasons carried through to triage. It is a library of its own,
-[sillybos]({{< relref "/sillybos.md" >}}), because most of the people who
-need it will never install an OCR tool. A thumbnailer needs it, an upload
-form needs it, anything that runs Pillow or poppler over files other
-people made needs it.
-
-```python
-from sillybos import check
-
-verdict = check("inbox/page-012.png")
-if not verdict.ok:
-    quarantine(verdict.path, verdict.reasons)   # ('says PNG, is PostScript',)
-```
-
-With Pillow installed, `open_checked` runs the check and then opens the
-file with Pillow's `formats` list set from the policy. That is the October
-fix, packaged, with everything the header can add to it in front.
-
 Read the tag. Then decide whether to unroll the scroll.
 
 ## Further reading
+
+### The storm
+
+- Mike Carthy, "More CVEs in Q3 2026 than in any full year before 2024",
+  CyberHire, 23 October 2026,
+  [cyber-hire.com/blog/cve-volume-2026](https://cyber-hire.com/blog/cve-volume-2026).
+  The count behind the figures above, from the CVE Program's full list
+  downloaded that day: year-on-year totals, the quarter and month
+  comparisons, and the rise in records crediting an AI finder, with the
+  author's own caution that the data cannot prove cause.
+- Anthropic, *Coordinated vulnerability disclosure dashboard*,
+  [red.anthropic.com/2026/cvd](https://red.anthropic.com/2026/cvd/),
+  figures as of 2 October 2026. The pipeline from candidates to
+  disclosed findings to upstream patches, and the statement that human
+  triage is the rate-limiting step. We cite it for the rate; our own
+  triage, described in the companion article, is shaped by the same
+  constraint at a much smaller scale.
+- Pillow, [13.0.0 release
+  notes](https://pillow.readthedocs.io/en/stable/releasenotes/13.0.0.html),
+  16 October 2026. The thirty-eight security entries by severity, with
+  their advisory identifiers.
 
 ### The flaws
 

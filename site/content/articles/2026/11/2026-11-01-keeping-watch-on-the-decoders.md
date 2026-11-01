@@ -4,7 +4,7 @@ date: 2026-11-01
 draft: false
 slug: "keeping-watch-on-the-decoders"
 kicker: "Security"
-standfirst: "Six libraries decode every scan we read, and between them they publish a security advisory most weeks. This is how we turn that stream into a weekly issue, a bucket, a test and a published record, with a person in the middle and nothing transcribed by hand"
+standfirst: "Eight libraries decode every scan we read, and in 2026 the flaws found in software like them more than doubled. Two people cannot read that stream by hand. This is how we turn it into a weekly issue, a bucket, a test and a published record, with a model doing the first reading, a person deciding, and nothing transcribed by hand"
 author: stephen-masters
 tags: [security, advisories, sillybos, automation, project-notes]
 ---
@@ -16,6 +16,17 @@ a bad month, as October 2026 was, several dozen. Each one arrives as a
 paragraph of text and a severity score, and poses the same question to
 everyone who runs the library: *does this reach me, and what do I do about
 it?*
+
+The stream is getting faster. The count of published vulnerabilities in
+2026 more than doubled on the year before, and the finding is now partly
+automated: records that credit an AI finder went from a few dozen in the
+whole of 2025 to several hundred by October, and the labs doing the
+finding say openly that human triage, not discovery, is what limits the
+rate. We wrote about the month that made this concrete for us, and what we
+built in response, in [Read the tag before you unroll the scroll]({{<
+relref "/articles/2026/11/2026-11-01-read-the-tag-before-you-unroll-the-scroll.md"
+>}}). This article is about the other half: how a project with two people
+on it keeps up with a stream that is sized for a security team.
 
 The usual tools do not answer it. A dependency scanner tells you that a
 version you install has an advisory against it; it cannot tell you
@@ -99,6 +110,53 @@ itself, where nothing read from the outside can help. Writing that down
 is as valuable as the refusals: the next time a flaw lands in libtiff's
 PixarLog codec, the record already says that a scan never needs PixarLog
 and the policy refuses it, and nobody re-reads the codec.
+
+## Where the model comes in
+
+Two people cannot read a hundred advisories a month with the care the
+buckets demand, and we do not pretend to. The reading is done with a
+model, and the way it is done matters more than the fact of it.
+
+The triage is a written procedure, kept as a skill that Claude follows in
+a session: four questions, in order, with the commands to answer each.
+*Do we use it?* is answered by searching every lock file, every
+`pyproject.toml` and every Dockerfile across our repositories, because a
+package can hide behind an OCR engine's extras or inside a base image
+that no lock file lists. *Does the flaw reach us?* is answered against a
+threat model that lists every door through which something from outside
+can arrive, with the file that proves a feature unused where that is the
+answer. *Is there a fix?* and *where must it be fixed?* follow, with the
+four places a fix can need to land: the lock file, the running images,
+the laptops, the packages we publish. Urgency is expressed in our own
+terms, a table whose rows are how the trigger reaches us and whose columns
+are what the flaw does, so that "a harvested record can carry it and it
+runs code" means *today* and "only something run by hand on a laptop, and
+it crashes" means *this week*. Every answer, including "not affected", is
+logged.
+
+The model does the reading and the searching, and proposes. A person
+decides. That is not modesty about the model, whose reading is usually
+right; it is the rule that keeps the record honest, because a bucket is a
+claim about our code, and the claim's author has to be someone who can be
+asked why. When the record was started, the backfill of a hundred or so
+advisories was re-read by the model in an evening, and every one of them
+is marked as a proposal until a person has read it and promoted it, as
+the next section describes. The design for the weekly stream is the same
+shape: a model will read each new issue as it is opened and post a
+*proposed* bucket and finding as a comment, for the maintainer to confirm
+or overrule. It will post a comment and never file a bucket or close an
+issue; it will read the advisory's text as data and not as instructions;
+and nothing from private notes will go into a comment, since the issues
+are public. That step is designed and not yet built, and the guide says
+so rather than describing it as if it were.
+
+This is what lets a small project be responsive. The machine fetches,
+filters and files on Monday morning; the model has read and proposed by
+the time a person sits down; the person's job is to confirm, overrule,
+and write the test. The time that used to go into finding and reading
+goes into the one part that needs a human, and the record of what was
+decided is public, cited and checked by the test suite rather than kept
+in anyone's head.
 
 ## A B finding becomes a test, never a quiet change
 
@@ -219,6 +277,11 @@ reads the answer instead of the advisory.
 
 ### Handling advisories
 
+- Anthropic, *Coordinated vulnerability disclosure dashboard*,
+  [red.anthropic.com/2026/cvd](https://red.anthropic.com/2026/cvd/),
+  figures as of 2 October 2026. Where the rate described in the opening
+  comes from, and the statement that human triage is the limiting step;
+  the same constraint our Monday is built around.
 - Murugiah Souppaya and Karen Scarfone, *Guide to Enterprise Patch
   Management Planning: Preventive Maintenance for Technology*, NIST
   Special Publication 800-40 Revision 4, National Institute of Standards
