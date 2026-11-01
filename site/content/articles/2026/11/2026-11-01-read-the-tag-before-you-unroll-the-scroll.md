@@ -14,7 +14,7 @@ scroll gives nothing away from the outside. To know which you held, you
 unrolled it, which is slow, and wears the papyrus, and in a large
 collection is no way to find anything. So a small parchment tag, a
 *sillybos* (say it *SIL-lee-boss*; Cicero's Latin made it *sittybus*),
-hung from the end of each roll with the title and the author on it. He
+hung from the end of each roll with the title and the author on it. Cicero
 had a set made for his library. The reader checked the tag, and
 only then unrolled the scroll, or did not.
 
@@ -71,6 +71,21 @@ not from its name. A PostScript file called `page.png` is a PostScript
 file, and until October it went to the PostScript reader. The extension
 was never a defence, and for years nobody who ran scans through Pillow had
 reason to notice.
+
+A fix that has been released is not a fix that is installed. The tools
+built on top of Pillow decide which Pillow you run, and they are not in a
+hurry. Marker, the PDF-to-markdown converter we had used as one of our
+OCR backends, published a new release on 29 October, two weeks after
+Pillow 13.0.0, and it still requires a Pillow below version 11, two major
+versions behind the fix; Surya, the recogniser underneath it, pins the
+same. Anyone who installs Marker today gets a Pillow with October's flaws
+in it, and there is nothing they can do about that short of forking. We
+withdrew the Marker backend from [Tetrak OCR]({{< relref "/ocr" >}})
+rather than hold the whole pipeline on an old Pillow, and we will bring it
+back when its pin moves. That is the general shape of the problem: your
+decoder's version is set by the slowest pin in the tree above it, and a
+defence that depends on the fixed version being installed is a defence
+you do not control.
 
 ## What we decided
 
