@@ -9,9 +9,8 @@ author: stephen-masters
 tags: [security, sillybos, pillow, poppler, project-notes]
 ---
 
-A library in the ancient world kept its books as rolled scrolls, and a
-scroll gives nothing away from the outside. To know which you held, you
-unrolled it, which is slow, and wears the papyrus, and in a large
+A library in the ancient world kept its books as rolled scrolls, and you can't see what is on a scroll from outside. To know, you
+need to unroll it, which is slow and wears the papyrus, and in a large
 collection is no way to find anything. So a small parchment tag, a
 *sillybos* (say it *SIL-lee-boss*; Cicero's Latin made it *sittybus*),
 hung from the end of each roll with the title and the author on it. Cicero
@@ -19,7 +18,7 @@ had a set made for his library. The reader checked the tag, and
 only then unrolled the scroll, or did not.
 
 An OCR pipeline is handed files it did not make, and every one of them is
-a scroll. The decoders that open them, Pillow for images and poppler for
+like a scroll: you don't know what is in it until you open it. The decoders that open them, Pillow for images and poppler for
 PDFs, are large and old and read formats of great complexity, and they
 have flaws. This article is about the month that made us take those flaws
 seriously, what we decided to do about them, and why the result is a
@@ -28,7 +27,7 @@ library anyone can use rather than a corner of our own code.
 ## The October storm
 
 Something changed in 2026 in how fast security flaws are found. The
-numbers are stark enough to give plainly, with their source. An analysis
+numbers are stark. An analysis
 of the CVE Program's full list, taken on 23 October, counted 86,292 CVEs
 published since the start of the year, against 38,569 in the same window
 of 2025: more than double, and already more than the whole of 2025. The
@@ -45,15 +44,12 @@ dashboard gives a sense of the volume behind the floor: as of 2 October it
 had disclosed 6,157 vulnerabilities across 591 open source projects, from
 nearly thirty thousand candidates, and it says in plain words that human
 triage is the rate-limiting step and that there are confirmed bugs not yet
-reported to maintainers for want of capacity. A dashboard like that does
-not describe a spike. It describes a new rate, limited by how fast people
-can read, and the reading is being automated too.
+reported to maintainers for want of capacity. That's more than just a spike; it's most likely a new rate.
 
-The press called it the October vulnerability storm. For a project that
-reads scans, the storm had one address. On 16 October Pillow released
+The press called it the October vulnerability storm, and serious vulnerabilities in the language PHP dominated the headlines with many websites (many of them from governments) shutting down until they could patch. But for a project that
+reads scans, the storm had a different epicentre. On 16 October Pillow released
 version 13.0.0 with thirty-eight security entries in its notes, two of
-them critical, most of them reachable by opening one crafted file. Two are
-worth describing, because together they show the shape of the problem.
+them critical, most of them reachable by opening one crafted file. Two in particular show the shape of the problem.
 
 The first was in the EPS reader. Pillow does not decode PostScript itself;
 it hands the file to Ghostscript, as a separate program, with the file's
@@ -62,7 +58,7 @@ with a hyphen was read by Ghostscript as an option, and a researcher
 showed the route from there to running a command, past Ghostscript's own
 safe mode (CVE-2026-112900). The second was in the FlashPix reader, an
 old Microsoft format kept in an OLE container: with the `olefile`
-package installed, opening one could run code (CVE-2026-112398).
+package installed, opening a file could run code (CVE-2026-112398).
 
 Neither of these formats has any business in a scanning pipeline. No
 scanner writes PostScript or FlashPix. The reason they were reachable at
@@ -128,8 +124,7 @@ and stops at the first thing it does not like.
 **The size**, from the file system, before anything reads the file.
 
 **The format, from the first bytes.** Every format a scanner writes
-announces itself in its first few bytes, and so do most of the ones it
-does not: PostScript, GIF, BMP, WebP, HEIF, JPEG 2000, BigTIFF, Photoshop,
+announces itself in its first few bytes, and so do most other formats: PostScript, GIF, BMP, WebP, HEIF, JPEG 2000, BigTIFF, Photoshop,
 the OLE container that holds FlashPix and old Office files, zip, gzip,
 icons, XML. Reading those bytes is a table lookup, not a parse, and it
 lets a refusal say *what* the file was, which is the first thing the
@@ -137,9 +132,9 @@ person running the batch wants to know. Only JPEG, PNG, TIFF and PDF can
 pass.
 
 **The name against the contents.** A JPEG called `.png` would decode
-perfectly well. It is refused anyway, because a file whose name lies is
-not one to trust, and because the lie is the thing the operator wants
-to be told about.
+perfectly well. It is refused anyway, because a file whose name is a
+lie is not to be trusted, and because the lie is the thing the operator
+wants to be told about.
 
 **The header, read with code of our own.** This is where it became a
 library rather than a wrapper. A JPEG's dimensions, how its frame is
@@ -182,12 +177,12 @@ file with Pillow's `formats` list set from the policy. That is the October
 fix, packaged, with everything the header can add to it in front. There
 is a command, `sillybos scans/*`, for a shell pipeline or a Dockerfile.
 
-## The limits are the point, not the format
+## The limits are more important than the formats
 
 The format check is what stops the October flaws. The limits are what
-stop the next ones, and they deserve a word, because a limit that sounds
-like belt-and-braces turns out to map onto real advisories with
-uncomfortable precision.
+stop the next ones, because they are not just belt-and-braces; they
+map onto real advisories that we found by analysing the past 3 years of
+imaging CVEs.
 
 Take a pixel budget. Pillow has had one for years, the decompression-bomb
 threshold, and it is a global that any library in the process can raise.
@@ -195,10 +190,10 @@ We enforce the same number ourselves, from the header, before Pillow is
 asked. But a pixel budget alone lets through a page a few pixels wide and
 a million tall, and an abnormally tall TIFF is exactly what one flaw in
 libtiff's RGBA reader needed to write colour data to an arbitrary address
-(CVE-2025-9900). So the policy also holds either side of a page, a frame
-or a tile to a ceiling. No scanner writes a side longer than a few tens of
-thousands of pixels; the default is three times the longest side of an A3
-page at 600 dpi, and nothing we have scanned comes near it.
+(CVE-2025-9900). So the policy also holds both axes of a page, a frame,
+or a tile to a ceiling. No scanner writes a width or height longer than
+a few tens of thousands of pixels; the default is three times the longest
+side of an A3 page at 600 dpi, and nothing we have scanned comes near it.
 
 Or take TIFF compression. A scanner writes one of six schemes. libtiff
 knows nineteen, and most of its security history lives in the other
@@ -227,8 +222,8 @@ watch on the decoders]({{< relref
 
 ## What it does not do
 
-A security library carries an implied promise, so this has to be said
-plainly, and the library's README says it first.
+A security library carries an implied promise, so we need to be clear
+about the limits of this library.
 
 It does not protect against a flaw in the readers you *do* allow. A
 crafted JPEG that exploits your JPEG decoder is a JPEG of a sensible size,

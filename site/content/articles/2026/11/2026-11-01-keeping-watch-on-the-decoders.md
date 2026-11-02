@@ -17,31 +17,32 @@ paragraph of text and a severity score, and poses the same question to
 everyone who runs the library: *does this reach me, and what do I do about
 it?*
 
-The stream is getting faster. The count of published vulnerabilities in
-2026 more than doubled on the year before, and the finding is now partly
-automated: records that credit an AI finder went from a few dozen in the
-whole of 2025 to several hundred by October, and the labs doing the
-finding say openly that human triage, not discovery, is what limits the
-rate. We wrote about the month that made this concrete for us, and what we
-built in response, in [Read the tag before you unroll the scroll]({{<
-relref "/articles/2026/11/2026-11-01-read-the-tag-before-you-unroll-the-scroll.md"
->}}). This article is about the other half: how a project with two people
-on it keeps up with a stream that is sized for a security team.
+The stream is becoming a torrent. The count of published vulnerabilities in
+2026 more than doubled compared to the year before, and the finding is
+now partly automated: records that credit an AI finder went from a few
+dozen in the whole of 2025 to several hundred by October, and the labs
+doing the finding say openly that human triage, not discovery, is what
+limits the rate. We wrote about the month that made this concrete for us,
+and what we built in response, in
+[Read the tag before you unroll the scroll]({{<relref "/articles/2026/11/2026-11-01-read-the-tag-before-you-unroll-the-scroll.md">}}).
+This article is about the other half: how a project with two people
+on it keeps up with a stream that usually needs a significant security
+team.
 
-The usual tools do not answer it. A dependency scanner tells you that a
-version you install has an advisory against it; it cannot tell you
-whether the flaw is in a command-line tool you never run, a save path you
-never take, or the reader a scanned page goes through every time. For a
-long while our answer was to read each advisory when we noticed it, decide
-in our heads, and upgrade. The decisions were not written down, so when
-the next advisory in the same corner of libtiff arrived, the reading
-started again from nothing.
+The usual tools are limited. A dependency scanner
+tells you that a version you install has an advisory against it; it
+cannot tell you whether the flaw is in a command-line tool you never run,
+a save path you never take, or the reader a scanned page goes through
+every time. We knew that the usual approach of reading each advisory
+when we noticed it, deciding in our heads, and upgrading, would not scale
+for our small open source project.
 
 This article is about what we built instead, in the course of building
 [sillybos]({{< relref "/sillybos.md" >}}), the check that runs before any
 decoder opens a file. The pieces are small. What matters is the shape:
-machines fetch and file, a person decides, and every decision becomes
-either a test or a sentence that says why there cannot be one.
+machines fetch and file, a person decides, and every decision about a CVE
+becomes either a test or a sentence that says why we are not implementing
+a solution for it.
 
 ## The stream
 
@@ -77,22 +78,22 @@ headline alone for the verbs of the write path: *save*, *encode*, *write*,
 *append*. One looks for the names of Pillow modules that `Image.open`
 never touches: the font renderer, the drawing API, the viewer.
 
-The rule for these filters is the one rule in the whole system we would
+The rule for these filters is the one rule in the system we would
 defend hardest: they label, and they never drop. The words filter reads
 only the headline because a long write-up of a read-path flaw mentions
 "writes" somewhere, and a label that nearly every advisory carries says
 nothing. "Out-of-bounds write" is blanked out before the search, because
 it describes a memory fault and not the save path. Even so, the filters
-are wrong sometimes, in both directions, and the issue body lists what
-matched so that the person reading it can overrule the label in a glance.
-The point of a filter is to let the reader start with the likely-irrelevant
-ones, not to let them skip anything.
+are wrong sometimes, with both false positives and false negatives.
+The issue body lists what matched so that the person reading it can
+overrule the label in a glance. The point of a filter is to let the
+reader focus on what is probably most important to them to review.
 
 ## A person, and seven buckets
 
 Someone reads each issue. The reading answers one question, *is this
 reached by opening a file?*, and files the advisory in a bucket. The
-buckets are the vocabulary of the whole system, so here they are.
+buckets are the vocabulary of this triage system.
 
 | Bucket | Meaning | What follows |
 |---|---|---|
@@ -109,7 +110,7 @@ against a decoder are in code a scan never runs, or in the decoding
 itself, where nothing read from the outside can help. Writing that down
 is as valuable as the refusals: the next time a flaw lands in libtiff's
 PixarLog codec, the record already says that a scan never needs PixarLog
-and the policy refuses it, and nobody re-reads the codec.
+and the policy refuses it, and nobody needs to re-read the codec.
 
 ## Where the model comes in
 
@@ -217,11 +218,9 @@ record names the tests, and the tests run.
 ## The backfill, and what a proposal is
 
 When the record was started, there were already more than six hundred
-advisories on the watchlist, triaged in our heads over the preceding
-months. Their buckets had been decided but never written down. We drew a
-line: everything published from 2025 onwards was re-read against the
-current checks and written up, a hundred or so records; the older ones
-stay in the baseline file as seen but unrecorded.
+advisories on the watchlist. Everything published from 2025 onwards
+was re-read against the current checks and written up, a hundred or so
+records; the older ones stay in the baseline file as seen but unrecorded.
 
 The re-reading was done with help from a model, and that raised a question
 we had to answer carefully: what is a record that a machine drafted and no
