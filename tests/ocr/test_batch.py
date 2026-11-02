@@ -15,6 +15,7 @@ are marked `slow`, because they invoke Tesseract for real.
 
 from __future__ import annotations
 
+import json
 import shutil
 from pathlib import Path
 
@@ -111,6 +112,60 @@ class TestProcessing:
         for image in usable:
             assert image.name in produced, f"{image.name} did not reach processed/"
             assert f"{image.stem}.md" in produced, f"no transcript for {image.name}"
+
+
+class TestRefusedInput:
+    """A file refused before reading goes to triage, not into the error count.
+
+    sillybos refuses a file before any decoder opens it: a PostScript file
+    called .png, a pixel bomb, a PDF carrying JavaScript. The refusal used to
+    fall into the generic error handler, which printed it, counted it as a
+    failed run, and left the file in scans/ for the next run to refuse
+    again. The test of the whole arrangement is that a batch seeded with a
+    hostile file holds it with a readable reason and processes the rest.
+    """
+
+    @staticmethod
+    def _read_like_a_backend(monkeypatch):
+        """An OCR function that opens the file the way every backend does."""
+        from tetrak_ocr import batch
+        from tetrak_ocr.imaging import open_image
+
+        def ocr(path: Path) -> str:
+            with open_image(path):
+                return "a transcript"
+
+        monkeypatch.setattr(batch, "build_ocr_fn", lambda *a, **k: ocr)
+
+    def test_a_refused_file_is_held_with_its_reason(self, working_dirs, monkeypatch, capsys):
+        (working_dirs["scans"] / "scroll.png").write_bytes(b"%!PS-Adobe-3.0\n0 0 moveto\n")
+        _write_legible_image(working_dirs["scans"] / "page.png")
+        self._read_like_a_backend(monkeypatch)
+
+        assert run_batch(["--backend", "tesseract"]) == 0
+
+        held = working_dirs["triage"]
+        assert (held / "scroll.png").exists()
+        assert not (working_dirs["scans"] / "scroll.png").exists()
+        assert not (working_dirs["processed"] / "scroll.png").exists()
+        assert "says PNG, is PostScript" in (held / "scroll.md").read_text()
+        record = json.loads((held / "scroll.json").read_text())
+        assert record["reason"] == "says PNG, is PostScript."
+        assert record["candidates"] == [] and record["best"] is None
+        assert (working_dirs["processed"] / "page.png").exists()
+        assert "Triaged (1): scroll.png" in capsys.readouterr().out
+
+    def test_the_queue_lists_a_refused_file(self, working_dirs, monkeypatch):
+        from tetrak_ocr import triage
+
+        (working_dirs["scans"] / "scroll.png").write_bytes(b"%!PS-Adobe-3.0\n")
+        self._read_like_a_backend(monkeypatch)
+        run_batch(["--backend", "tesseract"])
+
+        [item] = triage.queue(working_dirs["triage"])
+
+        assert item.file == "scroll.png" and item.best_score is None
+        assert "says PNG, is PostScript" in triage.describe([item], working_dirs["triage"])
 
 
 class TestQualityGate:
