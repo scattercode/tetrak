@@ -38,24 +38,27 @@ done
 # ---------------------------------------------------------------------------
 # 2. Python virtualenv and dependencies
 # ---------------------------------------------------------------------------
-# Dependencies are declared in pyproject.toml. This used to install from a
-# requirements-dev.txt that does not exist in this repository -- it came from
-# the demo repository this container was copied from -- so the step failed on
-# every container build.
+# Dependencies are declared in pyproject.toml and resolved in the committed
+# uv.lock; `uv sync` builds .venv from the lock, so the Codespace gets the
+# versions everyone else has. This used to install from a requirements-dev.txt
+# that does not exist in this repository -- it came from the demo repository
+# this container was copied from -- so the step failed on every container
+# build.
 #
-# `[dev]` is pytest and ruff, which is what a Codespace needs to run the fast
-# suite. The OCR backends are separate extras: add ,easyocr ,paddle or
-# use [all] if you need them, and expect a long install and model downloads on
-# first use.
-echo "Creating Python virtualenv..."
-python3 -m venv "$REPO_DIR/.venv"
+# `dev` is pytest and ruff, which is what a Codespace needs to run the fast
+# suite. The OCR backends are separate extras: add --extra easyocr, --extra
+# paddle or --extra all if you need them, and expect a long install and model
+# downloads on first use.
+#
+# uv comes from pipx, which the universal image ships, rather than from a
+# curl-to-shell installer.
+if ! command -v uv >/dev/null 2>&1; then
+  echo "Installing uv..."
+  pipx install uv || python3 -m pip install --user uv
+fi
 
-echo "Installing Python dependencies..."
-"$REPO_DIR/.venv/bin/pip" install --upgrade pip
-# Braced deliberately. Unbraced, `$REPO_DIR[dev]` is array-subscript
-# syntax in zsh and expands to nothing; the script is bash, but the line
-# gets copied into terminals that are not.
-"$REPO_DIR/.venv/bin/pip" install -e "${REPO_DIR}[dev]"
+echo "Creating .venv from uv.lock..."
+uv sync --project "$REPO_DIR" --extra dev
 
 echo ""
 echo "Setup complete. Open .devcontainer/workspace.code-workspace, or your own *.local.code-workspace."

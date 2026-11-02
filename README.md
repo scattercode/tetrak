@@ -376,8 +376,8 @@ tests/              unit tests, plus corpus-backed threshold tests marked `slow`
 ```bash
 git clone https://github.com/scattercode/tetrak.git
 cd tetrak
-python3 -m venv .venv && source .venv/bin/activate
-pip install -e '.[dev]'
+uv sync --extra dev        # .venv from the committed lockfile
+source .venv/bin/activate
 lefthook install
 
 pytest -m "not slow"       # the fast loop

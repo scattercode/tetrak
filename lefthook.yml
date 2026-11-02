@@ -4,8 +4,10 @@
 # pre-commit runs Ruff on staged Python files and the site's linters when
 # site sources are staged; commit-msg enforces Conventional Commits via the
 # shared script in .githooks/.
-# Ruff must be on PATH (e.g. `brew install ruff` or `pip install ruff`).
-# The site lint needs `npm ci` to have been run in site/.
+# Ruff must be on PATH (e.g. `brew install ruff` or `pip install ruff`), and
+# so must uv (`brew install uv`) for the lockfile check, which runs only when
+# pyproject.toml or uv.lock is staged. The site lint needs `npm ci` to have
+# been run in site/.
 
 pre-commit:
   parallel: true
@@ -16,6 +18,11 @@ pre-commit:
     ruff-format:
       glob: "*.py"
       run: ruff format --check {staged_files}
+    # CI runs the same check. A dependency change without `uv lock` leaves a
+    # lockfile that describes an environment nobody installs.
+    uv-lock:
+      glob: "{pyproject.toml,uv.lock}"
+      run: uv lock --check
     # Whole-project rather than per-file: the linters are configured in
     # site/package.json with their own file globs, and running them on a
     # staged subset would silently skip the config that CI applies.

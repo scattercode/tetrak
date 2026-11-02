@@ -1,4 +1,4 @@
-# Dependabot keeps the workflow actions current.
+# Dependabot keeps the workflow actions and the Python lockfile current.
 #
 # Added August 2026, after an audit found actions/checkout pinned anywhere
 # between v2 and v7 across the sibling repositories. The only two repos on the
@@ -17,11 +17,15 @@
 # `ci` rather than `build`: these are workflow dependencies, not package ones,
 # and it matches the two satellite repositories.
 #
-# Scoped to actions only, deliberately. pip (pyproject.toml) and npm
-# (site/package.json) are not enrolled -- that would be a decision about PR
-# volume on a 540-package lockfile, not about the drift this fixes. Security
-# advisories are separate and unaffected: those come from Dependabot alerts,
-# which do not need this file.
+# Python is enrolled through `uv`, which bumps the resolved versions in
+# uv.lock and leaves the floors in pyproject.toml alone -- those stay a human
+# decision. The lock covers every extra, torch and PaddlePaddle included, so
+# the updates are grouped into one pull request a week; ungrouped, a lockfile
+# that size would arrive as a dozen PRs that each rewrite the file the others
+# were built against. npm (site/package.json) is still not enrolled: that
+# would be a decision about PR volume on a 540-package lockfile, not about the
+# drift this fixes. Security advisories are separate and unaffected: those
+# come from Dependabot alerts, which do not need this file.
 # The group exists so a batch of action bumps arrives as one pull request. The
 # sibling sites learned this the hard way with npm: five separate lockfile PRs
 # conflict with each other by construction, because merging any one of them
@@ -30,6 +34,18 @@
 # whole set moves together the way the sweep that added this file did.
 version: 2
 updates:
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "build"
+      include: "scope"
+    groups:
+      python:
+        patterns:
+          - "*"
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

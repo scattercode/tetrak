@@ -169,10 +169,13 @@ If you are not using `claude`, nothing else in the package needs this.
 ```bash
 git clone https://github.com/scattercode/tetrak.git
 cd tetrak
-python3 -m venv .venv && source .venv/bin/activate
-pip install -e '.[dev]'       # add extras as needed: [dev,all,armenian] is everything
-pytest -m "not slow"
+uv sync --extra dev           # add extras as needed: --extra all --extra armenian is everything
+uv run pytest -m "not slow"
 ```
+
+[uv](https://docs.astral.sh/uv/) creates `.venv` from the committed
+`uv.lock`, so every checkout gets the same versions. A plain `python3 -m venv`
+followed by `pip install -e '.[dev]'` works too.
 
 `-m "not slow"` skips the tests that read the evaluation corpus and invoke a
 real OCR engine; it runs in well under a second. The evaluation corpus and
