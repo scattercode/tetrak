@@ -139,7 +139,7 @@ pass.
 **The name against the contents.** A JPEG called `.png` would decode
 perfectly well. It is refused anyway, because a file whose name lies is
 not one to trust, and because the lie is the thing the operator wants
-told about.
+to be told about.
 
 **The header, read with code of our own.** This is where it became a
 library rather than a wrapper. A JPEG's dimensions, how its frame is
