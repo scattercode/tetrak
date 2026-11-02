@@ -62,10 +62,17 @@ never type a number into either renderer.
 ## Setup
 
 ```bash
-brew install tesseract poppler          # macOS system dependencies
-python3 -m venv .venv && source .venv/bin/activate
-pip install -e '.[dev]'                 # add extras as needed: [dev,all,armenian] is everything
+brew install tesseract poppler uv       # macOS system dependencies, and uv
+uv sync --extra dev                     # .venv from uv.lock; add extras as needed: --extra all --extra armenian is everything
+source .venv/bin/activate               # or prefix each command below with `uv run`
 ```
+
+`uv.lock` is committed and resolves every extra, so two checkouts get the
+same versions. After changing a dependency in `pyproject.toml`, run `uv lock`
+and commit the lockfile in the same change; the pre-commit hook and CI both
+refuse a stale one. A plain `python3 -m venv` with `pip install -e '.[dev]'`
+still works, and is what CI installs the tests with, so the declared ranges
+are exercised as well as the lock.
 
 The Claude backend needs `ANTHROPIC_API_KEY` in `.env` at the repo root.
 
@@ -346,7 +353,9 @@ here, and the brief's status in `tetrak-product`.
 
 - `ci.yml` — ruff plus `pytest -m "not slow"` on every push and PR, installing
   core plus `[dev]` only. The heavy backends are not installed: they take
-  minutes and every test touching them mocks the dependency.
+  minutes and every test touching them mocks the dependency. A separate job
+  runs `uv lock --check`; Trivy scans the lockfile, which is what gives the
+  Python scan resolved versions rather than ranges.
 - `corpus.yml` — `pytest -m slow` (real OCR over the corpus). On merge to
   `main` only when `src/`, `tests/`, `evaluation/` or `pyproject.toml`
   changed, plus weekly, so engine or dependency drift is still caught.
@@ -393,9 +402,9 @@ research: the corpus, the engines as measured, routing, results and method,
 and the articles. The site's `/ocr/reference/cli/` page is a stub that links to
 the guide; the generated API page it used to carry (`tools/generate_api_docs.py`)
 was retired in favour of Sphinx's, so the two could not drift. Build the
-Sphinx site locally with `pip install -e '.[apidocs]'` and
-`sphinx-build -W -b html docs docs/_build/html`; `-W` is what CI runs, so a
-warning is a failure.
+Sphinx site locally with `uv sync --extra apidocs` and
+`uv run sphinx-build -W -b html docs docs/_build/html`; `-W` is what CI runs,
+so a warning is a failure.
 
 The Cloudflare Pages project:
 

@@ -15,15 +15,19 @@ which are plain Markdown any tool or person can open.
 ## Getting set up
 
 ```bash
-python3 -m venv .venv && source .venv/bin/activate
-pip install -e '.[dev]'                  # add extras for the backends you need
-brew install tesseract poppler           # or apt-get install tesseract-ocr poppler-utils
+brew install tesseract poppler uv        # or apt-get install tesseract-ocr poppler-utils, and uv from astral.sh
+uv sync --extra dev                      # .venv from the lockfile; add --extra <name> for the backends you need
+source .venv/bin/activate                # or prefix each command with `uv run`
 cd site && npm ci                        # the documentation site
 ```
 
 `npm ci` also installs the git hooks (Lefthook): Ruff and the site's linters
 before each commit, and the Conventional Commits check on every commit
 message. If they are not active, run `lefthook install`.
+
+`uv.lock` is committed. If you change a dependency in `pyproject.toml`, run
+`uv lock` and commit the lockfile in the same change; the pre-commit hook and
+CI both refuse a stale one.
 
 ## The checks
 
@@ -32,6 +36,7 @@ Everything CI runs, runnable by hand:
 ```bash
 ruff check src tests evaluation tools docs
 ruff format --check src tests evaluation tools docs
+uv lock --check                          # the lockfile matches pyproject.toml
 pytest -m "not slow"                     # fast; the heavy backends are mocked
 pytest -m slow                           # real OCR over the corpus; minutes
 cd site && npm run lint && npm run build && npx playwright test

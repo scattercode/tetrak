@@ -66,6 +66,19 @@ jobs:
       - name: Bands match the committed sweep
         run: python -m evaluation.ocr.calibration.fit --check
 
+  # The committed uv.lock is what gives the Trivy job below real versions to
+  # scan, and what Dependabot's `uv` updates bump. It has to match
+  # pyproject.toml, or the scan reports an environment nobody installs.
+  # Regenerate with `uv lock` after any pyproject.toml change; the pre-commit
+  # hook runs the same check. Same arrangement as the sibling repositories.
+  lockfile:
+    name: Lockfile is current
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+      - run: uv lock --check
+
   # Ported from scattercode.dev, which has run this arrangement for months.
   # tetrak had no vulnerability scanning of any kind before this.
   trivy:
@@ -87,9 +100,10 @@ jobs:
 
       # A source-tree SBOM, which is not the same thing as the per-package
       # SBOMs published with a release. This one covers what is committed --
-      # the site's package-lock.json and the workflow actions -- and is close
-      # to useless for Python, because pyproject.toml declares ranges rather
-      # than resolved versions. The documents consumers need are built from
+      # the site's package-lock.json, the workflow actions and, through
+      # uv.lock, every resolved Python version including the heavy extras.
+      # pyproject.toml alone would be close to useless here, because it
+      # declares ranges. The documents consumers need are still built from
       # installed environments in release.yml.
       - name: Generate source-tree SBOM
         uses: aquasecurity/trivy-action@v0.36.0
