@@ -7,6 +7,13 @@ description: "sillybos: a dependency-free Python library and command that checks
 
 ## What it is for
 
+A σίλλυβος (*sillybos*, say it *SIL-lee-boss*; Latin *sittybus*) was the
+little parchment tag that hung from a rolled scroll in an ancient library,
+carrying its title and author, so that a reader could tell what a scroll
+was without unrolling it. Cicero had them made for his books. This library
+is that tag for the files a scanning or OCR pipeline is handed: it reads
+the tag, and says whether the scroll should be unrolled at all.
+
 Every program that reads scans hands each file to a decoder: Pillow for
 images, poppler for PDFs, then an OCR engine. Decoders are large, old
 programs that read complicated formats, and they have flaws. In October
@@ -14,13 +21,6 @@ programs that read complicated formats, and they have flaws. In October
 computer when an EPS file was opened, and a file's extension was no
 protection, because Pillow decides what a file is from its contents, so a
 PostScript file named `page.png` went straight to the PostScript reader.
-
-A σίλλυβος (*sillybos*, say it *SIL-lee-boss*; Latin *sittybus*) was the
-little parchment tag that hung from a rolled scroll in an ancient library,
-carrying its title and author, so that a reader could tell what a scroll
-was without unrolling it. Cicero had them made for his books. This library
-is that tag for the files a scanning or OCR pipeline is handed: it reads
-the tag, and says whether the scroll should be unrolled at all.
 
 ## Who it is for
 
