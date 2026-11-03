@@ -120,6 +120,15 @@ by hand:
 
 [`tetrak-ocr triage`](#tetrak-ocr-triage) lists the queue from the records.
 
+A file that is refused before any decoder reads it goes to the same queue:
+a PostScript file called `.png`, a page over the pixel limit, a PDF with
+JavaScript, each decided by [sillybos](https://github.com/scattercode/sillybos)
+before a decoder opens the file. Its manifest and record
+carry the refusal as the reason ("says PNG, is PostScript"), with no
+transcript and no scores, and it counts as triaged rather than as an error,
+so the exit code stays 0 and the file is not left in `workspace/scans/` for
+the next run to refuse again.
+
 `--quality-gate` applies the same threshold to any single named backend:
 
 ```bash

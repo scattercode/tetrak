@@ -119,7 +119,9 @@ list — add a backend there and the CLI, the harness and the docs all pick it u
 `workspace/triage/`. It judges a transcript, not an engine, so it is a flag
 rather than a backend (an `auto-local-fast` backend was tried and withdrawn).
 It is opt-in because it changes which files reach `workspace/processed/`, and
-needs the `qa` extra, checked up front rather than on the first file.
+needs the `qa` extra, checked up front rather than on the first file. A file
+sillybos refuses before reading (`InputRefusedError`) goes to the same queue
+with the refusal as its reason, not into the run's error count.
 
 ## Conventions that matter
 

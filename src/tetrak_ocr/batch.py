@@ -30,7 +30,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from .qa_score import LowQualityError
 
 from . import orientation, outputs, telemetry, triage
-from .errors import MissingFeatureError
+from .errors import InputRefusedError, MissingFeatureError
 from .imaging import page_documents
 from .layout import TextSpan, spans_of
 from .manifest import DEFAULT_NAME as MANIFEST_NAME
@@ -192,6 +192,33 @@ def _send_to_triage(image_path: Path, error: "LowQualityError", backend: str | N
     print(f"    → TRIAGE: {record.name}  (+ {len(transcripts)} full transcript(s))")
 
 
+def _hold_refused(image_path: Path, error: InputRefusedError, backend: str | None = None) -> Path:
+    """Move a file refused before reading to the triage queue, with its reason.
+
+    A refusal is not a poor transcript: there are no scores and nothing to
+    excerpt, so the manifest says only what sillybos found ("says PNG, is
+    PostScript"; "412 pages; the limit is 500") and the record carries the
+    same sentence with no candidates. The file joins the queue rather than
+    staying in scans/, where the next run would only refuse it again, so the
+    person running the batch hears why once, in the place they look for
+    everything else that needs a decision. Returns the manifest's path.
+    """
+    TRIAGE_DIR.mkdir(parents=True, exist_ok=True)
+    manifest_path = TRIAGE_DIR / f"{image_path.stem}.md"
+    manifest_path.write_text(
+        f"# {image_path.stem}\n\n## Refused before reading\n\n{error.reason}\n", encoding="utf-8"
+    )
+    record, *_ = triage.hold(TRIAGE_DIR, image_path, {}, {}, reason=error.reason, backend=backend)
+
+    dest = TRIAGE_DIR / image_path.name
+    shutil.move(str(image_path), dest)
+
+    print(f"    → TRIAGE: {dest.name}  (refused before reading: {error.reason})")
+    print(f"    → TRIAGE: {manifest_path.name}")
+    print(f"    → TRIAGE: {record.name}")
+    return manifest_path
+
+
 def _relative(path: Path) -> str:
     """*path* relative to the workspace, for the manifest; as given if outside it."""
     try:
@@ -256,6 +283,13 @@ def process_file(
     - Any other backend produces one transcript and no opinion about it. When
       *quality_gate* is set, this function scores that transcript and applies
       the same threshold.
+
+    A file that sillybos refuses before any decoder reads it (a PostScript
+    file called .png, a pixel bomb, a PDF with JavaScript) goes to the same
+    queue, with the refusal as its reason and no transcript, rather than into
+    the run's error count: it is a decision for a person, not a failure of
+    the pipeline. The orientation check catches its own refusals and leaves
+    the reading to refuse the file, so every refusal arrives here.
 
     The gate is opt-in for single backends rather than always on: it changes
     which files reach workspace/processed/, and turning it on silently would start
@@ -378,6 +412,25 @@ def _process_file(
             **file_info,
         )
 
+    def _refuse(exc: InputRefusedError) -> None:
+        manifest_path = _hold_refused(image_path, exc, backend)
+        if triaged is not None:
+            triaged.append(image_path.name)
+        _record(
+            "triage",
+            outputs=[_relative(manifest_path)],
+            location=_relative(TRIAGE_DIR / image_path.name),
+            note=exc.reason,
+        )
+        telemetry.record(
+            "file_finish",
+            backend=backend,
+            outcome="refused",
+            seconds=_elapsed(),
+            reason=exc.reason,
+            **file_info,
+        )
+
     # A multi-page searchable PDF needs one transcript per page, so that case
     # transcribes page by page. Everything else keeps the single
     # whole-document call, which is about twice as fast -- nobody should pay
@@ -405,6 +458,9 @@ def _process_file(
         if auto_local:
             reading.update(_auto_local_choice())
         _triage(exc)
+        return
+    except InputRefusedError as exc:
+        _refuse(exc)
         return
     except Exception as exc:
         telemetry.record(
