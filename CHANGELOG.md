@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.24.1] - 2026-11-03
+
+### Changed
+
+- Manage the development environment with uv and commit uv.lock (#94)
+- Bump numpy from 2.3.5 to 2.4.6 in the python group (#95)
+- Two articles, the threat behind sillybos and the advisory watch (#93)
+
+### Fixed
+
+- Hold a refused file in the triage queue with its reason (#96)
+
 ## [5.24.0] - 2026-11-01
 
 ### Changed
