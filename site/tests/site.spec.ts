@@ -101,7 +101,12 @@ test("the security watch renders the advisory record everywhere it is promised",
   const count = await rows.count();
   expect(count).toBeGreaterThan(0);
   for (const row of await rows.all()) {
-    await expect(row.locator("td:nth-child(2) a")).toHaveAttribute("href", /\/security\/cve-[\w-]+\/$/);
+    // A record is keyed by its CVE, or by the GHSA or PYSEC id when no CVE
+    // was assigned; the first GHSA-keyed record arrived with sillybos 4.2.0.
+    await expect(row.locator("td:nth-child(2) a")).toHaveAttribute(
+      "href",
+      /\/security\/(cve|ghsa|pysec)-[\w-]+\/$/
+    );
     await expect(row.locator(".verdict")).not.toBeEmpty();
   }
 
@@ -327,9 +332,12 @@ async function allPages(request: APIRequestContext, baseURL: string): Promise<st
 }
 
 test("every image on every page actually loads", async ({ page, request, baseURL }) => {
-  // Every page, with a wait for the network to go quiet on each: the security
-  // watch took the site past a hundred pages and past the default 30 s.
-  test.slow();
+  // Every page, with a wait for the network to go quiet on each. The security
+  // watch took the site past a hundred pages, and the completed backfill past
+  // the tripled default of 90 s, so the budget follows the page count: two
+  // seconds a page, and never less than the old 90.
+  const pages = await allPages(request, baseURL!);
+  test.setTimeout(Math.max(90_000, pages.length * 2_000));
   // The migration published a site on which all 19 corpus images were dead
   // links, behind a green build and a green test suite: the markdown still
   // carried mkdocs-relative paths. Parsing the HTML for src attributes is what
@@ -338,7 +346,7 @@ test("every image on every page actually loads", async ({ page, request, baseURL
   // bytes arrived cannot be fooled that way.
   const broken: string[] = [];
 
-  for (const url of await allPages(request, baseURL!)) {
+  for (const url of pages) {
     await page.goto(url);
     // Lazy images below the fold never load in a short viewport, so force them.
     await page.evaluate(() =>
