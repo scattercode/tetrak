@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'darwin'",
@@ -4231,11 +4231,11 @@ wheels = [
 
 [[package]]
 name = "sillybos"
-version = "4.0.0"
+version = "5.0.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/62/b0/d81799aa58c1b6914409089de10f74ccd59e02157ace8e9e1afde27b8b13/sillybos-4.0.0.tar.gz", hash = "sha256:d267e6009b4e8e742e11c23d71f93e31c535efbea6502aa93f781b4638cf307d", size = 613210, upload-time = "2026-11-01T22:52:35.522Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1e/4b/2afcb5f406492f7748f7053c3666be0bb9a75d98a57fe51f8d68c01d85a0/sillybos-5.0.0.tar.gz", hash = "sha256:f5f9b2f18dc0d396aacc3e1ad8ee7537749e6f67dfb42997a3a45863802e32d8", size = 655464, upload-time = "2026-11-03T17:11:19.194Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8d/35/108931718880ef090b111582646e092bb0cb8010301f75ab94c2d15a4509/sillybos-4.0.0-py3-none-any.whl", hash = "sha256:85b6b438cc23065cd7e26374a20b200055b68b30f86ed37433353daa3ff80c9d", size = 38384, upload-time = "2026-11-01T22:52:34.173Z" },
+    { url = "https://files.pythonhosted.org/packages/d9/dd/e066e4eca9f8d3dda19a1eb944eff4b024c5d12b05cf65eec7b782f0cec4/sillybos-5.0.0-py3-none-any.whl", hash = "sha256:46da1e20355490dfaf10944120a5c01b46b9436afdb3fcc4245f464bfee8b4d8", size = 43122, upload-time = "2026-11-03T17:11:17.484Z" },
 ]
 
 [[package]]
@@ -4660,7 +4660,7 @@ requires-dist = [
     { name = "python-pptx", marker = "extra == 'docs'", specifier = ">=0.6" },
     { name = "reportlab", specifier = ">=4.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.5" },
-    { name = "sillybos", specifier = ">=4,<5" },
+    { name = "sillybos", specifier = ">=5,<6" },
     { name = "sphinx", marker = "extra == 'apidocs'", specifier = ">=8.0" },
     { name = "sphinx-argparse", marker = "extra == 'apidocs'", specifier = ">=0.6.1" },
     { name = "tetrak-easyocr-armenian", marker = "extra == 'armenian'", specifier = ">=0.8" },
