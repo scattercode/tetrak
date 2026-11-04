@@ -141,6 +141,30 @@ class TestPdf:
         with pytest.raises(InputRefusedError, match="a PDF with JavaScript"):
             check_pdf(path)
 
+    def test_a_tiff_whose_tags_contradict_each_other_is_refused(self, tmp_path: Path) -> None:
+        """sillybos 5 refuses a floating-point Predictor on integer samples; the reason reaches triage."""
+        import struct
+
+        # One 8-bit greyscale LZW frame, 4 by 4, with Predictor 3, which only
+        # floating-point samples can carry (CVE-2026-112396).
+        entries = [
+            (256, 3, 1, 4),  # ImageWidth
+            (257, 3, 1, 4),  # ImageLength
+            (258, 3, 1, 8),  # BitsPerSample
+            (259, 3, 1, 5),  # Compression: LZW
+            (262, 3, 1, 1),  # PhotometricInterpretation: black is zero
+            (317, 3, 1, 3),  # Predictor: floating point
+        ]
+        ifd = struct.pack("<H", len(entries))
+        for tag, kind, count, value in entries:
+            ifd += struct.pack("<HHIH2x", tag, kind, count, value)
+        ifd += struct.pack("<I", 0)
+        path = tmp_path / "contradicting.tif"
+        path.write_bytes(b"II*\x00" + struct.pack("<I", 8) + ifd)
+
+        with pytest.raises(InputRefusedError, match="tags contradict each other"):
+            open_image(path)
+
 
 class TestPageSize:
     def test_pillows_one_dpi_for_no_resolution_is_not_believed(self) -> None:
