@@ -1,7 +1,7 @@
 ---
 title: "საათში is not სააცჰი"
 date: 2026-11-13
-draft: true
+draft: false
 slug: "reading-tsh-and-dzh-back-into-georgian"
 kicker: "Method"
 standfirst: "The international standard for writing Georgian in Latin letters promises that the Georgian can always be recovered. For two letter sequences, tsh and dzh, it cannot, and the obvious way to read them back gets everyday words wrong. What the gap is, who it catches, and how we think software should read them"
