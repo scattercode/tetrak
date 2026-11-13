@@ -2,11 +2,15 @@
 # one package version, never a whole CVE, so a newer copy of the same package
 # is still checked. Give the reason and the date it was reviewed.
 vulnerabilities:
-  # The fix is in soupsieve 4.0, which needs Python 3.11.5 or later. The lock
-  # file keeps 2.10 only for Python 3.11.0 to 3.11.4, where no fixed release
-  # exists. Remove this entry when the minimum Python version passes 3.11.4.
-  # Reviewed 2026-11-13.
+  # soupsieve 2.10 is the last release for Python below 3.11.5, and the lock
+  # file keeps it only for Python 3.11.0 to 3.11.4. The fixes are in 3.0.2 and
+  # 4.0, which those Pythons cannot install. Remove these entries when the
+  # minimum Python version passes 3.11.4. Reviewed 2026-11-13.
   - id: CVE-2026-126190
+    purls:
+      - "pkg:pypi/soupsieve@2.10"
+    statement: No fixed release for Python below 3.11.5; later Pythons lock 4.1
+  - id: CVE-2026-126191
     purls:
       - "pkg:pypi/soupsieve@2.10"
     statement: No fixed release for Python below 3.11.5; later Pythons lock 4.1
