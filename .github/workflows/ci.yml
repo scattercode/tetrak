@@ -97,6 +97,7 @@ jobs:
           ignore-unfixed: true
           vuln-type: library
           severity: HIGH,CRITICAL
+          trivyignores: .trivyignore.yaml
 
       # A source-tree SBOM, which is not the same thing as the per-package
       # SBOMs published with a release. This one covers what is committed --
