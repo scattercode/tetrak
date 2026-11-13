@@ -150,13 +150,15 @@ everywhere else is the familiar national spelling.
 
 ### A gap in the list
 
-Implementing it, we found two sequences the list doesn't cover. *dzh*
-could be `ძ` then `ჰ`, or `დ` then `ჟ`; *tsh* could be `ც` then `ჰ`, or
-`თ` then `შ`. In each case the standard gives two different spellings the
+*Updated on 12 November 2026 with the reply to our report, and with
+counts from real text.*
+
+Implementing it, we found two sequences the list doesn't cover. *tsh*
+could be `თ` then `შ`, or `ც` then `ჰ`; *dzh* could be `დ` then `ჟ`, or
+`ძ` then `ჰ`. In each case the standard gives two different spellings the
 same romanisation, and nothing in the Latin says which was meant.
 
-Neither combination is common, because `ჰ` rarely follows a consonant.
-But the standard's claim is absolute. Its introduction says "the system
+The standard's claim is absolute. Its introduction says "the system
 is entirely reversible", and of the dot it says "this avoids any
 ambiguity and ensures the reversibility of the system". For these two
 sequences it doesn't, so we think this is a defect in the standard, not
@@ -164,16 +166,100 @@ a matter of interpretation.
 
 To be sure there were no others, we romanised every sequence of two and
 three Georgian letters, more than 37,000 of them, and read each one back.
-Every failure came down to `დჟ` or `თშ`. Adding those two pairs to the
-list, so that they are written *d·zh* and *t·sh*, makes every one of
-those sequences read back correctly.
+Every failure came down to one of those four pairs. A dot in one pair of
+each two, *t·sh* or *ts·h* and *d·zh* or *dz·h*, makes every one of those
+sequences read back correctly.
 
 The foreword asks for feedback through each country's national standards
 body, so in October 2026 we reported this to BSI, the UK's member of ISO,
-with the two extra pairs as a suggested fix. Until the standard
-changes, our library follows it as published: it reads *dzh* and *tsh*
-back as `ძ`+`ჰ` and `ც`+`ჰ`, and a test records that, so we will notice
-when an amendment needs it to change.
+suggesting *t·sh* and *d·zh*. The reply came in November. It agreed that
+the list should have included both sequences, and said it will be
+corrected when the standard is next revised. It added that the two
+combinations are theoretical, so the gap should cause no trouble in the
+meantime.
+
+### How often it happens
+
+When we first published this article we said much the same: that neither
+combination is common, because `ჰ` rarely follows a consonant. That is
+true of one reading of each sequence. We hadn't counted the other, and
+the reply prompted us to.
+
+*tsh* is everywhere in Georgian. The postposition `-ში`, "in", is
+written as part of its noun, so any noun whose stem ends in `თ` has `თ`
+then `შ`: `საათში` (*saatshi*, in an hour), `წუთში` (*ts'utshi*, in a
+minute), `საფრანგეთში` (*saprangetshi*, in France). Compounds have it
+too: `ხუთშაბათი`, Thursday, is *khutshabati*.
+
+The other reading exists as well, but only in borrowed names, most of
+them German, where a *z* meets an *h*: `ალცჰაიმერი` (Alzheimer),
+`ერცჰერცოგი` (archduke, from *Erzherzog*), `პფორცჰაიმი` (Pforzheim).
+
+We looked for all four pairs in the page titles of the Georgian
+Wikipedia on 12 November 2026, 252,103 of them. That list includes
+redirects, which are alternative titles: other names for the subject,
+other word orders, and variant spellings. A redirect shows that someone
+writes a form, but not that it is the accepted one, so we count them
+apart from the articles:
+
+| Romanised | Georgian | Articles | Redirects | Different words in the articles | For example |
+|---|---|---|---|---|---|
+| tsh | `თ` then `შ` | 864 | 85 | 72 | `საფრანგეთში`, `ხუთშაბათი` |
+| tsh | `ც` then `ჰ` | 18 | 6 | 14 | `ალცჰაიმერი`, `ერცჰერცოგი` |
+| dzh | `დ` then `ჟ` | 5 | 2 | 5 | `დჟარსარი` (a mountain in Armenia) |
+| dzh | `ძ` then `ჰ` | 0 | 1 | 0 | none |
+
+Of the 72 words with `თ` then `შ`, 53 are a noun with `-ში`. We would
+expect ordinary prose to lean further the same way, since titles are
+rich in foreign names and short on phrases with "in", but we haven't
+measured that.
+
+So *tsh* is not theoretical. It is in ordinary Georgian many times over,
+and because both readings of it occur in real text, no rule for reading
+an undotted *tsh* back can be right every time.
+
+*dzh* very nearly is theoretical. The five articles with `დ` then `ჟ`
+are all foreign names spelled letter by letter from another alphabet,
+and Georgian usually writes that sound with the single letter `ჯ`. The
+redirects show the preference: `ესმა რედჟეპოვა` leads to
+`ესმა რეჯეპოვა`. The only title with `ძ` then `ჰ`, `აძჰილი`, is a
+redirect too, to a village whose article is spelled `აჟილი`.
+
+### What we do about it
+
+Our library still writes what the standard says, with no dot in any of
+the four pairs. Reading back, it has to choose, and since version 4.5.0
+it chooses the reading Georgian words have: *tsh* is `თ` then `შ`, and
+*dzh* is `დ` then `ჟ`. Before that it took the letter pair first, so it
+read *saatshi* back as `სააცჰი`, which is not a word at all.
+
+The cost is the borrowed names. *altshaimeri* now comes back as
+`ალთშაიმერი`. Tests record both the choice and the cost, so we will
+notice when a revised standard needs them to change. In the meantime the
+library honours a dot typed by hand: *alts·haimeri* reads back as
+`ალცჰაიმერი`.
+
+The count also changes what we would suggest. Each sequence needs a dot
+in only one of its two pairs, and the choice is which one:
+
+| Georgian | Found in | As published | Our suggestion in October | What we would suggest now |
+|---|---|---|---|---|
+| `თ` then `შ` | ordinary words | tsh | t·sh | tsh |
+| `ც` then `ჰ` | borrowed names | tsh | tsh | ts·h |
+| `დ` then `ჟ` | a few foreign names | dzh | d·zh | dzh |
+| `ძ` then `ჰ` | one redirect | dzh | dzh | dz·h |
+
+Both columns make the standard reversible, but they are not equally
+good. Under our October suggestion `საათში`, "in an hour", would be
+written *saat·shi*, and so would every other noun with `-ში` after a
+`თ`. Under the other, `საათში` stays *saatshi*, as the national system
+writes it, and the dot goes into a couple of dozen borrowed names instead:
+`ალცჰაიმერი` becomes *alts·haimeri*. Keeping ordinary text free of dots
+is the point of the design, so if we were making the suggestion again,
+it would be the last column.
+
+None of this touches search. Our fold gives both readings of each
+sequence the same key, so *altshaimeri* still finds `ალცჰაიმერი`.
 
 ## Armenian: four letters, one pattern
 
