@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.26.0] - 2026-11-15
+
+### Changed
+
+- Bump the python group with 3 updates (#98)
+- Take soupsieve 4.1 for CVE-2026-126190 (#100)
+- Pass over CVE-2026-126191 in soupsieve 2.10 (#101)
+- The tsh and dzh gap in ISO 9984, with counts and a companion article (#99)
+- Bump the python group with 5 updates (#102)
+- Fold each region with the page as context (#104)
+
 ## [5.25.0] - 2026-11-04
 
 ### Changed
