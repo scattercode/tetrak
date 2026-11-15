@@ -21,7 +21,13 @@ inside an Armenian word it sometimes emits the visually identical Latin
 twin of an Armenian character -- `h` for `հ`, a colon for the Armenian
 full stop `։`. `tetrak_hy.fold_script` folds those back within any token
 that already holds an Armenian letter. It is worth about +0.035 word
-recall and costs one function call.
+recall and costs one function call. Since the recogniser learnt Cyrillic
+(brief 014) the fold also reads every other token in the one script,
+Latin or Cyrillic, it belongs to; a token made only of glyphs the two
+share (`роог` for `poor`) is decided by the text around it, so each
+region is folded with the whole page as `context`. That needs
+`tetrak-easyocr-armenian` 0.9 or later; the extra pins 0.11, the release
+with the three-way script decision.
 
 **The word list.** Where the installed `tetrak-easyocr-armenian` has
 released one, `tetrak_hy.lexicon` corrects out-of-vocabulary words from
@@ -109,11 +115,15 @@ def _spans(results) -> list[TextSpan]:
     EasyOCR gives each region as a four-point polygon; `TextSpan` wants an
     axis-aligned box, so the polygon's extent is taken. The fold is applied
     here, at the point the text enters the pipeline, so everything
-    downstream sees Armenian rather than a mixture of scripts.
+    downstream sees Armenian rather than a mixture of scripts. Every
+    region is folded with the whole page's text as context: a one-word
+    region of shared Latin/Cyrillic glyphs has nothing in itself to say
+    which script it is, and the page around it has.
     """
+    page = "\n".join(text for _, text, _ in results)
     return [
         TextSpan(
-            text=tetrak_hy.fold_script(text),
+            text=tetrak_hy.fold_script(text, context=page),
             bbox=polygon_extent(box),
             # EasyOCR reports 0-1; TextSpan documents 0-100.
             confidence=float(confidence) * 100,

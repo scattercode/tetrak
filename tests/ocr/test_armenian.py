@@ -38,8 +38,10 @@ def stub_tetrak_hy(monkeypatch: pytest.MonkeyPatch):
     installed package.
     """
     module = types.ModuleType("tetrak_hy")
+    module.contexts = []
 
-    def fold_script(text: str) -> str:
+    def fold_script(text: str, *, context: str | None = None) -> str:
+        module.contexts.append(context)
         return " ".join(
             token.replace("h", "հ") if any("԰" <= c <= "֏" for c in token) else token
             for token in text.split()
@@ -81,6 +83,13 @@ class TestSpans:
         the pipeline rather than at each caller."""
         spans = armenian._spans([region("hայ", 0, 0, 10, 10)])
         assert [s.text for s in spans] == ["հայ"]
+
+    def test_every_region_is_folded_with_the_whole_page_as_context(self, stub_tetrak_hy) -> None:
+        """A one-word region of shared Latin/Cyrillic glyphs cannot say which
+        script it is; the rest of the page can, so the fold gets all of it
+        (tetrak-easyocr-armenian 0.9, brief 014)."""
+        armenian._spans([region("poor", 0, 0, 10, 10), region("roads", 0, 20, 10, 30)])
+        assert stub_tetrak_hy.contexts == ["poor\nroads", "poor\nroads"]
 
     def test_a_polygon_becomes_its_axis_aligned_extent(self, stub_tetrak_hy) -> None:
         spans = armenian._spans([region("ա", 5, 7, 25, 27)])
