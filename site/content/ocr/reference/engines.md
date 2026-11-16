@@ -109,23 +109,31 @@ The row labelled `tetrak-hy v7 (ours)` is `easyocr-hy` as it ships: the
 recogniser, its two word lists, the script fold and the layout below. The
 table names the recogniser rather than the backend, because the harness
 that emits it scores models. Stock EasyOCR is absent because it was only
-ever run on the encyclopedia pages (the 0.03 above), and Calfa's
-`hye-paddle`, the strongest rival on the reformed-orthography registers,
-has not yet been run on the classical ones; the table admits only engines
-measured on every register — the rule that keeps a column's mean over the
-same pages as the column beside it.
+ever run on the encyclopedia pages (the 0.03 above); the table admits only
+engines measured on every register — the rule that keeps a column's mean
+over the same pages as the column beside it.
 
-Since v7, `easyocr-hy` leads both means, and leads word recall on fifteen
-of the seventeen registers. It does not lead everywhere, and the
-exceptions have names:
+Since v7, `easyocr-hy` leads both means, and leads word recall on eleven
+of the seventeen registers. The other six go to Calfa's `hye-paddle`, and
+five of them are classical:
 
-- **Abovyan's collected works:** the one classical register where Calfa's
-  Tesseract model still reads more words.
+- **Abovyan's collected works and Khatisian's memoirs:** the two classical
+  registers v7 reads worst, and `hye-paddle` is well ahead on both, by
+  0.12 and 0.10 of word recall. These are the registers to study before
+  the next run.
+- **Aghbalyan's criticism, Aram Manukyan's documents and Baronian's
+  *Azgayin jojer*:** `hye-paddle` ahead by between 0.006 and 0.02, within
+  the run-to-run noise on the last two.
 - **Faustus of Byzantium:** the index and notes are set in a bold italic
   whose digits the recogniser confuses, and `hye-paddle` reads it better.
 - **The medical encyclopedia, on character similarity:** EasyOCR's
   detector draws no box around the en dash its index prints between each
   term and its page number, so no recogniser behind it can read one.
+
+`hye-paddle`'s character-similarity mean is a long way below its word
+recall because the metric is order-sensitive: on the dictionary and the
+encyclopedias its stock detector reads multi-column pages partly straight
+across, and the characters are right in the wrong order.
 
 v7 also reads the Russian that Soviet editions quote in their apparatus:
 61 of the 81 Russian words on the Tumanyan pages, where v6, with no
