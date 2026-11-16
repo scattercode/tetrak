@@ -67,14 +67,20 @@ easyocr = ["easyocr>=1.7"]
 # v6 weights and the word list the backend decodes with (brief 013); the
 # backend falls back to greedy decoding on older releases.
 armenian = ["tetrak-easyocr-armenian>=0.12"]
-paddle = ["paddleocr>=3.0", "paddlepaddle>=3.0"]
+# 3.7 is the first release whose PaddleX registers the PP-OCRv6 recognisers
+# that custom models such as Calfa's paddle-calfa-tiny are exported as; an
+# older paddleocr fails at construction with "`PP-OCRv6_tiny_rec` is not
+# registered". The floor also holds the resolver: PaddleX 3.7 caps numpy
+# below 2.4, so without it a numpy bump quietly resolved paddleocr back to
+# 3.4 (uv.lock, 14 November 2026) and every PP-OCRv6 model stopped loading.
+paddle = ["paddleocr>=3.7", "paddlepaddle>=3.2"]
 # PaddleOCR-VL, the document vision-language model in the same package.
 # The class lives in paddleocr, but the pipeline it builds needs paddlex's
 # own `ocr` extra -- without it PaddleOCRVL() raises a DependencyError at
 # construction, so `paddleocr[doc-parser]` is not the dependency to declare
-# here however much it sounds like it. Floors raised from `paddle`'s >=3.0:
-# PaddleOCRVL does not exist before paddleocr 3.4.
-paddle-vl = ["paddleocr>=3.4", "paddlex[ocr]>=3.4", "paddlepaddle>=3.2"]
+# here however much it sounds like it. PaddleOCRVL does not exist before
+# paddleocr 3.4; the `paddle` extra's 3.7 floor applies here as well.
+paddle-vl = ["paddleocr>=3.7", "paddlex[ocr]>=3.7", "paddlepaddle>=3.2"]
 # The `marker` extra is withdrawn. Every marker-pdf release, and surya-ocr
 # under it, requires Pillow below 11, which cannot share an environment with
 # the Pillow>=13.0 floor above. The backend stays registered and says why it
