@@ -53,6 +53,8 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "src"))
 
+from tetrak_ocr.imaging import detector_input  # noqa: E402
+
 NETWORK_NAME = "tetrak_hy"
 
 
@@ -102,8 +104,10 @@ def spans_for_page(reader, image: Path) -> list[dict]:
     otherwise downstream would only make the geometry harder to read.
     """
     spans = []
+    # Through the same door as the shipped backend, so a faint page is
+    # stretched here exactly as it is there.
     for corners, text, confidence in reader.readtext(
-        str(image), detail=1, paragraph=False, decoder=DECODER
+        detector_input(image), detail=1, paragraph=False, decoder=DECODER
     ):
         xs = [float(point[0]) for point in corners]
         ys = [float(point[1]) for point in corners]
