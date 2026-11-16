@@ -94,33 +94,45 @@ It has its own registry name rather than being folded into `easyocr`, for the
 same reason `tesseract-auto` does: the harness scores backends, so the
 difference between the two is a measurement instead of a claim.
 
-Measured on eight evaluation registers — 65 proofread pages from seven
-works on Armenian Wikisource plus ten from volume 2 of the Armenian Soviet
-Encyclopedia, every page held out from training. The figures are means over
-the eight registers; the per-register tables are in the
-[latest comparison]({{< relref "/articles/2026/10/2026-10-02-beating-the-baselines.md" >}}):
+Measured on seventeen evaluation registers — 155 proofread pages from
+sixteen works on Armenian Wikisource plus ten from volume 2 of the Armenian
+Soviet Encyclopedia, every page held out from training. Nine of the works
+are in classical orthography, the spelling of the diaspora and of
+everything printed before 1922. The figures are means over the seventeen
+registers; the per-register tables of the earlier, eight-register
+comparison are in the
+[article on beating the baselines]({{< relref "/articles/2026/10/2026-10-02-beating-the-baselines.md" >}}):
 
 {{< registers view="summary" >}}
 
-The row labelled `tetrak-hy v6 (ours)` is `easyocr-hy` as it ships: the
-recogniser, its word list, the script fold and the layout below. The table
-names the recogniser rather than the backend, because the harness that
-emits it scores models. Stock EasyOCR is absent because it was only ever
-run on the encyclopedia pages (the 0.03 above), and the table admits only
-engines measured on every register — the rule that keeps a column's mean
-over the same pages as the column beside it.
+The row labelled `tetrak-hy v7 (ours)` is `easyocr-hy` as it ships: the
+recogniser, its two word lists, the script fold and the layout below. The
+table names the recogniser rather than the backend, because the harness
+that emits it scores models. Stock EasyOCR is absent because it was only
+ever run on the encyclopedia pages (the 0.03 above), and Calfa's
+`hye-paddle`, the strongest rival on the reformed-orthography registers,
+has not yet been run on the classical ones; the table admits only engines
+measured on every register — the rule that keeps a column's mean over the
+same pages as the column beside it.
 
-Since v6, `easyocr-hy` leads both means, and leads both metrics on most
-registers. It does not lead everywhere, and the exceptions have names:
+Since v7, `easyocr-hy` leads both means, and leads word recall on fifteen
+of the seventeen registers. It does not lead everywhere, and the
+exceptions have names:
 
+- **Abovyan's collected works:** the one classical register where Calfa's
+  Tesseract model still reads more words.
 - **Faustus of Byzantium:** the index and notes are set in a bold italic
-  whose digits the recogniser confuses.
-- **Tumanyan's academic edition:** the apparatus quotes Russian, and the
-  recogniser has no Cyrillic. Its Armenian pages are level with the
-  leaders.
+  whose digits the recogniser confuses, and `hye-paddle` reads it better.
 - **The medical encyclopedia, on character similarity:** EasyOCR's
   detector draws no box around the en dash its index prints between each
   term and its page number, so no recogniser behind it can read one.
+
+v7 also reads the Russian that Soviet editions quote in their apparatus:
+61 of the 81 Russian words on the Tumanyan pages, where v6, with no
+Cyrillic in its charset, read none. On five of the eight registers v6 was
+measured on it is a little behind v6 by word recall, by 0.003 to 0.018; the
+trade was made knowingly for the classical registers, where it gains
+between 0.04 and 0.10.
 
 Calfa's two models are the strongest of the others. Both are CC BY-NC
 4.0, so Tetrak can measure them but cannot ship or bundle either.
@@ -131,15 +143,20 @@ require.
 Three steps sit between the raw recogniser and those figures, and none is
 retraining:
 
-- **A word list.** The recognition head has no language model. A word
-  whose reading is not in a list of Armenian words, built from proofread
-  Wikisource transcripts and the Nayiri Armenian Lexicon, takes the most
-  probable listed reading from the recogniser's own alternatives for it,
-  when that reading is nearly as probable.
-- **A script fold.** Inside an Armenian word, the head can emit the
-  visually identical Latin twin of a character: `h` for `հ`, a colon for
-  the Armenian full stop `։`. The fold turns these back. Inside a number,
-  it also reads `Չ` and `շ` as the digit 2.
+- **Two word lists.** The recognition head has no language model. A word
+  whose reading is in neither list, one built from the reformed-orthography
+  transcripts and one from the classical ones with the Nayiri Armenian
+  Lexicon, takes the most probable listed reading from the recogniser's own
+  alternatives for it, when that reading is nearly as probable. A spelling
+  in either list is accepted as written, so a classical page is never
+  "corrected" into reformed spelling or the reverse.
+- **A script fold.** Every token is read in one script. Inside an Armenian
+  word, the head can emit the visually identical Latin or Cyrillic twin of
+  a character: `h` for `հ`, `о` for `օ`, a colon for the Armenian full
+  stop `։`. The fold turns these back; a token with no Armenian letter is
+  written in the one script, Latin or Cyrillic, it belongs to, decided by
+  the page around it when its own glyphs cannot say. Inside a number, it
+  also reads `Չ` and `շ` as the digit 2.
 - **Reading order.** Output is serialised through `tetrak_ocr.layout`, a
   recursive XY-cut that reads each column and band to its foot before
   starting the next, and rejoins words a line break hyphenated. On the
