@@ -71,7 +71,7 @@ tools/.image-cache/
 
 # Cached OCR spans for the layout experiments -- regenerable by
 # tools/dump_layout_spans.py, and specific to the weights that produced them.
-evaluation/layout/spans/
+evaluation/layout/spans*/
 
 # Review snapshot tarballs: working artefacts, never part of the tree.
 .tetrak-review*.tgz

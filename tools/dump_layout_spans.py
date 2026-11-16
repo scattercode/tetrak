@@ -38,7 +38,9 @@ bundle directory from the trainer (``runs/<run>/bundle``), which carries
 
 ``--wordlist`` decodes with the released word list, as the shipped
 backend does from brief 013 on. The cached spans are then the shipped
-recogniser's output, not greedy decoding's.
+recogniser's output, not greedy decoding's. Repeat it for the two lists
+the backend decodes with since brief 014 (modern and classical): the
+decoder works on their union.
 """
 
 from __future__ import annotations
@@ -75,17 +77,18 @@ def build_reader(bundle: Path):
 DECODER = "greedy"
 
 
-def use_wordlist(reader, wordlist: Path) -> None:
-    """Decode with ``tetrak_hy.lexicon`` and *wordlist*, as the shipped backend does.
+def use_wordlist(reader, *wordlists: Path) -> None:
+    """Decode with ``tetrak_hy.lexicon`` and *wordlists*, as the shipped backend does.
 
     The cached text is then what ``easyocr-hy`` emits when its library
     has released a word list (brief 013), so the register table's own row
-    measures the shipped decoder rather than greedy decoding.
+    measures the shipped decoder rather than greedy decoding. Several
+    lists are the union the decoder works on (brief 014).
     """
     global DECODER
     from tetrak_hy import lexicon
 
-    lexicon.use_lexicon(reader, lexicon.load_wordlist(wordlist))
+    lexicon.use_lexicon(reader, lexicon.load_wordlists(*wordlists))
     DECODER = "beamsearch"
 
 
@@ -145,8 +148,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--wordlist",
         type=Path,
+        action="append",
         default=None,
-        help="decode with tetrak_hy.lexicon and this word list (wordlist.tsv.gz)",
+        help="decode with tetrak_hy.lexicon and this word list (wordlist.tsv.gz); "
+        "repeat for the modern and classical lists",
     )
     args = parser.parse_args(argv)
 
@@ -164,7 +169,7 @@ def main(argv: list[str] | None = None) -> int:
 
     reader = build_reader(args.bundle)
     if args.wordlist:
-        use_wordlist(reader, args.wordlist)
+        use_wordlist(reader, *args.wordlist)
     for eval_dir in sets:
         print(f"=== {eval_dir.name} ===", flush=True)
         pages, spans = dump_set(reader, eval_dir, args.out)

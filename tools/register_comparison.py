@@ -65,6 +65,9 @@ from tetrak_ocr.accuracy import character_similarity, word_recall  # noqa: E402
 from tetrak_ocr.layout import TextSpan, to_text  # noqa: E402
 
 OURS = "tetrak-hy v6 (ours)"
+# The label of our own row, set from --ours-label when a candidate model's
+# spans are scored beside the released one's.
+ours = OURS
 
 # Reading names for the evaluation-set directories. They live here rather
 # than in the site so the CSV carries its own labels and the table has no
@@ -78,6 +81,18 @@ REGISTER_LABELS = {
     "otyan-works": "Otyan, Works",
     "totovents-works": "Totovents, Works",
     "tumanyan-elzh5": "Tumanyan (academic edition)",
+    # Brief 014's classical-orthography registers, and the one that is not
+    # from Wikisource.
+    "abovyan-vol1": "Abovyan, Works vol. 1",
+    "aghbalyan-criticism": "Aghbalyan, Criticism",
+    "aram-manukyan-documents": "Aram Manukyan, Documents",
+    "baronian-azgayin-jojer": "Baronian, Azgayin jojer",
+    "haykakan-tpagrutyun": "Armenian printing (Teodik)",
+    "kajaznuni-azg-ew-hayrenik": "Kajaznuni, Azg ew hayrenik",
+    "khatisian-memoirs": "Khatisian, Memoirs",
+    "khrimian-works": "Khrimian, Works",
+    "toranian-erkirner-ew-marder": "Toranian, Erkirner ew marder",
+    "mshak": "Mshak (newspaper, 1870s)",
 }
 
 
@@ -95,6 +110,8 @@ def our_scores(spans_file: Path, eval_dir: Path) -> tuple[float, float, frozense
     # ``accuracy.normalise`` began scoring the two as the same character.)
     # Imported here rather than at module level so the rest of the tool, and
     # its tests, run without the ``armenian`` extra installed, as CI does.
+    # Every region is folded with the whole page as context, as the backend
+    # does since brief 014 (tetrak-easyocr-armenian 0.9).
     from tetrak_hy import fold_script
 
     payload = json.loads(spans_file.read_text(encoding="utf-8"))
@@ -104,9 +121,11 @@ def our_scores(spans_file: Path, eval_dir: Path) -> tuple[float, float, frozense
         if not truth_file.exists():
             continue
         truth = truth_file.read_text(encoding="utf-8")
+        context = "\n".join(item["text"] for item in items)
         spans = [
             TextSpan(
-                text=fold_script(item["text"]), bbox=tuple(item["bbox"]) if item["bbox"] else None
+                text=fold_script(item["text"], context=context),
+                bbox=tuple(item["bbox"]) if item["bbox"] else None,
             )
             for item in items
         ]
@@ -165,6 +184,7 @@ def emit_csv(
     pages: dict[str, dict[str, frozenset[str]]],
     *,
     allow_shrink: bool = False,
+    ours: str = OURS,
 ) -> list[str]:
     """Write the cross-engine table, restricted to engines measured everywhere.
 
@@ -228,10 +248,10 @@ def emit_csv(
     everywhere = complete
     # Ours first, then the externals alphabetically: the column the reader
     # is comparing against belongs beside the register name.
-    engines = ([OURS] if OURS in everywhere else []) + [e for e in everywhere if e != OURS]
+    engines = ([ours] if ours in everywhere else []) + [e for e in everywhere if e != ours]
 
     # Ordered by our own word recall, the ordering the published tables use.
-    ordered = sorted(scored, key=lambda item: item[1].get(OURS, (0.0, 0.0))[1], reverse=True)
+    ordered = sorted(scored, key=lambda item: item[1].get(ours, (0.0, 0.0))[1], reverse=True)
 
     header = ["register", "label"]
     for engine in engines:
@@ -277,7 +297,14 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="permit --emit to write fewer registers than the existing CSV holds",
     )
+    parser.add_argument(
+        "--ours-label",
+        default=OURS,
+        help="the name of our own row, e.g. 'tetrak-hy v7 (ours)' for a candidate's spans",
+    )
     args = parser.parse_args(argv)
+    global ours
+    ours = args.ours_label
 
     scored: list[tuple[str, dict[str, tuple[float, float]]]] = []
     pages: dict[str, dict[str, frozenset[str]]] = {}
@@ -291,10 +318,10 @@ def main(argv: list[str] | None = None) -> int:
         measured = _scores_with_pages(eval_dir)
         rows = {name: (chr_, wrd) for name, (chr_, wrd, _) in measured.items()}
         covered = {name: page_set for name, (_, _, page_set) in measured.items()}
-        ours = our_scores(spans_file, eval_dir)
-        if ours:
-            rows[OURS] = (ours[0], ours[1])
-            covered[OURS] = ours[2]
+        our = our_scores(spans_file, eval_dir)
+        if our:
+            rows[ours] = (our[0], our[1])
+            covered[ours] = our[2]
         if not rows:
             continue
         scored.append((register, rows))
@@ -306,7 +333,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"\n=== {register} ===")
         print(f"{'engine':<26}{'chr':>9}{'wrd':>9}")
         for name, (chr_score, wrd_score) in ordered:
-            marker = "  <-" if name == OURS else ""
+            marker = "  <-" if name == ours else ""
             print(f"{name:<26}{chr_score:>9.4f}{wrd_score:>9.4f}{marker}")
 
         for metric, position in (("chr", 0), ("wrd", 1)):
@@ -324,7 +351,7 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     if args.emit and scored:
-        kept = emit_csv(args.emit, scored, pages, allow_shrink=args.allow_shrink)
+        kept = emit_csv(args.emit, scored, pages, allow_shrink=args.allow_shrink, ours=ours)
         dropped = sorted({e for _, rows in scored for e in rows} - set(kept))
         if dropped:
             print(f"not measured on every register, so omitted: {', '.join(dropped)}")
