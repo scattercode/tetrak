@@ -66,7 +66,7 @@ easyocr = ["easyocr>=1.7"]
 # depends on easyocr itself, so this extra pulls that in too. 0.8 ships the
 # v6 weights and the word list the backend decodes with (brief 013); the
 # backend falls back to greedy decoding on older releases.
-armenian = ["tetrak-easyocr-armenian>=0.11"]
+armenian = ["tetrak-easyocr-armenian>=0.12"]
 paddle = ["paddleocr>=3.0", "paddlepaddle>=3.0"]
 # PaddleOCR-VL, the document vision-language model in the same package.
 # The class lives in paddleocr, but the pipeline it builds needs paddlex's

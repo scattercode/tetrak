@@ -26,8 +26,8 @@ recall and costs one function call. Since the recogniser learnt Cyrillic
 Latin or Cyrillic, it belongs to; a token made only of glyphs the two
 share (`роог` for `poor`) is decided by the text around it, so each
 region is folded with the whole page as `context`. That needs
-`tetrak-easyocr-armenian` 0.9 or later; the extra pins 0.11, the release
-with the three-way script decision.
+`tetrak-easyocr-armenian` 0.9 or later; the extra pins 0.12, the release
+that ships the v7 weights with both word lists.
 
 **The word list.** Where the installed `tetrak-easyocr-armenian` has
 released one, `tetrak_hy.lexicon` corrects out-of-vocabulary words from
