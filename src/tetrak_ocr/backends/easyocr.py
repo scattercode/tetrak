@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ..imaging import open_image, reject_multi_page
+from ..imaging import detector_input, reject_multi_page
 from ..layout import TextSpan, Transcript, polygon_extent
 
 try:
@@ -61,7 +61,11 @@ def ocr_image(path: Path) -> str:
     with a newline between each recognised region.
 
     TIFF files are converted to PNG in memory before processing because
-    EasyOCR can have trouble reading multi-strip TIFF files directly.
+    EasyOCR can have trouble reading multi-strip TIFF files directly. A
+    faint page, a grey photograph whose ink is nowhere near black, is
+    stretched to full contrast before detection
+    (:func:`tetrak_ocr.imaging.lift_faint_ink`); any other page reaches the
+    detector unchanged.
 
     Args:
         path: Path to the image file.
@@ -90,15 +94,9 @@ def ocr_image(path: Path) -> str:
     # return page one as though it were the document. See tetrak_ocr.imaging.
     reject_multi_page(path, "easyocr")
 
-    # Convert TIFF to PNG bytes in memory for reliable loading.
-    if path.suffix.lower() in {".tif", ".tiff"}:
-        import io
-
-        buf = io.BytesIO()
-        open_image(path).convert("RGB").save(buf, format="PNG")
-        image_input = buf.getvalue()
-    else:
-        image_input = str(path)
+    # The path as it is, or PNG bytes for a TIFF (converted for reliable
+    # loading) and for a faint page (stretched to full contrast first).
+    image_input = detector_input(path)
 
     reader = _get_reader()
     results = reader.readtext(image_input, detail=1, paragraph=False)

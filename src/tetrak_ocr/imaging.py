@@ -33,13 +33,14 @@ from the corpus; sillybos's defaults are the same numbers.
 
 from __future__ import annotations
 
+import io
 import tempfile
 from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
 import sillybos
-from PIL import Image
+from PIL import Image, ImageOps
 from sillybos.pillow import pillow_formats
 
 from .errors import InputRefusedError, MultiPageNotSupportedError
@@ -66,6 +67,21 @@ temporary disk a run takes rather than its memory."""
 PDF_RENDER_DPI = 200
 """The resolution poppler renders at: pdf2image's default, used everywhere."""
 
+
+FAINT_INK_LEVEL = 45
+"""A page is faint when even its darkest thousandth of pixels is lighter
+than this grey level (0 is black). Measured on 16 November 2026 over the
+central three quarters of each page: the pages a contrast stretch helps sit
+at 50 or above (a grey photograph of a Soviet edition at 81 to 91, two
+encyclopedias at 64 to 134, an 1870s newspaper at 50 to 58), every other
+evaluation page at 3 or below, and the darkest print in the corpus's
+posters and magazine covers at 40 or below. A page of black ink on toned
+paper is not faint by this rule, on purpose: stretching one such register
+cost it a little word recall."""
+
+MIN_INK_SPAN = 30
+"""...and only when that darkest thousandth is at least this far below the
+paper, so a blank leaf photographed in grey is not stretched into noise."""
 
 RASTER_FORMATS = frozenset({"jpeg", "png", "tiff"})
 """What :func:`open_image` accepts: the formats Pillow is allowed to read. A
@@ -110,6 +126,67 @@ def open_image(path: Path) -> Image.Image:
     policy = _policy(RASTER_FORMATS)
     _require(path, RASTER_FORMATS)
     return Image.open(path, formats=pillow_formats(policy))
+
+
+def _level_below(histogram: list[int], share: float) -> int:
+    """The grey level at or below which *share* of the pixels lie."""
+    budget = sum(histogram) * share
+    seen = 0
+    for level, count in enumerate(histogram):
+        seen += count
+        if seen >= budget:
+            return level
+    return 255
+
+
+def lift_faint_ink(image: Image.Image) -> Image.Image | None:
+    """Stretch a faint page to full contrast; ``None`` for any other page.
+
+    A book photographed rather than scanned can arrive with its ink only
+    sixty or seventy grey levels below the paper. The text detector then
+    breaks words apart and drops letters, and no recogniser behind it can
+    put them back: on ten such pages the stretch alone raised word recall
+    from 0.794 to 0.830, and it never changed a pixel of a page that was
+    already black on white.
+
+    The page is judged on its central three quarters, so a dark binding or
+    a black scanner bed at the edge cannot pass for ink. It is faint when
+    the darkest thousandth of that region is lighter than
+    :data:`FAINT_INK_LEVEL` and at least :data:`MIN_INK_SPAN` below the
+    paper (the level six tenths of the pixels lie under). A faint page is
+    returned in greyscale with one per cent clipped at each end
+    (``ImageOps.autocontrast(cutoff=1)``), which is the operation that was
+    measured.
+    """
+    grey = image.convert("L")
+    width, height = grey.size
+    centre = grey.crop(
+        (round(width * 0.12), round(height * 0.12), round(width * 0.88), round(height * 0.88))
+    )
+    histogram = centre.histogram()
+    ink = _level_below(histogram, 0.001)
+    paper = _level_below(histogram, 0.6)
+    if ink <= FAINT_INK_LEVEL or paper - ink < MIN_INK_SPAN:
+        return None
+    return ImageOps.autocontrast(grey, cutoff=1)
+
+
+def detector_input(path: Path) -> str | bytes:
+    """What an EasyOCR reader is handed for the scan at *path*.
+
+    The file's own path where the reader can take it as it is, so that an
+    ordinary page reaches the detector exactly as it always has. PNG bytes
+    in two cases: a TIFF, because EasyOCR can have trouble with multi-strip
+    TIFFs, and a faint page, stretched by :func:`lift_faint_ink`.
+    """
+    path = Path(path)
+    image = open_image(path)
+    lifted = lift_faint_ink(image)
+    if lifted is None and path.suffix.lower() not in {".tif", ".tiff"}:
+        return str(path)
+    buffer = io.BytesIO()
+    (lifted if lifted is not None else image.convert("RGB")).save(buffer, format="PNG")
+    return buffer.getvalue()
 
 
 def check_pdf(path: Path) -> int:

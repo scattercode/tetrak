@@ -117,10 +117,12 @@ Since v7, `easyocr-hy` leads both means, and leads word recall on eleven
 of the seventeen registers. The other six go to Calfa's `hye-paddle`, and
 five of them are classical:
 
-- **Abovyan's collected works and Khatisian's memoirs:** the two classical
-  registers v7 reads worst, and `hye-paddle` is well ahead on both, by
-  0.12 and 0.10 of word recall. These are the registers to study before
-  the next run.
+- **Khatisian's memoirs and Abovyan's collected works:** `hye-paddle` is
+  well ahead on both, by 0.10 and 0.08 of word recall. Khatisian is set in
+  a heavy cursive italic the recogniser has seen little of; Abovyan is a
+  faint grey photograph, and was 0.04 further behind before the pipeline
+  began stretching such pages (below). These are the registers to study
+  before the next run.
 - **Aghbalyan's criticism, Aram Manukyan's documents and Baronian's
   *Azgayin jojer*:** `hye-paddle` ahead by between 0.006 and 0.02, within
   the run-to-run noise on the last two.
@@ -148,8 +150,21 @@ Calfa's two models are the strongest of the others. Both are CC BY-NC
 2.0, and its word list is CC BY-SA 4.0, as the sources it is counted from
 require.
 
-Three steps sit between the raw recogniser and those figures, and none is
+Four steps sit between the raw recogniser and those figures, and none is
 retraining:
+
+- **A faint page is stretched first.** A book photographed in grey can
+  arrive with its ink sixty or seventy grey levels below the paper, and
+  the detector then breaks words apart and drops letters that no
+  recogniser can put back. A page whose darkest thousandth of pixels is
+  lighter than grey level 45 is stretched to full contrast before
+  detection. That rule looks at the ink and not the paper, because a
+  register of black ink on toned paper read a little worse stretched. It
+  fires on three of the seventeen registers: Abovyan gains 0.04 of word
+  recall, the encyclopedia gains a little on both measures, and the
+  medical encyclopedia gains a little word recall for a little character
+  similarity. Every other page reaches the detector untouched. The stock
+  `easyocr` backend applies the same rule.
 
 - **Two word lists.** The recognition head has no language model. A word
   whose reading is in neither list, one built from the reformed-orthography
