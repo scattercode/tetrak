@@ -4826,11 +4826,11 @@ wheels = [
 
 [[package]]
 name = "sillybos"
-version = "6.0.2"
+version = "6.0.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e4/97/a49c5ab7feccd54d3cd92bafa8bdd2ff43d3a1122b72ce8dae906f3d063e/sillybos-6.0.2.tar.gz", hash = "sha256:ec6ccfe857d19784464c965d1a36bdf9e1ad10b1caca96e70bab3c12367667ef", size = 674488, upload-time = "2026-11-17T12:03:29.595Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/28/df/b4895191ab625e825d40821670fe6f59cc9d4286741486a7debd3f6c1c47/sillybos-6.0.3.tar.gz", hash = "sha256:f64d15ba9bfa350b95cd93c841ac091ae2f63efb7f479ac90570e344a8254779", size = 675531, upload-time = "2026-11-17T13:37:30.341Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/19/79/6b6d1ac526bb4cbf2be9b8c16408f86834c7d360c617004781b136a7a6b7/sillybos-6.0.2-py3-none-any.whl", hash = "sha256:c1e673ea008943d678f3b21f10ffdbbb4d6335e9c5146ea41a783964ac62ba1f", size = 49302, upload-time = "2026-11-17T12:03:27.969Z" },
+    { url = "https://files.pythonhosted.org/packages/06/cc/05c888ed4958f0a58498792dd569344a61e0372eecae61ce8dc25d4e6a41/sillybos-6.0.3-py3-none-any.whl", hash = "sha256:1c3e1183017704addf601b66b58d77530a17b49af551ffac8f658e62ec26d08d", size = 49565, upload-time = "2026-11-17T13:37:29.11Z" },
 ]
 
 [[package]]
