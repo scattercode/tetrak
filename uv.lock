@@ -5251,7 +5251,7 @@ requires-dist = [
     { name = "python-pptx", marker = "extra == 'docs'", specifier = ">=0.6" },
     { name = "reportlab", specifier = ">=4.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.5" },
-    { name = "sillybos", specifier = ">=6.0.2,<7" },
+    { name = "sillybos", specifier = ">=6.0.3,<7" },
     { name = "sphinx", marker = "extra == 'apidocs'", specifier = ">=8.0" },
     { name = "sphinx-argparse", marker = "extra == 'apidocs'", specifier = ">=0.6.1" },
     { name = "tetrak-easyocr-armenian", marker = "extra == 'armenian'", specifier = ">=0.12" },
