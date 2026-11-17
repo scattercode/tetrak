@@ -166,6 +166,38 @@ class TestPdf:
             open_image(path)
 
 
+class TestTagData:
+    def test_a_tiff_whose_tags_all_claim_the_same_bytes_is_refused(self, tmp_path: Path) -> None:
+        """sillybos 6 refuses tags that claim more data than the file holds; the reason reaches triage."""
+        import struct
+
+        # One greyscale pixel and a hundred private tags that each claim nearly
+        # the whole file. A decoder reads every tag's value into memory, so a
+        # file of a few kilobytes costs it megabytes (CVE-2026-128066).
+        image = [
+            (256, 3, 1, 1),  # ImageWidth
+            (257, 3, 1, 1),  # ImageLength
+            (258, 3, 1, 8),  # BitsPerSample
+            (259, 3, 1, 1),  # Compression: none
+            (262, 3, 1, 1),  # PhotometricInterpretation: black is zero
+            (273, 4, 1, 0),  # StripOffsets: the pixel is a header byte
+            (278, 3, 1, 1),  # RowsPerStrip
+            (279, 4, 1, 1),  # StripByteCounts
+        ]
+        claims = 100
+        size = 8 + 2 + 12 * (len(image) + claims) + 4
+        entries = image + [(40000 + k, 1, size - 8, 8) for k in range(claims)]
+        ifd = struct.pack("<H", len(entries))
+        for tag, kind, count, value in entries:
+            ifd += struct.pack("<HHII", tag, kind, count, value)
+        ifd += struct.pack("<I", 0)
+        path = tmp_path / "overlapping.tif"
+        path.write_bytes(b"II*\x00" + struct.pack("<I", 8) + ifd)
+
+        with pytest.raises(InputRefusedError, match="tags claim more data than it holds"):
+            open_image(path)
+
+
 class TestPageSize:
     def test_pillows_one_dpi_for_no_resolution_is_not_believed(self) -> None:
         image = page()
