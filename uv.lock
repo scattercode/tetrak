@@ -4826,11 +4826,11 @@ wheels = [
 
 [[package]]
 name = "sillybos"
-version = "6.0.1"
+version = "6.0.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d1/20/4ca33faac6fc1cb6201ee0ab1991a6c623176de6e7b50e5f61470ef4a7f7/sillybos-6.0.1.tar.gz", hash = "sha256:c27f74bff8981037865e636fc09ba74b01cf9149c729918b56b0e771dc3d6b4a", size = 672830, upload-time = "2026-11-17T09:34:38.553Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/28/df/b4895191ab625e825d40821670fe6f59cc9d4286741486a7debd3f6c1c47/sillybos-6.0.3.tar.gz", hash = "sha256:f64d15ba9bfa350b95cd93c841ac091ae2f63efb7f479ac90570e344a8254779", size = 675531, upload-time = "2026-11-17T13:37:30.341Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/59/22/273c3759af98a91c8b804bdedb7abcad4076db2991a359a1f4f2aa0cb5a9/sillybos-6.0.1-py3-none-any.whl", hash = "sha256:3318dc30033bf21e83ae89977dc52d211d4bb55cb15d7e3017ec92ed786c95d7", size = 48665, upload-time = "2026-11-17T09:34:37.029Z" },
+    { url = "https://files.pythonhosted.org/packages/06/cc/05c888ed4958f0a58498792dd569344a61e0372eecae61ce8dc25d4e6a41/sillybos-6.0.3-py3-none-any.whl", hash = "sha256:1c3e1183017704addf601b66b58d77530a17b49af551ffac8f658e62ec26d08d", size = 49565, upload-time = "2026-11-17T13:37:29.11Z" },
 ]
 
 [[package]]
@@ -5251,7 +5251,7 @@ requires-dist = [
     { name = "python-pptx", marker = "extra == 'docs'", specifier = ">=0.6" },
     { name = "reportlab", specifier = ">=4.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.5" },
-    { name = "sillybos", specifier = ">=6,<7" },
+    { name = "sillybos", specifier = ">=6.0.3,<7" },
     { name = "sphinx", marker = "extra == 'apidocs'", specifier = ">=8.0" },
     { name = "sphinx-argparse", marker = "extra == 'apidocs'", specifier = ">=0.6.1" },
     { name = "tetrak-easyocr-armenian", marker = "extra == 'armenian'", specifier = ">=0.12" },
