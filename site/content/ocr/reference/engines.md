@@ -105,7 +105,7 @@ comparison are in the
 
 {{< registers view="summary" >}}
 
-The row labelled `tetrak-hy v7 (ours)` is `easyocr-hy` as it ships: the
+The row labelled `tetrak-hy v8 (ours)` is `easyocr-hy` as it ships: the
 recogniser, its two word lists, the script fold and the layout below. The
 table names the recogniser rather than the backend, because the harness
 that emits it scores models. Stock EasyOCR is absent because it was only
@@ -113,21 +113,23 @@ ever run on the encyclopedia pages (the 0.03 above); the table admits only
 engines measured on every register — the rule that keeps a column's mean
 over the same pages as the column beside it.
 
-Since v7, `easyocr-hy` leads both means, and leads word recall on eleven
-of the seventeen registers. The other six go to Calfa's `hye-paddle`, and
-five of them are classical:
+Since v7, `easyocr-hy` leads both means. With v8, which is v7 fine-tuned
+on crops from three books set in italics, it leads word recall on twelve
+of the seventeen registers and is level with Calfa's `hye-paddle` on a
+thirteenth, Aram Manukyan's documents. The other four go to `hye-paddle`:
 
-- **Khatisian's memoirs and Abovyan's collected works:** `hye-paddle` is
-  well ahead on both, by 0.10 and 0.08 of word recall. Khatisian is set in
-  a heavy cursive italic the recogniser has seen little of; Abovyan is a
-  faint grey photograph, and was 0.04 further behind before the pipeline
-  began stretching such pages (below). These are the registers to study
-  before the next run.
-- **Aghbalyan's criticism, Aram Manukyan's documents and Baronian's
-  *Azgayin jojer*:** `hye-paddle` ahead by between 0.006 and 0.02, within
-  the run-to-run noise on the last two.
+- **Abovyan's collected works:** `hye-paddle` is well ahead, by 0.05 of
+  word recall. The evaluation pages are Grabar verse set in a light
+  italic and photographed faint, some of them out of focus. The gap was
+  0.12 before the pipeline began stretching such pages (below) and before
+  v8. This is the register to study before the next run.
+- **Khatisian's memoirs:** set from cover to cover in a heavy cursive
+  italic. v7 had seen little of it and was 0.10 behind; v8 was trained on
+  crops from the rest of the book and is 0.02 behind.
+- **Aghbalyan's criticism:** `hye-paddle` ahead by 0.02.
 - **Faustus of Byzantium:** the index and notes are set in a bold italic
-  whose digits the recogniser confuses, and `hye-paddle` reads it better.
+  whose digits the recogniser confuses, and `hye-paddle` reads it a
+  little better.
 - **The medical encyclopedia, on character similarity:** EasyOCR's
   detector draws no box around the en dash its index prints between each
   term and its page number, so no recogniser behind it can read one.
@@ -137,12 +139,14 @@ recall because the metric is order-sensitive: on the dictionary and the
 encyclopedias its stock detector reads multi-column pages partly straight
 across, and the characters are right in the wrong order.
 
-v7 also reads the Russian that Soviet editions quote in their apparatus:
-61 of the 81 Russian words on the Tumanyan pages, where v6, with no
-Cyrillic in its charset, read none. On five of the eight registers v6 was
-measured on it is a little behind v6 by word recall, by 0.003 to 0.018; the
-trade was made knowingly for the classical registers, where it gains
-between 0.04 and 0.10.
+The recogniser also reads the Russian that Soviet editions quote in their
+apparatus. v8 reads 53 of the 81 Russian words on the Tumanyan pages,
+where v7 read 61 and v6, with no Cyrillic in its charset, read none: the
+italic crops v8 was fine-tuned on carry almost no Russian, and the
+fine-tune cost eight words. On three of the eight registers v6 was
+measured on, v8 is still a little behind v6 by word recall, by 0.003 to
+0.008, where v7 was behind on five; the trade was made knowingly for the
+classical registers.
 
 Calfa's two models are the strongest of the others. Both are CC BY-NC
 4.0, so Tetrak can measure them but cannot ship or bundle either.

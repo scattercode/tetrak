@@ -5254,7 +5254,7 @@ requires-dist = [
     { name = "sillybos", specifier = ">=6.0.3,<7" },
     { name = "sphinx", marker = "extra == 'apidocs'", specifier = ">=8.0" },
     { name = "sphinx-argparse", marker = "extra == 'apidocs'", specifier = ">=0.6.1" },
-    { name = "tetrak-easyocr-armenian", marker = "extra == 'armenian'", specifier = ">=0.12" },
+    { name = "tetrak-easyocr-armenian", marker = "extra == 'armenian'", specifier = ">=0.13" },
     { name = "torch", marker = "extra == 'all'", specifier = ">=2.0" },
     { name = "torch", marker = "extra == 'ocr'", specifier = ">=2.0" },
     { name = "torch", marker = "extra == 'qa'", specifier = ">=2.0" },
@@ -5266,15 +5266,15 @@ provides-extras = ["all", "apidocs", "armenian", "claude", "dev", "docs", "easyo
 
 [[package]]
 name = "tetrak-easyocr-armenian"
-version = "0.12.0"
+version = "0.13.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "easyocr" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/70/ab/26350e707f16b9df9cab234231e940db5e5afd3b0a2955978820091430ff/tetrak_easyocr_armenian-0.12.0.tar.gz", hash = "sha256:da72ba56035ca08ddf79a6c4f5d03b423dc4c64d9ac649f24a4fb9a62d6b7813", size = 170478, upload-time = "2026-11-16T14:01:53.693Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0b/c1/5caac07972e196552bdce9c39b6896a22717ebd69a7aab0438b62336e95b/tetrak_easyocr_armenian-0.13.0.tar.gz", hash = "sha256:61e6337137817ae7f698271c2ed05cbe0062ab1887da87fb8fc21276fa8af4ce", size = 170845, upload-time = "2026-11-18T12:04:43.908Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f6/34/c7e922cffd29a31d66055fc321b7323914ece6575be109fc9cff44f1a35f/tetrak_easyocr_armenian-0.12.0-py3-none-any.whl", hash = "sha256:880746de1c1e507aafc3f185b911b63dee87ecde4d598210ba2fe4f13e9569f8", size = 29689, upload-time = "2026-11-16T14:01:52.246Z" },
+    { url = "https://files.pythonhosted.org/packages/33/8d/868ff5086b356ee643979f9b0bf613dd5bd9a5e55700ce4865dd276f369a/tetrak_easyocr_armenian-0.13.0-py3-none-any.whl", hash = "sha256:716edc6cd52fb0340fea330918b2f42177ddae6e759c9b3e5f34f5941671f1e9", size = 29908, upload-time = "2026-11-18T12:04:42.607Z" },
 ]
 
 [[package]]
