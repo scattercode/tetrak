@@ -65,8 +65,9 @@ easyocr = ["easyocr>=1.7"]
 # The project's own Armenian recogniser, as an EasyOCR custom network. It
 # depends on easyocr itself, so this extra pulls that in too. 0.8 ships the
 # v6 weights and the word list the backend decodes with (brief 013); the
-# backend falls back to greedy decoding on older releases.
-armenian = ["tetrak-easyocr-armenian>=0.12"]
+# backend falls back to greedy decoding on older releases. 0.13 ships v8,
+# v7 fine-tuned on books set in italics (brief 023).
+armenian = ["tetrak-easyocr-armenian>=0.13"]
 # 3.7 is the first release whose PaddleX registers the PP-OCRv6 recognisers
 # that custom models such as Calfa's paddle-calfa-tiny are exported as; an
 # older paddleocr fails at construction with "`PP-OCRv6_tiny_rec` is not
