@@ -1,0 +1,19 @@
+{{- /*
+  The one-sentence description of a page, returned so that a caller can write
+  {{ $d := partial "description.html" . }}.
+
+  Three places publish it -- the meta description, the share card and the
+  structured data -- and they have to say the same thing: a search result that
+  describes a page one way and a link preview that describes it another reads
+  as two different pages.
+
+  `description` wins where a page has one. Otherwise the standfirst is the
+  sentence a page already writes to say what it is, so an article with one
+  does not need a second copy in `description`. Falling straight through to
+  the site description put the same paragraph about OCR routing under every
+  search result.
+*/ -}}
+{{- $description := .Site.Params.description }}
+{{- with .Params.standfirst }}{{ $description = . }}{{ end }}
+{{- with .Description }}{{ $description = . }}{{ end }}
+{{- return $description }}

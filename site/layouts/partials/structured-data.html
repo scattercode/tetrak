@@ -1,0 +1,115 @@
+{{- /*
+  schema.org structured data, as JSON-LD: what a page is, said in the form a
+  search engine reads rather than infers.
+
+  Three kinds of page get a block, and the rest get none. A block that only
+  repeated the title and the description would say nothing the <head> has not
+  already said.
+
+  - The home page says who publishes the site: an Organization, and the
+    WebSite it publishes.
+  - An article is a TechArticle: dated, signed, and published by that
+    organisation. The author comes from the same register as the byline
+    (partials/author.html), so the name a search engine reads is the name on
+    the page.
+  - A product page is a SoftwareSourceCode: a named package, its repository
+    and its licence, from the `software` map in its front matter.
+
+  None of this earns a rich result. Search engines draw those for recipes and
+  reviews, not for libraries. It is here so that the four packages, the
+  articles and the name "Tetrak" are tied to one another by statement rather
+  than by guesswork.
+
+  Each block is built as a dict and written by jsonify, never assembled as a
+  string: jsonify escapes whatever a title or a standfirst contains, including
+  the "</script>" that would otherwise end the block early.
+*/ -}}
+{{- $home := site.Home.Permalink }}
+{{- $description := partial "description.html" . }}
+{{- $locale := site.Language.Locale | default "en-gb" }}
+
+{{- /* The organisation is named once and referred to by @id everywhere else,
+       so an article does not carry a second, thinner copy of it. */ -}}
+{{- $orgID := printf "%s#organisation" $home }}
+{{- $orgRef := dict "@type" "Organization" "@id" $orgID "name" site.Title "url" $home }}
+
+{{- $schema := dict }}
+
+{{- if .IsHome }}
+  {{- $org := merge $orgRef (dict "description" site.Params.description) }}
+  {{- /* Only the profiles that are Tetrak's and nothing else's. The GitHub
+         organisation in params.org holds other projects as well, so it is not
+         "the same as" Tetrak in the sense sameAs means. */ -}}
+  {{- with site.Params.profiles }}
+    {{- $org = merge $org (dict "sameAs" .) }}
+  {{- end }}
+  {{- $website := dict
+        "@type" "WebSite"
+        "@id" (printf "%s#website" $home)
+        "name" site.Title
+        "url" $home
+        "description" $description
+        "inLanguage" $locale
+        "publisher" (dict "@id" $orgID) }}
+  {{- $schema = dict "@context" "https://schema.org" "@graph" (slice $org $website) }}
+
+{{- else if and .IsPage (eq .Section "articles") }}
+  {{- $author := partial "author.html" . }}
+  {{- $person := dict "@type" "Person" "name" $author.name }}
+  {{- /* The LinkedIn profile is the one address that is this author's alone.
+         The about page holds both of us, and two people sharing a URL is two
+         people a search engine may merge. */ -}}
+  {{- with $author.linkedin }}
+    {{- $person = merge $person (dict "sameAs" (printf "https://www.linkedin.com/in/%s/" .)) }}
+  {{- end }}
+  {{- $card := partial "share-card.html" . }}
+  {{- $schema = dict
+        "@context" "https://schema.org"
+        "@type" "TechArticle"
+        "headline" .Title
+        "description" $description
+        "url" .Permalink
+        "mainEntityOfPage" .Permalink
+        "inLanguage" $locale
+        "datePublished" (.Date.Format "2006-01-02")
+        "author" $person
+        "publisher" $orgRef
+        "image" $card.Permalink }}
+  {{- /* The same guard, for the same reason, as article:modified_time in
+         partials/social.html. */ -}}
+  {{- if gt (.Lastmod.Format "2006-01-02") (.Date.Format "2006-01-02") }}
+    {{- $schema = merge $schema (dict "dateModified" (.Lastmod.Format "2006-01-02")) }}
+  {{- end }}
+  {{- with .Params.tags }}
+    {{- $schema = merge $schema (dict "keywords" (delimit . ", ")) }}
+  {{- end }}
+
+{{- else if isset .Params "software" }}
+  {{- /* Every key is required. A package with no repository or no licence is
+         not something to describe to a search engine by halves, and the build
+         failing here is how a fifth product page finds out what it owes. The
+         guards are chained so that one defect gives one message. */ -}}
+  {{- $software := .Params.software }}
+  {{- $missing := "" }}
+  {{- range slice "name" "repository" "licence" "language" }}
+    {{- if and (not $missing) (not (index $software .)) }}{{ $missing = . }}{{ end }}
+  {{- end }}
+  {{- if $missing }}
+    {{- errorf "structured-data: %q has a `software` map with no `%s` -- it needs name, repository, licence (an SPDX identifier) and language" .File.Path $missing }}
+  {{- else }}
+    {{- $schema = dict
+          "@context" "https://schema.org"
+          "@type" "SoftwareSourceCode"
+          "name" $software.name
+          "description" $description
+          "url" .Permalink
+          "codeRepository" $software.repository
+          "programmingLanguage" $software.language
+          "license" (printf "https://spdx.org/licenses/%s" $software.licence)
+          "publisher" $orgRef }}
+  {{- end }}
+{{- end }}
+
+{{- with $schema }}
+  <script type="application/ld+json">{{ . | jsonify | safeJS }}</script>
+{{- end }}

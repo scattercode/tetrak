@@ -1,4 +1,4 @@
-import { expect, test, type APIRequestContext } from "@playwright/test";
+import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -936,4 +936,136 @@ test("the reading-order table agrees with the CSV it is generated from", async (
       await expect(marked.nth(n)).toHaveText(best);
     }
   }
+});
+
+/** The JSON-LD blocks in a page's head, parsed. */
+async function structuredData(page: Page): Promise<Record<string, any>[]> {
+  const blocks = await page.locator('head script[type="application/ld+json"]').allTextContents();
+  return blocks.map((block) => JSON.parse(block));
+}
+
+test("every page carries a share card, and the image it names is in the build", async ({ page, request, baseURL }) => {
+  // A link to this site is mostly passed on by hand -- a post, a message, an
+  // email -- and until November 2026 it arrived as a bare URL: the head had
+  // no Open Graph tags at all. Nothing on the site looks wrong when they are
+  // missing, which is why this asks every page.
+  const pages = await allPages(request, baseURL!);
+  test.setTimeout(Math.max(90_000, pages.length * 2_000));
+
+  const meta = (property: string) =>
+    page.locator(`head meta[property="${property}"]`).getAttribute("content");
+
+  const lacking: string[] = [];
+  const images = new Set<string>();
+
+  for (const url of pages) {
+    await page.goto(url, { waitUntil: "domcontentloaded" });
+    const path = new URL(url).pathname;
+
+    for (const property of ["og:title", "og:description", "og:url", "og:image", "og:image:alt"]) {
+      if (!(await meta(property))?.trim()) lacking.push(`${path} has no ${property}`);
+    }
+
+    // The card and the search result describe the page in the same words.
+    const description = await page.locator('head meta[name="description"]').getAttribute("content");
+    if ((await meta("og:description")) !== description) {
+      lacking.push(`${path} describes itself one way to search and another when shared`);
+    }
+
+    const image = await meta("og:image");
+    if (image) images.add(image);
+  }
+
+  expect(lacking, lacking.join("\n")).toHaveLength(0);
+
+  // An og:image that 404s is a broken image in every timeline the link
+  // reaches. Scrapers want an absolute URL and do not all read WebP.
+  expect(images.size, "no page named a share image").toBeGreaterThan(0);
+  for (const image of images) {
+    expect(image, "og:image must be absolute").toMatch(/^https?:\/\//);
+    const response = await request.get(image);
+    expect(response.status(), `${image} is not in the build`).toBe(200);
+    expect(response.headers()["content-type"]).toMatch(/^image\/(png|jpeg)/);
+  }
+});
+
+test("a tag page is shared as what it is, not as a bare tag", async ({ page }) => {
+  // The same correction term.html makes to the h1 and the browser tab: a card
+  // titled "ocr" tells the person it is sent to nothing. The two wordings live
+  // in different templates, so this is what holds them together.
+  await page.goto("articles/");
+  await page.locator(".article-row .tag").first().click();
+
+  const heading = (await page.locator("main h1").textContent())!.trim();
+  await expect(page.locator('head meta[property="og:title"]')).toHaveAttribute("content", heading);
+});
+
+test("an article's structured data says what the page says", async ({ page }) => {
+  // The block is for a machine, and nobody reads it, so it can go on naming
+  // the wrong author or the wrong day for as long as the page looks right.
+  // Checked against what a reader sees rather than against the front matter.
+  await page.goto("articles/");
+  await page.locator(".article-row__title a").first().click();
+
+  const [article] = await structuredData(page);
+  expect(article["@type"]).toBe("TechArticle");
+  expect(article.headline).toBe((await page.locator("main h1").textContent())!.trim());
+  expect(article.datePublished).toBe(await page.locator(".article-meta time").getAttribute("datetime"));
+  expect(article.author.name).toBe((await page.locator(".article-author__name").textContent())!.trim());
+  expect(article.publisher.name).toBe("Tetrak");
+
+  // Shared as an article, with the same date.
+  await expect(page.locator('head meta[property="og:type"]')).toHaveAttribute("content", "article");
+  await expect(page.locator('head meta[property="article:published_time"]'))
+    .toHaveAttribute("content", article.datePublished);
+});
+
+test("each product page names its package, its repository and its licence", async ({ page }) => {
+  // The four pages the home page's tiles lead to. A fifth product needs a
+  // `software` map in its front matter, and this is where forgetting it shows.
+  await page.goto("./");
+  const products = await page.locator(".grid.cards li > p:first-child a").evaluateAll(
+    as => as.map(a => (a as HTMLAnchorElement).href)
+  );
+  expect(products).toHaveLength(4);
+
+  for (const url of products) {
+    await page.goto(url);
+    const [software] = await structuredData(page);
+    expect(software?.["@type"], `${url} has no software block`).toBe("SoftwareSourceCode");
+    expect(software.name).toBeTruthy();
+    expect(software.license).toMatch(/^https:\/\/spdx\.org\/licenses\/[A-Za-z0-9.-]+$/);
+
+    // The repository is typed into front matter, a second copy of a link the
+    // page already carries. It has to be one a reader can follow from here.
+    await expect(
+      page.locator(`a[href^="${software.codeRepository}"]`).first(),
+      `${url} names ${software.codeRepository} but does not link to it`
+    ).toBeAttached();
+  }
+});
+
+test("the home page says who publishes the site", async ({ page }) => {
+  await page.goto("./");
+  const [data] = await structuredData(page);
+  const types = data["@graph"].map((node: Record<string, any>) => node["@type"]);
+  expect(types).toEqual(["Organization", "WebSite"]);
+
+  const [organisation, website] = data["@graph"];
+  expect(organisation.name).toBe("Tetrak");
+  expect(website.publisher["@id"]).toBe(organisation["@id"]);
+});
+
+test("robots.txt points crawlers at a sitemap that exists", async ({ request, baseURL }) => {
+  // Hugo's built-in robots.txt is one line and names no sitemap, so a crawler
+  // that nobody has told about the site has no way to find the page list.
+  const robots = await (await request.get(new URL("robots.txt", baseURL!).href)).text();
+  expect(robots).toMatch(/^User-agent: \*$/m);
+  // Nothing is off limits: an empty Disallow, and no other.
+  expect(robots.match(/^Disallow:.*$/gm)).toEqual(["Disallow:"]);
+
+  const sitemap = robots.match(/^Sitemap: (\S+)$/m)?.[1];
+  expect(sitemap, "robots.txt names no sitemap").toBeTruthy();
+  expect(sitemap).toMatch(/^https?:\/\//);
+  expect((await request.get(sitemap!)).status()).toBe(200);
 });

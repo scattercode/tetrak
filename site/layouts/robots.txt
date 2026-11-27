@@ -1,0 +1,16 @@
+{{- /*
+  Hugo's built-in robots.txt is a single "User-agent: *" line. That allows
+  everything, which is what the site wants, but it leaves out the one thing a
+  crawler reads this file to find: where the sitemap is. A crawler that has
+  never been told about the site in a webmaster console has no other way to
+  learn it.
+
+  The empty Disallow is the standard way to say "nothing is off limits". The
+  first version of the protocol requires at least one rule per group.
+
+  No leading slash on the path: see "the baseURL trap" in the design skill.
+*/ -}}
+User-agent: *
+Disallow:
+
+Sitemap: {{ "sitemap.xml" | absURL }}
