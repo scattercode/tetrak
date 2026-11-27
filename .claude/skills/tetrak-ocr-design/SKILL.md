@@ -341,6 +341,31 @@ or a preview deploy served from a subdirectory — would reopen the trap.
 `site/tests/site.spec.ts` follows every internal link on every page and checks the
 masthead stays under the baseURL path.
 
+## Share cards and structured data
+
+`baseof.html` publishes three things about a page besides its title, and all
+three read the same sentence from `partials/description.html`: `description`
+where the page has one, else the standfirst, else the site description.
+
+- `partials/social.html` writes the Open Graph tags. Twitter gets only
+  `twitter:card`; it falls back to the `og:` tags for the rest.
+- `partials/share-card.html` returns the one share image,
+  `assets/images/design/share-card.png`. It is drawn by
+  `node scripts/render-share-card.mjs` from the design tokens and the home
+  page's standfirst, and committed. Re-run the script after changing that
+  standfirst. It is a PNG at a fixed, unfingerprinted address on purpose.
+- `partials/structured-data.html` writes JSON-LD on three kinds of page: the
+  home page (Organization and WebSite), an article (TechArticle, with the
+  author from `data/authors.toml`) and a product page (SoftwareSourceCode).
+
+**A product page needs a `software` map in its front matter**: `name`,
+`repository`, `licence` (an SPDX identifier such as `MIT` or `Apache-2.0`) and
+`language`. A missing key fails the build. `params.profiles` in `hugo.toml`
+lists the profiles published as the organisation's `sameAs`.
+
+`layouts/robots.txt` replaces Hugo's one-line default so that it names the
+sitemap.
+
 ## No mkdocs markup
 
 The site was migrated from mkdocs-material. Its extensions are **not** available

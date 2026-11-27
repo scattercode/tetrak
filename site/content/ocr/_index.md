@@ -3,6 +3,11 @@ title: "Tetrak OCR"
 kicker: "Open source"
 standfirst: "Turns scans of unruly archive material into searchable text, on your own machine, choosing the best engine for each file and setting aside what it cannot read."
 description: "Tetrak OCR: a local-first tool that runs several OCR engines over scans of archival material, keeps the best transcript of each file, and sends what it cannot trust to a person."
+software:
+  name: "tetrak"
+  repository: "https://github.com/scattercode/tetrak"
+  licence: "MIT"
+  language: "Python"
 ---
 
 Historical archives do not arrive as tidy, uniform PDFs. A real collection is a

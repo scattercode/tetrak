@@ -3,6 +3,11 @@ title: "Transliteration and cross-script search"
 kicker: "Open source"
 standfirst: "A small library that tells you which script a text is in, writes it in Latin letters by a named library standard, and reduces every spelling of a name to one form, so that one search finds them all."
 description: "tetrak-translit: open-source detection, transliteration and search folding for Armenian, Georgian, Russian and Syriac, with ALA-LC, ISO and national romanisation schemes. MIT licensed."
+software:
+  name: "tetrak-translit"
+  repository: "https://github.com/scattercode/tetrak-translit"
+  licence: "MIT"
+  language: "Python"
 ---
 
 ## What it is for

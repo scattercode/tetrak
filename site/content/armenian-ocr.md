@@ -3,6 +3,11 @@ title: "Armenian text recognition"
 kicker: "Open source"
 standfirst: "A recogniser we trained ourselves for printed Armenian, published as a small library that adds the language to EasyOCR, with the model, the word list and the training data in the open."
 description: "tetrak-easyocr-armenian: an open-source Armenian OCR model for EasyOCR, trained on proofread Armenian texts, reading Eastern and Western Armenian in either orthography. Weights on Hugging Face, Apache 2.0."
+software:
+  name: "tetrak-easyocr-armenian"
+  repository: "https://github.com/scattercode/tetrak-easyocr-armenian"
+  licence: "Apache-2.0"
+  language: "Python"
 ---
 
 ## What it is for

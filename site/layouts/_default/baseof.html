@@ -14,11 +14,9 @@
          term.html is the case that forced it: a tag page's .Title is the tag,
          and a browser tab reading "ocr" says nothing about what is in it. */ -}}
   <title>{{ block "title" . }}{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} · {{ .Site.Title }}{{ end }}{{ end }}</title>
-  {{- /* The standfirst is the sentence a page already writes to say what it is,
-         so an article with one does not need a second copy in `description`.
-         Falling straight through to the site description put the same
-         paragraph about OCR routing under every result. */ -}}
-  <meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ with .Params.standfirst }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}{{ end }}">
+  {{- /* Resolved in a partial because the share card and the structured data
+         publish the same sentence, and the three must not drift apart. */ -}}
+  <meta name="description" content="{{ partial "description.html" . }}">
 
   {{- /* The theme is read and applied before first paint, so a reader who
          chose dark never sees a flash of the paper ground. Inline and tiny by
@@ -61,6 +59,11 @@
   {{- else }}
     {{- errorf "baseof: no page at /articles -- the feed link cannot be built" }}
   {{- end }}
+
+  {{- /* How the page looks when its link is shared, and what it is in the
+         terms a search engine reads. Each partial says why it is there. */ -}}
+  {{- partial "social.html" . }}
+  {{- partial "structured-data.html" . }}
 
   {{- /* Plausible, matching scattercode.dev and velostevie: no cookies, no
          consent banner, and both requests same-origin. The src is the

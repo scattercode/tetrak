@@ -1,0 +1,23 @@
+{{- /*
+  The site's share card, returned as an image resource so that a caller can
+  write {{ $card := partial "share-card.html" . }} and read .Permalink, .Width
+  and .Height from it.
+
+  One card for every page. It is drawn by scripts/render-share-card.mjs from
+  the design tokens and the home page's standfirst, and committed; see that
+  script for why neither illustration in assets/images/design/ could do the
+  job.
+
+  Not fingerprinted, unlike the stylesheet and the script. A link preview is
+  fetched once by somebody else's server and kept, so the address has to stay
+  where it was when the link was shared.
+
+  A missing file fails the build, the same bargain the figure and lightbox
+  shortcodes make: a share card that 404s shows as a broken image in every
+  timeline the link reaches, and nothing on the site itself would look wrong.
+*/ -}}
+{{- $card := resources.Get "images/design/share-card.png" }}
+{{- if not $card }}
+  {{- errorf "share-card: assets/images/design/share-card.png is missing -- run node scripts/render-share-card.mjs" }}
+{{- end }}
+{{- return $card }}

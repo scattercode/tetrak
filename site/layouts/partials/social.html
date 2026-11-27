@@ -1,0 +1,63 @@
+{{- /*
+  What a link to this page looks like when it is shared: the Open Graph tags
+  that Mastodon, Bluesky, LinkedIn, Slack and most chat clients read to draw a
+  preview card.
+
+  The site had none until November 2026, so a shared article arrived as a bare
+  URL -- for a site whose readers mostly come by somebody passing a link on.
+
+  The title is the page's own, without the " · Tetrak" suffix the browser tab
+  carries: og:site_name says whose page it is, and a card that repeats the
+  name in the title wastes the line. A tag page is the exception baseof.html
+  and term.html already make. Its .Title is the bare tag, and a card titled
+  "ocr" says as little as a tab reading "ocr" did. The wording here has to
+  stay in step with the h1 in layouts/term.html.
+
+  Twitter gets one tag. It falls back to og:title, og:description and og:image
+  for everything else, and a second copy of each would be three more places
+  for the card to disagree with itself.
+*/ -}}
+{{- $description := partial "description.html" . }}
+{{- $card := partial "share-card.html" . }}
+
+{{- $title := .Title }}
+{{- if .IsHome }}
+  {{- $title = site.Title }}
+{{- else if eq .Kind "term" }}
+  {{- $title = printf "Tagged %s" .Title }}
+{{- end }}
+
+{{- /* Only an article is an "article" to Open Graph: dated, signed and
+       tagged. A product page or a reference page is a page of a website. */ -}}
+{{- $isArticle := and .IsPage (eq .Section "articles") }}
+
+  <meta property="og:site_name" content="{{ site.Title }}">
+  <meta property="og:locale" content="en_GB">
+  <meta property="og:type" content="{{ if $isArticle }}article{{ else }}website{{ end }}">
+  <meta property="og:title" content="{{ $title }}">
+  <meta property="og:description" content="{{ $description }}">
+  <meta property="og:url" content="{{ .Permalink }}">
+  <meta property="og:image" content="{{ $card.Permalink }}">
+  <meta property="og:image:type" content="{{ $card.MediaType.Type }}">
+  <meta property="og:image:width" content="{{ $card.Width }}">
+  <meta property="og:image:height" content="{{ $card.Height }}">
+  {{- /* The card is the site's name over the home page's standfirst, so that
+         sentence is what it says to a reader who cannot see it. */ -}}
+  {{- with site.Home.Params.standfirst }}
+  <meta property="og:image:alt" content="{{ . }}">
+  {{- end }}
+  {{- if $isArticle }}
+  <meta property="article:published_time" content="{{ .Date.Format "2006-01-02" }}">
+    {{- /* .Lastmod is the file's last commit (enableGitInfo). An article is
+           often committed before the date it carries, and a page modified
+           before it was published is a claim nobody should have to parse.
+           Compared as days, because .Date is midnight and a commit made later
+           on publication day would otherwise count as a revision. */ -}}
+    {{- if gt (.Lastmod.Format "2006-01-02") (.Date.Format "2006-01-02") }}
+  <meta property="article:modified_time" content="{{ .Lastmod.Format "2006-01-02" }}">
+    {{- end }}
+    {{- range .Params.tags }}
+  <meta property="article:tag" content="{{ . }}">
+    {{- end }}
+  {{- end }}
+  <meta name="twitter:card" content="summary_large_image">

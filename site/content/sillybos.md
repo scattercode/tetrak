@@ -3,6 +3,11 @@ title: "sillybos"
 kicker: "Open source"
 standfirst: "A small library that decides, before any image library or PDF renderer opens a file, whether it is one of the formats you meant to read, within the limits you expect, and if not, why. Read the tag; don't unroll the scroll."
 description: "sillybos: a dependency-free Python library and command that checks a JPEG, PNG, TIFF or PDF before any decoder opens it: format from the first bytes, header limits, rare codings refused, a plain reason for each refusal. MIT licensed."
+software:
+  name: "sillybos"
+  repository: "https://github.com/scattercode/sillybos"
+  licence: "MIT"
+  language: "Python"
 ---
 
 ## What it is for
